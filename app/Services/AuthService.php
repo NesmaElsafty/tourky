@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -23,16 +22,17 @@ class AuthService
         return compact('user', 'token');
     }
 
-    public function login(array $credentials, string $type): array
+    /**
+     * @return array{user: User, token: string}|null
+     */
+    public function login(array $credentials, string $type): ?array
     {
         $user = User::where('phone', $credentials['phone'])
             ->where('type', $type)
             ->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'phone' => ['The provided credentials are incorrect.'],
-            ]);
+            return null;
         }
 
         $token = $user->createToken($this->tokenName($type))->plainTextToken;

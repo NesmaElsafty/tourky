@@ -16,7 +16,9 @@ class CaptainUserSeeder extends Seeder
         User::create([
             'name' => 'Captain User',
             'phone' => '01000000002',
-            'password' => Hash::make('password'),
+            'email' => 'captain@tourky.local',
+            'password' => Hash::make('123456'),
+            'language' => 'en',
             'type' => 'captain',
         ]);
 

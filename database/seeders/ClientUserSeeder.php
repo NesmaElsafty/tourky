@@ -16,7 +16,9 @@ class ClientUserSeeder extends Seeder
         User::create([
             'name' => 'Client User',
             'phone' => '01000000003',
-            'password' => Hash::make('password'),
+            'email' => 'client@tourky.local',
+            'password' => Hash::make('123456'),
+            'language' => 'ar',
             'type' => 'client',
         ]);
 

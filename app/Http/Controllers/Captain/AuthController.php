@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Captain;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Captain\CaptainUserResource;
 use App\Services\AuthService;
+use App\Support\ApiLocale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +16,7 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse
     {
+        try {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone,NULL,id,type,captain'],
@@ -23,15 +25,26 @@ class AuthController extends Controller
 
         $result = $this->authService->register($data, 'captain');
 
+        ApiLocale::applyFromUserLanguage($result['user']);
+
         return response()->json([
-            'message' => 'Captain registered successfully.',
+            'message' => __('api.captain.registered'),
             'user' => new CaptainUserResource($result['user']),
             'token' => $result['token'],
         ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => __('api.captain.registration_failed'),
+                'error' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
     }
 
     public function login(Request $request): JsonResponse
     {
+        ApiLocale::apply(ApiLocale::fromRequest($request));
+
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -39,8 +52,16 @@ class AuthController extends Controller
 
         $result = $this->authService->login($credentials, 'captain');
 
+        if ($result === null) {
+            return response()->json([
+                'message' => __('api.auth.wrong_credentials'),
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        ApiLocale::applyFromUserLanguage($result['user']);
+
         return response()->json([
-            'message' => 'Captain logged in successfully.',
+            'message' => __('api.captain.logged_in'),
             'user' => new CaptainUserResource($result['user']),
             'token' => $result['token'],
         ]);
@@ -48,11 +69,19 @@ class AuthController extends Controller
 
     public function profile(Request $request): CaptainUserResource
     {
-        return new CaptainUserResource($this->authService->profile($request));
+        try {
+            return new CaptainUserResource($this->authService->profile($request));
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => __('api.captain.profile_failed'),
+                'error' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 
     public function updateProfile(Request $request): CaptainUserResource
     {
+        try {
         $data = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'phone' => ['sometimes', 'required', 'string', 'max:20', 'unique:users,phone,'.$request->user()->id.',id,type,captain'],
@@ -60,14 +89,27 @@ class AuthController extends Controller
         ]);
 
         return new CaptainUserResource($this->authService->updateProfile($request, $data));
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => __('api.captain.update_profile_failed'),
+                'error' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 
     public function logout(Request $request): JsonResponse
     {
+        try {
         $this->authService->logout($request);
 
         return response()->json([
-            'message' => 'Captain logged out successfully.',
-        ]);
+                'message' => __('api.captain.logged_out'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => __('api.captain.logout_failed'),
+                'error' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 }

@@ -1,0 +1,43 @@
+<?php
+
+return [
+    'auth' => [
+        'wrong_credentials' => 'Wrong credentials.',
+    ],
+
+    'role' => [
+        'unauthorized_admin' => 'Unauthorized for admin role.',
+        'unauthorized_captain' => 'Unauthorized for captain role.',
+        'unauthorized_client' => 'Unauthorized for client role.',
+    ],
+
+    'admin' => [
+        'registered' => 'Admin registered successfully.',
+        'logged_in' => 'Admin logged in successfully.',
+        'logged_out' => 'Admin logged out successfully.',
+    ],
+
+    'captain' => [
+        'registered' => 'Captain registered successfully.',
+        'registration_failed' => 'Captain registration failed.',
+        'logged_in' => 'Captain logged in successfully.',
+        'login_failed' => 'Captain login failed.',
+        'profile_failed' => 'Captain profile failed.',
+        'update_profile_failed' => 'Captain update profile failed.',
+        'logged_out' => 'Captain logged out successfully.',
+        'logout_failed' => 'Captain logout failed.',
+    ],
+
+    'client' => [
+        'registered' => 'Client registered successfully.',
+        'logged_in' => 'Client logged in successfully.',
+        'logged_out' => 'Client logged out successfully.',
+    ],
+
+    'media' => [
+        'avatar_uploaded' => 'Avatar uploaded.',
+        'avatar_removed' => 'Avatar removed.',
+        'file_uploaded' => 'File uploaded.',
+        'file_deleted' => 'File deleted.',
+    ],
+];

@@ -1,0 +1,280 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-tourky-portals",
+		"name": "Tourky — Admin / Captain / Client APIs",
+		"description": "Sanctum auth for three prefixed portals (`/api/admin`, `/api/captain`, `/api/client`).\n\n**Setup:** set `baseUrl` (e.g. `http://127.0.0.1:8000/api`). Run **Login** (or **Register**) for a portal; the request test saves `admin_token`, `captain_token`, or `client_token` for that portal’s protected calls.\n\n**Seeded users** (if you ran seeders): admin `01000000001`, captain `01000000002`, client `01000000003`, password `password`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://127.0.0.1:8000/api" },
+		{ "key": "admin_token", "value": "" },
+		{ "key": "captain_token", "value": "" },
+		{ "key": "client_token", "value": "" }
+	],
+	"item": [
+		{
+			"name": "Admin portal",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const j = pm.response.json();",
+									"    if (j.token) pm.collectionVariables.set('admin_token', j.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Admin\",\n  \"phone\": \"01009990001\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}"
+						},
+						"url": "{{baseUrl}}/admin/register"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', () => pm.response.to.have.status(200));",
+									"const j = pm.response.json();",
+									"pm.test('Has token', () => pm.expect(j.token).to.be.a('string'));",
+									"if (j.token) pm.collectionVariables.set('admin_token', j.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"01000000001\",\n  \"password\": \"password\"\n}"
+						},
+						"url": "{{baseUrl}}/admin/login"
+					}
+				},
+				{
+					"name": "Profile (GET)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/admin/profile"
+					}
+				},
+				{
+					"name": "Profile (PUT)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Admin Updated\"\n}"
+						},
+						"url": "{{baseUrl}}/admin/profile"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+						"method": "POST",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/admin/logout"
+					}
+				}
+			]
+		},
+		{
+			"name": "Captain portal",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const j = pm.response.json();",
+									"    if (j.token) pm.collectionVariables.set('captain_token', j.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Captain\",\n  \"phone\": \"01009990002\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}"
+						},
+						"url": "{{baseUrl}}/captain/register"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', () => pm.response.to.have.status(200));",
+									"const j = pm.response.json();",
+									"pm.test('Has token', () => pm.expect(j.token).to.be.a('string'));",
+									"if (j.token) pm.collectionVariables.set('captain_token', j.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"01000000002\",\n  \"password\": \"password\"\n}"
+						},
+						"url": "{{baseUrl}}/captain/login"
+					}
+				},
+				{
+					"name": "Profile (GET)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{captain_token}}", "type": "string" }] },
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/captain/profile"
+					}
+				},
+				{
+					"name": "Profile (PUT)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{captain_token}}", "type": "string" }] },
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Captain Updated\"\n}"
+						},
+						"url": "{{baseUrl}}/captain/profile"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{captain_token}}", "type": "string" }] },
+						"method": "POST",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/captain/logout"
+					}
+				}
+			]
+		},
+		{
+			"name": "Client portal",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const j = pm.response.json();",
+									"    if (j.token) pm.collectionVariables.set('client_token', j.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Client\",\n  \"phone\": \"01009990003\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}"
+						},
+						"url": "{{baseUrl}}/client/register"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', () => pm.response.to.have.status(200));",
+									"const j = pm.response.json();",
+									"pm.test('Has token', () => pm.expect(j.token).to.be.a('string'));",
+									"if (j.token) pm.collectionVariables.set('client_token', j.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"01000000003\",\n  \"password\": \"password\"\n}"
+						},
+						"url": "{{baseUrl}}/client/login"
+					}
+				},
+				{
+					"name": "Profile (GET)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{client_token}}", "type": "string" }] },
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/client/profile"
+					}
+				},
+				{
+					"name": "Profile (PUT)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{client_token}}", "type": "string" }] },
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Client Updated\"\n}"
+						},
+						"url": "{{baseUrl}}/client/profile"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{client_token}}", "type": "string" }] },
+						"method": "POST",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/client/logout"
+					}
+				}
+			]
+		}
+	]
+}

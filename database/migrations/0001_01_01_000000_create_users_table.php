@@ -15,12 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('phone');
+            $table->string('email')->nullable();
             $table->string('password');
+            $table->enum('language', ['en', 'ar'])->default('en');
             $table->enum('type', ['admin', 'captain', 'client'])->default('client');
+            $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
 
             $table->unique(['phone', 'type']);
+            $table->unique(['email', 'type']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

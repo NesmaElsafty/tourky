@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Client\ClientUserResource;
 use App\Services\AuthService;
+use App\Support\ApiLocale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,16 +16,19 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse
     {
-        $data = $request->validate([
+        dd($request->all());
+       $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users,phone,NULL,id,type,client'],
+            'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'email' => ['required', 'email', 'unique:users,email'],
         ]);
-
         $result = $this->authService->register($data, 'client');
 
+        ApiLocale::applyFromUserLanguage($result['user']);
+
         return response()->json([
-            'message' => 'Client registered successfully.',
+            'message' => __('api.client.registered'),
             'user' => new ClientUserResource($result['user']),
             'token' => $result['token'],
         ], Response::HTTP_CREATED);
@@ -32,6 +36,8 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
+        ApiLocale::apply(ApiLocale::fromRequest($request));
+
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -39,8 +45,16 @@ class AuthController extends Controller
 
         $result = $this->authService->login($credentials, 'client');
 
+        if ($result === null) {
+            return response()->json([
+                'message' => __('api.auth.wrong_credentials'),
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        ApiLocale::applyFromUserLanguage($result['user']);
+
         return response()->json([
-            'message' => 'Client logged in successfully.',
+            'message' => __('api.client.logged_in'),
             'user' => new ClientUserResource($result['user']),
             'token' => $result['token'],
         ]);
@@ -67,7 +81,7 @@ class AuthController extends Controller
         $this->authService->logout($request);
 
         return response()->json([
-            'message' => 'Client logged out successfully.',
+            'message' => __('api.client.logged_out'),
         ]);
     }
 }

@@ -15,7 +15,7 @@ class EnsureUserIsAdmin
     {
         if (! $request->user() || $request->user()->type !== 'admin') {
             return response()->json([
-                'message' => 'Unauthorized for admin role.',
+                'message' => __('api.role.unauthorized_admin'),
             ], Response::HTTP_FORBIDDEN);
         }
 

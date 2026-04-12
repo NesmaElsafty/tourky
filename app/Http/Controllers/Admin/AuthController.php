@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\AdminUserResource;
 use App\Services\AuthService;
+use App\Support\ApiLocale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,8 +24,10 @@ class AuthController extends Controller
 
         $result = $this->authService->register($data, 'admin');
 
+        ApiLocale::applyFromUserLanguage($result['user']);
+
         return response()->json([
-            'message' => 'Admin registered successfully.',
+            'message' => __('api.admin.registered'),
             'user' => new AdminUserResource($result['user']),
             'token' => $result['token'],
         ], Response::HTTP_CREATED);
@@ -32,6 +35,8 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
+        ApiLocale::apply(ApiLocale::fromRequest($request));
+
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -39,8 +44,16 @@ class AuthController extends Controller
 
         $result = $this->authService->login($credentials, 'admin');
 
+        if ($result === null) {
+            return response()->json([
+                'message' => __('api.auth.wrong_credentials'),
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        ApiLocale::applyFromUserLanguage($result['user']);
+
         return response()->json([
-            'message' => 'Admin logged in successfully.',
+            'message' => __('api.admin.logged_in'),
             'user' => new AdminUserResource($result['user']),
             'token' => $result['token'],
         ]);
@@ -67,7 +80,7 @@ class AuthController extends Controller
         $this->authService->logout($request);
 
         return response()->json([
-            'message' => 'Admin logged out successfully.',
+            'message' => __('api.admin.logged_out'),
         ]);
     }
 }

@@ -15,7 +15,7 @@ class EnsureUserIsCaptain
     {
         if (! $request->user() || $request->user()->type !== 'captain') {
             return response()->json([
-                'message' => 'Unauthorized for captain role.',
+                'message' => __('api.role.unauthorized_captain'),
             ], Response::HTTP_FORBIDDEN);
         }
 

@@ -15,7 +15,7 @@ class EnsureUserIsClient
     {
         if (! $request->user() || $request->user()->type !== 'client') {
             return response()->json([
-                'message' => 'Unauthorized for client role.',
+                'message' => __('api.role.unauthorized_client'),
             ], Response::HTTP_FORBIDDEN);
         }
 

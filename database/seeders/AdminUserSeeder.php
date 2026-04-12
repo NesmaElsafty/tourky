@@ -16,7 +16,9 @@ class AdminUserSeeder extends Seeder
         User::create([
             'name' => 'Admin User',
             'phone' => '01000000001',
-            'password' => Hash::make('password'),
+            'email' => 'admin@tourky.local',
+            'password' => Hash::make('123456'),
+            'language' => 'en',
             'type' => 'admin',
         ]);
 
