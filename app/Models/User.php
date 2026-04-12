@@ -64,11 +64,24 @@ class User extends Authenticatable implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        if (! self::mediaLibraryImageDriverIsAvailable()) {
+            return;
+        }
+
         $this->addMediaConversion('thumb')
             ->width(200)
             ->height(200)
             ->keepOriginalImageFormat()
             ->performOnCollections('avatar')
             ->nonQueued();
+    }
+
+    private static function mediaLibraryImageDriverIsAvailable(): bool
+    {
+        return match (config('media-library.image_driver', 'gd')) {
+            'imagick' => extension_loaded('imagick'),
+            'vips' => extension_loaded('vips'),
+            default => extension_loaded('gd'),
+        };
     }
 }

@@ -19,6 +19,9 @@ class AdminUserResource extends JsonResource
             'name' => $this->name,
             'phone' => $this->phone,
             'type' => $this->type,
+            'email' => $this->email,
+            'language' => $this->language,
+            'avatar' => $this->getMedia('avatar')->first()?->getUrl(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
