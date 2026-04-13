@@ -16,8 +16,7 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse
     {
-        dd($request->all());
-       $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],

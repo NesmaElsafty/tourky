@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -29,7 +30,16 @@ class User extends Authenticatable implements HasMedia
         'password',
         'language',
         'type',
+        'role_id',
     ];
+
+    /**
+     * @return BelongsTo<Role, $this>
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

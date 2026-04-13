@@ -1,9 +1,23 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsCaptain;
+use App\Http\Middleware\EnsureUserIsClient;
+use App\Http\Middleware\SetLocaleFromAuthenticatedUser;
+use App\Http\Middleware\SetLocaleFromRequestHeader;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+$isApiRequest = static function (Request $request): bool {
+    $path = ltrim($request->getPathInfo(), '/');
+
+    return str_starts_with($path, 'api/') || $path === 'api';
+};
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,19 +26,39 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) use ($isApiRequest): void {
+        $middleware->redirectGuestsTo(function (Request $request) use ($isApiRequest): ?string {
+            if ($isApiRequest($request)) {
+                return null;
+            }
+
+            return Route::has('login')
+                ? route('login')
+                : null;
+        });
+
         $middleware->api(prepend: [
-            \App\Http\Middleware\SetLocaleFromRequestHeader::class,
+            SetLocaleFromRequestHeader::class,
         ]);
 
         $middleware->alias([
             'auth' => Authenticate::class,
-            'locale.user' => \App\Http\Middleware\SetLocaleFromAuthenticatedUser::class,
-            'type.admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
-            'type.captain' => \App\Http\Middleware\EnsureUserIsCaptain::class,
-            'type.client' => \App\Http\Middleware\EnsureUserIsClient::class,
+            'locale.user' => SetLocaleFromAuthenticatedUser::class,
+            'type.admin' => EnsureUserIsAdmin::class,
+            'type.captain' => EnsureUserIsCaptain::class,
+            'type.client' => EnsureUserIsClient::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) use ($isApiRequest): void {
+        $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) use ($isApiRequest): bool {
+            return $isApiRequest($request) || $request->expectsJson();
+        });
+
+        $exceptions->renderable(function (AuthenticationException $e, Request $request) use ($isApiRequest) {
+            if (! $isApiRequest($request)) {
+                return null;
+            }
+
+            return response()->json(['message' => __('api.auth.unauthorized')], 401);
+        });
     })->create();

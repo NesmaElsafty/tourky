@@ -3,6 +3,7 @@
 return [
     'auth' => [
         'wrong_credentials' => 'Wrong credentials.',
+        'unauthorized' => 'Unauthorized.',
     ],
 
     'role' => [
@@ -15,6 +16,17 @@ return [
         'registered' => 'Admin registered successfully.',
         'logged_in' => 'Admin logged in successfully.',
         'logged_out' => 'Admin logged out successfully.',
+        'profile_retrieved' => 'Admin profile retrieved successfully.',
+        'update_profile_success' => 'Admin profile updated successfully.',
+    ],
+
+    'roles' => [
+        'list_retrieved' => 'Roles retrieved successfully.',
+        'created' => 'Role created successfully.',
+        'updated' => 'Role updated successfully.',
+        'retrieved' => 'Role retrieved successfully.',
+        'deleted' => 'Role deleted successfully.',
+        'server_error' => 'Something went wrong. Please try again later.',
     ],
 
     'captain' => [

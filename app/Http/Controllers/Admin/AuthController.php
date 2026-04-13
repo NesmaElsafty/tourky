@@ -60,7 +60,12 @@ class AuthController extends Controller
 
     public function profile(Request $request)
     {
-        return new AdminUserResource($this->authService->profile($request));
+        $user = $this->authService->profile($request);
+
+        return response()->json([
+            'message' => __('api.admin.profile_retrieved'),
+            'user' => new AdminUserResource($user),
+        ]);
     }
 
     public function updateProfile(Request $request)
