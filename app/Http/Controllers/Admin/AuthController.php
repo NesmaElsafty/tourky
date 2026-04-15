@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\AdminUserResource;
 use App\Services\AuthService;
-use App\Support\ApiLocale;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +22,7 @@ class AuthController extends Controller
 
         $result = $this->authService->register($data, 'admin');
 
-        ApiLocale::applyFromUserLanguage($result['user']);
+        $this->applyLocale($request, $result['user']);
 
         return response()->json([
             'message' => __('api.admin.registered'),
@@ -34,7 +33,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        ApiLocale::apply(ApiLocale::fromRequest($request));
+        $this->applyLocale($request);
 
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
@@ -49,7 +48,7 @@ class AuthController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        ApiLocale::applyFromUserLanguage($result['user']);
+        $this->applyLocale($request, $result['user']);
 
         return response()->json([
             'message' => __('api.admin.logged_in'),
@@ -61,6 +60,7 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         $user = $this->authService->profile($request);
+        $this->applyLocale($request, $user);
 
         return response()->json([
             'message' => __('api.admin.profile_retrieved'),
@@ -71,6 +71,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $updatedUser = $this->authService->updateProfile($request);
+        $this->applyLocale($request, $updatedUser);
 
         if ($request->hasFile('image')) {
             $updatedUser->addMedia($request->file('image'))->toMediaCollection('avatar');
@@ -85,10 +86,26 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $this->applyLocale($request, $request->user());
         $this->authService->logout($request);
 
         return response()->json([
             'message' => __('api.admin.logged_out'),
         ]);
+    }
+
+    private function applyLocale(Request $request, $user = null): string
+    {
+        $userLanguage = strtolower((string) ($user?->language ?? ''));
+        if ($userLanguage === 'en' || $userLanguage === 'ar') {
+            app()->setLocale($userLanguage);
+            return $userLanguage;
+        }
+
+        $headerLanguage = strtolower((string) $request->header('lang', ''));
+        $locale = $headerLanguage === 'ar' ? 'ar' : 'en';
+        app()->setLocale($locale);
+
+        return $locale;
     }
 }

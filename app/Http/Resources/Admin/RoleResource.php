@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -10,11 +10,12 @@ class RoleResource extends JsonResource
     public function toArray(Request $request)
     {
         // in case of index, return the name, dec depnended on user language
+        $user = $request->user();
         $case = $request->route()->getName() ?? 'index';
         $name = $this->name_en;
         $description = $this->description_en;
 
-        if ($request->user()->language == 'ar') {
+        if ($user?->language == 'ar') {
             $name = $this->name_ar;
             $description = $this->description_ar;
         }
@@ -34,20 +35,23 @@ class RoleResource extends JsonResource
                     'name' => $name,
                     'description' => $description,
             ];
+            $data['permissions'] = $this->permissions->map(function ($permission) {
+                return [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                    'display_name_en' => $permission->display_name_en,
+                    'display_name_ar' => $permission->display_name_ar,
+                    'description_en' => $permission->description_en,
+                    'description_ar' => $permission->description_ar,
+                    'group_en' => $permission->group_en,
+                    'group_ar' => $permission->group_ar,
+                ];
+            });
+        }else{
+            $data['permissions'] = $this->permissions->pluck('name')->toArray();
         }
         
-        $data['permissions'] = $this->permissions->map(function ($permission) {
-            return [
-                'id' => $permission->id,
-                'name' => $permission->name,
-                'display_name_en' => $permission->display_name_en,
-                'display_name_ar' => $permission->display_name_ar,
-                'description_en' => $permission->description_en,
-                'description_ar' => $permission->description_ar,
-                'group_en' => $permission->group_en,
-                'group_ar' => $permission->group_ar,
-            ];
-        });
+        
         return $data;
     }
 }

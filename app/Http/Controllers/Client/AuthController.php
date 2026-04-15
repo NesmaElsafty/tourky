@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Client\ClientUserResource;
 use App\Services\AuthService;
-use App\Support\ApiLocale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +23,7 @@ class AuthController extends Controller
         ]);
         $result = $this->authService->register($data, 'client');
 
-        ApiLocale::applyFromUserLanguage($result['user']);
+        $this->applyLocale($request, $result['user']);
 
         return response()->json([
             'message' => __('api.client.registered'),
@@ -35,7 +34,7 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
-        ApiLocale::apply(ApiLocale::fromRequest($request));
+        $this->applyLocale($request);
 
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
@@ -50,7 +49,7 @@ class AuthController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        ApiLocale::applyFromUserLanguage($result['user']);
+        $this->applyLocale($request, $result['user']);
 
         return response()->json([
             'message' => __('api.client.logged_in'),
@@ -61,7 +60,10 @@ class AuthController extends Controller
 
     public function profile(Request $request): ClientUserResource
     {
-        return new ClientUserResource($this->authService->profile($request));
+        $user = $this->authService->profile($request);
+        $this->applyLocale($request, $user);
+
+        return new ClientUserResource($user);
     }
 
     public function updateProfile(Request $request): ClientUserResource
@@ -72,15 +74,34 @@ class AuthController extends Controller
             'password' => ['sometimes', 'required', 'string', 'min:6', 'confirmed'],
         ]);
 
-        return new ClientUserResource($this->authService->updateProfile($request, $data));
+        $user = $this->authService->updateProfile($request, $data);
+        $this->applyLocale($request, $user);
+
+        return new ClientUserResource($user);
     }
 
     public function logout(Request $request): JsonResponse
     {
+        $this->applyLocale($request, $request->user());
         $this->authService->logout($request);
 
         return response()->json([
             'message' => __('api.client.logged_out'),
         ]);
+    }
+
+    private function applyLocale(Request $request, $user = null): string
+    {
+        $userLanguage = strtolower((string) ($user?->language ?? ''));
+        if ($userLanguage === 'en' || $userLanguage === 'ar') {
+            app()->setLocale($userLanguage);
+            return $userLanguage;
+        }
+
+        $headerLanguage = strtolower((string) $request->header('lang', ''));
+        $locale = $headerLanguage === 'ar' ? 'ar' : 'en';
+        app()->setLocale($locale);
+
+        return $locale;
     }
 }
