@@ -65,4 +65,34 @@ return [
             'microbus' => 'Microbus',
         ],
     ],
+
+    'routes' => [
+        'list_retrieved' => 'Routes retrieved successfully.',
+        'created' => 'Route created successfully.',
+        'updated' => 'Route updated successfully.',
+        'retrieved' => 'Route retrieved successfully.',
+        'deleted' => 'Route deleted successfully.',
+        'not_found' => 'Route not found or unavailable.',
+        'server_error' => 'Something went wrong. Please try again later.',
+    ],
+
+    'points' => [
+        'list_retrieved' => 'Points retrieved successfully.',
+        'created' => 'Point created successfully.',
+        'updated' => 'Point updated successfully.',
+        'retrieved' => 'Point retrieved successfully.',
+        'deleted' => 'Point deleted successfully.',
+        'not_found' => 'Point not found or unavailable.',
+        'server_error' => 'Something went wrong. Please try again later.',
+    ],
+
+    'times' => [
+        'list_retrieved' => 'Pickup times retrieved successfully.',
+        'created' => 'Pickup time created successfully.',
+        'updated' => 'Pickup time updated successfully.',
+        'retrieved' => 'Pickup time retrieved successfully.',
+        'deleted' => 'Pickup time deleted successfully.',
+        'not_found' => 'Pickup time not found or unavailable.',
+        'server_error' => 'Something went wrong. Please try again later.',
+    ],
 ];
