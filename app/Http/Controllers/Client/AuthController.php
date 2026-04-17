@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Client\ClientUserResource;
+use App\Http\Resources\ClientResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,16 +18,18 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'string', 'min:6'],
             'email' => ['required', 'email', 'unique:users,email'],
         ]);
         $result = $this->authService->register($data, 'client');
-
         $this->applyLocale($request, $result['user']);
+        if ($request->hasFile('image')) {   
+            $result['user']->addMedia($request->file('image'))->toMediaCollection('avatar', 's3');
+        }
 
         return response()->json([
             'message' => __('api.client.registered'),
-            'user' => new ClientUserResource($result['user']),
+            'user' => new ClientResource($result['user']),
             'token' => $result['token'],
         ], Response::HTTP_CREATED);
     }
@@ -53,20 +55,20 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => __('api.client.logged_in'),
-            'user' => new ClientUserResource($result['user']),
+            'user' => new ClientResource($result['user']),
             'token' => $result['token'],
         ]);
     }
 
-    public function profile(Request $request): ClientUserResource
+    public function profile(Request $request): ClientResource
     {
         $user = $this->authService->profile($request);
         $this->applyLocale($request, $user);
 
-        return new ClientUserResource($user);
+        return new ClientResource($user);
     }
 
-    public function updateProfile(Request $request): ClientUserResource
+    public function updateProfile(Request $request): ClientResource
     {
         $data = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
@@ -77,7 +79,7 @@ class AuthController extends Controller
         $user = $this->authService->updateProfile($request, $data);
         $this->applyLocale($request, $user);
 
-        return new ClientUserResource($user);
+        return new ClientResource($user);
     }
 
     public function logout(Request $request): JsonResponse
