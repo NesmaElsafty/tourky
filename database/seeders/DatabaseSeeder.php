@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             CaptainUserSeeder::class,
             ClientUserSeeder::class,
+            CarSeeder::class,
         ]);
     }
 }

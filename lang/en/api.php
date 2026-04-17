@@ -52,4 +52,17 @@ return [
         'file_uploaded' => 'File uploaded.',
         'file_deleted' => 'File deleted.',
     ],
+
+    'cars' => [
+        'list_retrieved' => 'Cars retrieved successfully.',
+        'created' => 'Car created successfully.',
+        'updated' => 'Car updated successfully.',
+        'retrieved' => 'Car retrieved successfully.',
+        'deleted' => 'Car deleted successfully.',
+        'server_error' => 'Something went wrong. Please try again later.',
+        'type_labels' => [
+            'sedan' => 'Sedan',
+            'microbus' => 'Microbus',
+        ],
+    ],
 ];

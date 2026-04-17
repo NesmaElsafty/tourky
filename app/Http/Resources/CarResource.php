@@ -4,24 +4,26 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\RoleResource;
 
-class AdminResource extends JsonResource
+class CarResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
 
+        $type = $this->type;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'phone' => $this->phone,
-            'type' => $this->type,
-            'email' => $this->email,
+            'number_of_seats' => $this->number_of_seats,
+            'type' => $type,
+            'type_label' => $type !== null ? __('api.cars.type_labels.'.$type) : null,
+            'plate_numbers' => $this->plate_numbers,
+            'plate_letters' => $this->plate_letters,
+            'color' => $this->color,
             'language' => $locale,
-            'avatar' => $this->getMedia('avatar')->first()?->getUrl(),
-            'role' => new RoleResource($this->role),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
@@ -29,12 +31,16 @@ class AdminResource extends JsonResource
 
     private function resolveLocale(Request $request): string
     {
-        $userLanguage = strtolower((string) ($this->language ?? ''));
-        if ($userLanguage === 'en' || $userLanguage === 'ar') {
-            return $userLanguage;
+        $user = $request->user();
+        if ($user !== null) {
+            $language = strtolower((string) $user->getAttribute('language'));
+            if ($language === 'en' || $language === 'ar') {
+                return $language;
+            }
         }
 
         $headerLanguage = strtolower((string) $request->header('lang', ''));
+
         return $headerLanguage === 'ar' ? 'ar' : 'en';
     }
 }

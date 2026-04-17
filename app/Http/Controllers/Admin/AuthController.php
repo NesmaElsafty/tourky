@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\AdminResource;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +26,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => __('api.admin.registered'),
-            'user' => new UserResource($result['user']),
+            'user' => new AdminResource($result['user']),
             'token' => $result['token'],
         ], Response::HTTP_CREATED);
     }
@@ -52,7 +52,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => __('api.admin.logged_in'),
-            'user' => new UserResource($result['user']),
+            'user' => new AdminResource($result['user']),
             'token' => $result['token'],
         ]);
     }
@@ -64,7 +64,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => __('api.admin.profile_retrieved'),
-            'user' => new UserResource($user),
+            'user' => new AdminResource($user),
         ]);
     }
 
@@ -80,7 +80,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => __('api.admin.update_profile_success'),
-            'user' => new UserResource($updatedUser),
+            'user' => new AdminResource($updatedUser),
         ], 200);
     }
 
