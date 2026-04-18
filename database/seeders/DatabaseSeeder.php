@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             ReservationSeeder::class,
             TermSeeder::class,
             NotificationSeeder::class,
+            FiredNotificationSeeder::class,
         ]);
     }
 }

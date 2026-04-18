@@ -12,13 +12,14 @@ Route::post('register', [ClientAuthController::class, 'register']);
 Route::post('login', [ClientAuthController::class, 'login']);
 Route::get('routes', [RouteController::class, 'index']);
 Route::get('terms', [ClientTermController::class, 'index']);
-Route::get('notifications', [ClientNotificationController::class, 'index']);
 // Route::get('routes/{route}', [RouteController::class, 'show'])->whereNumber('route');
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->group(function (): void {
     Route::get('profile', [ClientAuthController::class, 'profile']);
     Route::put('profile', [ClientAuthController::class, 'updateProfile']);
     Route::post('logout', [ClientAuthController::class, 'logout']);
+
+    Route::get('notifications', [ClientNotificationController::class, 'index']);
 
     Route::get('reservations', [ClientReservationController::class, 'index']);
     Route::post('reservations', [ClientReservationController::class, 'store']);

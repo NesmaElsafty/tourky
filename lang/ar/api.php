@@ -119,6 +119,18 @@ return [
         'deleted' => 'تم حذف الإشعار بنجاح.',
         'not_found' => 'الإشعار غير موجود أو غير متاح.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
+        'fired_success' => 'تم دفع الإشعار إلى :count مستلمًا.',
+        'fired_by_user_retrieved' => 'تم جلب الإشعارات المدفوعة لكل مستخدم بنجاح.',
+        'inbox_retrieved' => 'تم جلب إشعاراتك بنجاح.',
+        'fire_invalid_users' => 'أحد المستخدمين أو أكثر غير مسموح بهم لهذه الفئة من الإشعار.',
+        'validation_user_ids_array' => 'معرفات المستخدمين يجب أن تكون مصفوفة.',
+        'validation_user_ids_integer' => 'يجب أن يكون كل معرف مستخدم عددًا صحيحًا.',
+        'validation_user_ids_exists' => 'لم يتم العثور على أحد المستخدمين أو أكثر.',
+        'validation_user_type_required' => 'نوع المستخدم مطلوب.',
+        'validation_user_type_invalid' => 'يجب أن يكون نوع المستخدم client أو captain.',
+        'validation_per_page_integer' => 'يجب أن يكون حقل لكل صفحة عددًا صحيحًا.',
+        'validation_per_page_min' => 'يجب ألا يقل حقل لكل صفحة عن 1.',
+        'validation_per_page_max' => 'يجب ألا يزيد حقل لكل صفحة عن 100.',
     ],
 
     'reservations' => [

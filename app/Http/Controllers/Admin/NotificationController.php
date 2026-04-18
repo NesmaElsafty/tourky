@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
+use App\Http\Resources\UserWithFiredNotificationsResource;
 use App\Models\Notification;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -148,6 +149,77 @@ class NotificationController extends Controller
                 'status' => 'success',
                 'message' => __('api.notifications.deleted'),
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.notifications.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function fireNotification(Request $request, Notification $notification)
+    {
+        try {
+            $request->validate([
+                'user_ids' => ['sometimes', 'array'],
+                'user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            ], [
+                'user_ids.array' => __('api.notifications.validation_user_ids_array'),
+                'user_ids.*.integer' => __('api.notifications.validation_user_ids_integer'),
+                'user_ids.*.exists' => __('api.notifications.validation_user_ids_exists'),
+            ]);
+
+            $onlyIds = $request->input('user_ids');
+            $count = $this->notificationService->fireNotification(
+                $notification,
+                is_array($onlyIds) ? $onlyIds : null,
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.notifications.fired_success', ['count' => $count]),
+                'data' => [
+                    'recipient_count' => $count,
+                    'notification' => new NotificationResource($notification),
+                ],
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.notifications.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function firedByUserType(Request $request)
+    {
+        try {
+            $request->validate([
+                'user_type' => ['required', Rule::in(Notification::USER_TYPES)],
+                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            ], [
+                'user_type.required' => __('api.notifications.validation_user_type_required'),
+                'user_type.in' => __('api.notifications.validation_user_type_invalid'),
+            ]);
+
+            $users = $this->notificationService->getUsersWithFiredNotificationsPaginated(
+                $request->string('user_type')->toString(),
+                (int) ($request->per_page ?? 10),
+            );
+            $pagination = PaginationHelper::paginate($users);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.notifications.fired_by_user_retrieved'),
+                'data' => UserWithFiredNotificationsResource::collection($users),
+                'pagination' => $pagination,
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

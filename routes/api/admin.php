@@ -72,6 +72,9 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('notifications/all', [AdminNotificationController::class, 'indexAll']);
 
+    Route::get('notifications/fired/by-user', [AdminNotificationController::class, 'firedByUserType']);
+    Route::post('notifications/{notification}/fire', [AdminNotificationController::class, 'fireNotification'])->whereNumber('notification');
+
     Route::post('notifications', [AdminNotificationController::class, 'store']);
     Route::put('notifications/{notification}', [AdminNotificationController::class, 'update']);
     Route::patch('notifications/{notification}', [AdminNotificationController::class, 'update']);

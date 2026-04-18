@@ -119,6 +119,18 @@ return [
         'deleted' => 'Notification deleted successfully.',
         'not_found' => 'Notification not found or unavailable.',
         'server_error' => 'Something went wrong. Please try again later.',
+        'fired_success' => 'Notification pushed to :count recipient(s).',
+        'fired_by_user_retrieved' => 'Fired notifications by user retrieved successfully.',
+        'inbox_retrieved' => 'Your notifications retrieved successfully.',
+        'fire_invalid_users' => 'One or more users are not allowed for this notification audience.',
+        'validation_user_ids_array' => 'User ids must be an array.',
+        'validation_user_ids_integer' => 'Each user id must be an integer.',
+        'validation_user_ids_exists' => 'One or more users were not found.',
+        'validation_user_type_required' => 'User type is required.',
+        'validation_user_type_invalid' => 'User type must be client or captain.',
+        'validation_per_page_integer' => 'Per page must be an integer.',
+        'validation_per_page_min' => 'Per page must be at least 1.',
+        'validation_per_page_max' => 'Per page may not be greater than 100.',
     ],
 
     'reservations' => [

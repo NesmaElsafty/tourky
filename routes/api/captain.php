@@ -10,10 +10,11 @@ Route::post('register', [CaptainAuthController::class, 'register']);
 Route::post('login', [CaptainAuthController::class, 'login']);
 
 Route::get('terms', [CaptainTermController::class, 'index']);
-Route::get('notifications', [CaptainNotificationController::class, 'index']);
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->group(function (): void {
     Route::get('profile', [CaptainAuthController::class, 'profile']);
     Route::put('profile', [CaptainAuthController::class, 'updateProfile']);
     Route::post('logout', [CaptainAuthController::class, 'logout']);
+
+    Route::get('notifications', [CaptainNotificationController::class, 'index']);
 });
