@@ -3,9 +3,12 @@
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\CaptainController as AdminCaptainController;
 use App\Http\Controllers\Admin\CarController as AdminCarController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PointController as AdminPointController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\RouteController as AdminRouteController;
+use App\Http\Controllers\Admin\TermController as AdminTermController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -17,13 +20,19 @@ Route::get('cars', [AdminCarController::class, 'index']);
 Route::get('cars/{car}', [AdminCarController::class, 'show']);
 
 Route::get('routes', [AdminRouteController::class, 'index']);
-Route::get('routes/{route}', [AdminRouteController::class, 'show'])->whereNumber('route');
+Route::get('routes/{route}', [AdminRouteController::class, 'show']);
 
 Route::get('points', [AdminPointController::class, 'index']);
-Route::get('points/{point}', [AdminPointController::class, 'show'])->whereNumber('point');
+Route::get('points/{point}', [AdminPointController::class, 'show']);
 
 Route::get('times', [AdminTimeController::class, 'index']);
-Route::get('times/{time}', [AdminTimeController::class, 'show'])->whereNumber('time');
+Route::get('times/{time}', [AdminTimeController::class, 'show']);
+
+Route::get('terms', [AdminTermController::class, 'index']);
+Route::get('terms/{term}', [AdminTermController::class, 'show']);
+
+Route::get('notifications', [AdminNotificationController::class, 'index']);
+Route::get('notifications/{notification}', [AdminNotificationController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->group(function (): void {
     Route::get('profile', [AdminAuthController::class, 'profile']);
@@ -42,19 +51,32 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::get('routes/all', [AdminRouteController::class, 'indexAll']);
 
     Route::post('routes', [AdminRouteController::class, 'store']);
-    Route::put('routes/{route}', [AdminRouteController::class, 'update'])->whereNumber('route');
-    Route::patch('routes/{route}', [AdminRouteController::class, 'update'])->whereNumber('route');
-    Route::delete('routes/{route}', [AdminRouteController::class, 'destroy'])->whereNumber('route');
+    Route::put('routes/{route}', [AdminRouteController::class, 'update']);
+    Route::delete('routes/{route}', [AdminRouteController::class, 'destroy']);
 
     Route::post('points', [AdminPointController::class, 'store']);
-    Route::put('points/{point}', [AdminPointController::class, 'update'])->whereNumber('point');
-    Route::patch('points/{point}', [AdminPointController::class, 'update'])->whereNumber('point');
-    Route::delete('points/{point}', [AdminPointController::class, 'destroy'])->whereNumber('point');
+    Route::put('points/{point}', [AdminPointController::class, 'update']);
+    Route::delete('points/{point}', [AdminPointController::class, 'destroy']);
 
     Route::get('times/all', [AdminTimeController::class, 'indexAll']);
 
-    Route::post('times', [AdminTimeController::class, 'store']);
-    Route::put('times/{time}', [AdminTimeController::class, 'update'])->whereNumber('time');
-    Route::patch('times/{time}', [AdminTimeController::class, 'update'])->whereNumber('time');
-    Route::delete('times/{time}', [AdminTimeController::class, 'destroy'])->whereNumber('time');
+    Route::put('times/{time}', [AdminTimeController::class, 'update']);
+    Route::delete('times/{time}', [AdminTimeController::class, 'destroy']);
+
+    Route::get('terms/all', [AdminTermController::class, 'indexAll']);
+
+    Route::post('terms', [AdminTermController::class, 'store']);
+    Route::put('terms/{term}', [AdminTermController::class, 'update']);
+    Route::patch('terms/{term}', [AdminTermController::class, 'update']);
+    Route::delete('terms/{term}', [AdminTermController::class, 'destroy']);
+
+    Route::get('notifications/all', [AdminNotificationController::class, 'indexAll']);
+
+    Route::post('notifications', [AdminNotificationController::class, 'store']);
+    Route::put('notifications/{notification}', [AdminNotificationController::class, 'update']);
+    Route::patch('notifications/{notification}', [AdminNotificationController::class, 'update']);
+    Route::delete('notifications/{notification}', [AdminNotificationController::class, 'destroy']);
+
+    Route::get('reservations', [AdminReservationController::class, 'index']);
+    Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->whereNumber('reservation');
 });

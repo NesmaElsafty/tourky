@@ -26,6 +26,8 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view',
             'clients.view',
             'captains.view',
+            'terms.view',
+            'notifications.view',
         ];
 
         $contentEditorNames = [
@@ -33,6 +35,10 @@ class RolePermissionSeeder extends Seeder
             'media.view',
             'media.manage',
             'reports.view',
+            'terms.view',
+            'terms.manage',
+            'notifications.view',
+            'notifications.manage',
         ];
 
         $financeAnalystNames = [
@@ -54,6 +60,8 @@ class RolePermissionSeeder extends Seeder
             'bookings.view',
             'bookings.manage',
             'media.view',
+            'notifications.view',
+            'notifications.manage',
         ];
 
         $map = [

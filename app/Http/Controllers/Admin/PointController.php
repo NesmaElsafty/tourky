@@ -17,10 +17,10 @@ class PointController extends Controller
     public function index(Request $request)
     {
         try {
-            $points = $this->pointService->getPointsPaginated(
-                (int) ($request->per_page ?? 10),
-                onlyForActiveRoutes: true,
-            );
+            $request->validate([
+                'route_id' => 'required|exists:routes,id',
+            ]);
+            $points = $this->pointService->getPointsPaginated($request->route_id)->paginate(10);
             $pagination = PaginationHelper::paginate($points);
 
             return response()->json([

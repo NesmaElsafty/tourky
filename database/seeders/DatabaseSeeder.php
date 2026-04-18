@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
             ClientUserSeeder::class,
             CarSeeder::class,
             RouteSeeder::class,
+            ReservationSeeder::class,
+            TermSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

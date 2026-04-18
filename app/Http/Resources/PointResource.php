@@ -25,18 +25,18 @@ class PointResource extends JsonResource
             'long' => $this->long,
             'route_id' => $this->route_id,
             'times_count' => $timesCount,
-            'times' => TimeResource::collection($this->whenLoaded('times')),
-            'route' => $this->when(
-                $this->relationLoaded('route'),
-                fn () => [
-                    'id' => $this->route->id,
-                    'name' => $locale === 'ar'
-                        ? ($this->route->name_ar ?? $this->route->name_en)
-                        : ($this->route->name_en ?? $this->route->name_ar),
-                    'name_en' => $this->route->name_en,
-                    'name_ar' => $this->route->name_ar,
-                ]
-            ),
+            'times' => TimeResource::collection(times),
+            // 'route' => $this->when(
+            //     $this->relationLoaded('route'),
+            //     fn () => [
+            //         'id' => $this->route->id,
+            //         'name' => $locale === 'ar'
+            //             ? ($this->route->name_ar ?? $this->route->name_en)
+            //             : ($this->route->name_en ?? $this->route->name_ar),
+            //         'name_en' => $this->route->name_en,
+            //         'name_ar' => $this->route->name_ar,
+            //     ]
+            // ),
             'language' => $locale,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

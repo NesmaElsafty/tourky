@@ -201,6 +201,42 @@ class PermissionSeeder extends Seeder
                 'group_en' => 'reports',
                 'group_ar' => 'التقارير',
             ],
+            [
+                'name' => 'terms.view',
+                'display_name_en' => 'View terms',
+                'display_name_ar' => 'عرض الشروط والأحكام',
+                'description_en' => 'View terms, policies, and FAQs.',
+                'description_ar' => 'عرض الشروط والسياسات والأسئلة الشائعة.',
+                'group_en' => 'terms',
+                'group_ar' => 'الشروط والأحكام',
+            ],
+            [
+                'name' => 'terms.manage',
+                'display_name_en' => 'Manage terms',
+                'display_name_ar' => 'إدارة الشروط والأحكام',
+                'description_en' => 'Create, update, or delete terms and related content.',
+                'description_ar' => 'إنشاء أو تعديل أو حذف الشروط والمحتوى المرتبط.',
+                'group_en' => 'terms',
+                'group_ar' => 'الشروط والأحكام',
+            ],
+            [
+                'name' => 'notifications.view',
+                'display_name_en' => 'View notifications',
+                'display_name_ar' => 'عرض الإشعارات',
+                'description_en' => 'View in-app notification templates and messages.',
+                'description_ar' => 'عرض قوالب الإشعارات والرسائل داخل التطبيق.',
+                'group_en' => 'notifications',
+                'group_ar' => 'الإشعارات',
+            ],
+            [
+                'name' => 'notifications.manage',
+                'display_name_en' => 'Manage notifications',
+                'display_name_ar' => 'إدارة الإشعارات',
+                'description_en' => 'Create, update, or delete notification content.',
+                'description_ar' => 'إنشاء أو تعديل أو حذف محتوى الإشعارات.',
+                'group_en' => 'notifications',
+                'group_ar' => 'الإشعارات',
+            ],
         ];
     }
 
