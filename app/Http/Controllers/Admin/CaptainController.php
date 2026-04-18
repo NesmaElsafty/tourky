@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CaptainResource;
 use App\Services\CaptainService;
 use Illuminate\Http\Request;
-use App\Helpers\PaginationHelper;
+
 class CaptainController extends Controller
 {
     public function __construct(private CaptainService $captainService)
@@ -19,7 +20,7 @@ class CaptainController extends Controller
         try {
             $captains = $this->captainService->getAllCaptains()->paginate($request->per_page ?? 10);
             $pagination = PaginationHelper::paginate($captains);
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captains.list_retrieved'),
@@ -39,6 +40,7 @@ class CaptainController extends Controller
     {
         try {
             $captain = $this->captainService->getCaptainById($id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captains.retrieved'),
@@ -62,6 +64,7 @@ class CaptainController extends Controller
                 'password' => 'required|string|min:6|confirmed',
             ]);
             $captain = $this->captainService->createCaptain($data);
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captains.created'),
@@ -80,10 +83,11 @@ class CaptainController extends Controller
     {
         try {
             $captain = $this->captainService->updateCaptain($request, $id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captains.updated'),
-                'data' => new CaptainResource($updatedCaptain),
+                'data' => new CaptainResource($captain),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -98,6 +102,7 @@ class CaptainController extends Controller
     {
         try {
             $this->captainService->deleteCaptain($id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captains.deleted'),

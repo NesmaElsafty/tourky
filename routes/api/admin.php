@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\RouteController as AdminRouteController;
 use App\Http\Controllers\Admin\TermController as AdminTermController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -82,4 +83,13 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('reservations', [AdminReservationController::class, 'index']);
     Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->whereNumber('reservation');
+
+    Route::get('users/blocklist', [AdminUserController::class, 'blocklist']);
+    Route::post('users/{id}/restore', [AdminUserController::class, 'restore'])->whereNumber('id');
+    Route::get('users', [AdminUserController::class, 'index']);
+    Route::post('users', [AdminUserController::class, 'store']);
+    Route::get('users/{id}', [AdminUserController::class, 'show'])->whereNumber('id');
+    Route::put('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
+    Route::patch('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
+    Route::delete('users/{id}', [AdminUserController::class, 'destroy'])->whereNumber('id');
 });
