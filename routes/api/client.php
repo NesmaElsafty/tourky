@@ -31,5 +31,6 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
     Route::delete('reservations/{reservation}', [ClientReservationController::class, 'destroy']);
 
     Route::get('trips', [ClientTripController::class, 'index']);
+    Route::post('trips/{reservation}/captain-rating', [ClientTripController::class, 'rateCaptain'])->whereNumber('reservation');
     Route::get('trips/{reservation}', [ClientTripController::class, 'show'])->whereNumber('reservation');
 });

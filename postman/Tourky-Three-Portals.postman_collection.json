@@ -9,7 +9,8 @@
 		{ "key": "baseUrl", "value": "http://127.0.0.1:8000/api" },
 		{ "key": "admin_token", "value": "" },
 		{ "key": "captain_token", "value": "" },
-		{ "key": "client_token", "value": "" }
+		{ "key": "client_token", "value": "" },
+		{ "key": "client_reservation_id", "value": "" }
 	],
 	"item": [
 		{
@@ -272,6 +273,47 @@
 						"method": "POST",
 						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
 						"url": "{{baseUrl}}/client/logout"
+					}
+				},
+				{
+					"name": "Trips list (history)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"  const j = pm.response.json();",
+									"  if (j.data && j.data.length && j.data[0].reservation_id) {",
+									"    pm.collectionVariables.set('client_reservation_id', String(j.data[0].reservation_id));",
+									"  }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{client_token}}", "type": "string" }] },
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json", "type": "text" }],
+						"url": "{{baseUrl}}/client/trips?scope=history&per_page=10"
+					}
+				},
+				{
+					"name": "Rate captain (after drop-off)",
+					"request": {
+						"auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{client_token}}", "type": "string" }] },
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" },
+							{ "key": "Accept", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 5,\n  \"feedback\": \"Optional feedback text.\"\n}"
+						},
+						"url": "{{baseUrl}}/client/trips/{{client_reservation_id}}/captain-rating"
 					}
 				}
 			]

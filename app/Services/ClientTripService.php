@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class ClientTripService
 {
@@ -22,6 +23,41 @@ class ClientTripService
         if ($reservation->trip_id === null || $reservation->trip_car_id === null) {
             return null;
         }
+
+        return $reservation->loadMissing($this->assignedTripEagerLoads());
+    }
+
+    /**
+     * Client rates the captain after drop-off (one submission per reservation).
+     *
+     * @return Reservation|null Null if reservation is not this client's assigned trip
+     */
+    public function submitCaptainRating(User $client, Reservation $reservation, int $rating, ?string $feedback): ?Reservation
+    {
+        if ($reservation->user_id !== $client->id) {
+            return null;
+        }
+
+        if ($reservation->trip_id === null || $reservation->trip_car_id === null) {
+            return null;
+        }
+
+        if ($reservation->dropped_off_at === null) {
+            throw ValidationException::withMessages([
+                'rating' => [__('api.trips.captain_rating_requires_dropoff')],
+            ]);
+        }
+
+        if ($reservation->captain_rating !== null) {
+            throw ValidationException::withMessages([
+                'rating' => [__('api.trips.captain_rating_already_submitted')],
+            ]);
+        }
+
+        $reservation->update([
+            'captain_rating' => $rating,
+            'captain_feedback' => $feedback,
+        ]);
 
         return $reservation->loadMissing($this->assignedTripEagerLoads());
     }

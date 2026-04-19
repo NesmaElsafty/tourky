@@ -245,6 +245,14 @@ return [
         'client_detail_retrieved' => 'تم جلب تفاصيل الرحلة بنجاح.',
         'client_validation_scope_required' => 'يرجى اختيار القادمة أو السابقة أو اليوم.',
         'client_validation_scope_invalid' => 'يجب أن تكون القيمة قادمة أو سابقة أو اليوم.',
+        'captain_rating_saved' => 'شكرًا لك. تم حفظ تقييمك.',
+        'captain_rating_requires_dropoff' => 'يمكنك تقييم الكابتن بعد أن تنزل من المركبة.',
+        'captain_rating_already_submitted' => 'سبق أن أرسلت تقييمًا لهذه الرحلة.',
+        'captain_rating_validation_required' => 'التقييم مطلوب.',
+        'captain_rating_validation_integer' => 'يجب أن يكون التقييم رقمًا صحيحًا.',
+        'captain_rating_validation_min' => 'يجب ألا يقل التقييم عن 1.',
+        'captain_rating_validation_max' => 'يجب ألا يزيد التقييم عن 5.',
+        'captain_feedback_validation_max' => 'يجب ألا يتجاوز التعليق 2000 حرفًا.',
     ],
 
     'captain_trips' => [

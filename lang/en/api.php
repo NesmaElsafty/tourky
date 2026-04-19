@@ -245,6 +245,14 @@ return [
         'client_detail_retrieved' => 'Trip details retrieved successfully.',
         'client_validation_scope_required' => 'Please choose upcoming, history, or today.',
         'client_validation_scope_invalid' => 'Scope must be upcoming, history, or today.',
+        'captain_rating_saved' => 'Thank you. Your rating has been saved.',
+        'captain_rating_requires_dropoff' => 'You can rate the captain after you have left the vehicle.',
+        'captain_rating_already_submitted' => 'You have already submitted a rating for this trip.',
+        'captain_rating_validation_required' => 'A rating is required.',
+        'captain_rating_validation_integer' => 'Rating must be a whole number.',
+        'captain_rating_validation_min' => 'Rating must be at least 1.',
+        'captain_rating_validation_max' => 'Rating may not be greater than 5.',
+        'captain_feedback_validation_max' => 'Feedback may not be greater than 2000 characters.',
     ],
 
     'captain_trips' => [

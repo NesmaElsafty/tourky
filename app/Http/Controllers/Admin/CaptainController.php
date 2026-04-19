@@ -5,20 +5,24 @@ namespace App\Http\Controllers\Admin;
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CaptainResource;
+use App\Services\CaptainRatingService;
 use App\Services\CaptainService;
 use Illuminate\Http\Request;
 
 class CaptainController extends Controller
 {
-    public function __construct(private CaptainService $captainService)
-    {
-        $this->captainService = $captainService;
-    }
+    public function __construct(
+        private CaptainService $captainService,
+        private CaptainRatingService $captainRatingService,
+    ) {}
 
     public function index(Request $request)
     {
         try {
             $captains = $this->captainService->getAllCaptains()->paginate($request->per_page ?? 10);
+            $this->captainRatingService->aggregateForCaptainIds(
+                $captains->pluck('id')->map(fn ($id) => (int) $id)->all()
+            );
             $pagination = PaginationHelper::paginate($captains);
 
             return response()->json([
@@ -40,6 +44,7 @@ class CaptainController extends Controller
     {
         try {
             $captain = $this->captainService->getCaptainById($id);
+            $this->captainRatingService->aggregateForCaptainIds([(int) $captain->id]);
 
             return response()->json([
                 'status' => 'success',

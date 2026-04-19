@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Reservation;
+use App\Services\CaptainRatingService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -18,6 +19,7 @@ class ClientTripResource extends JsonResource
     {
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
+
         return [
             'reservation_id' => $this->id,
             'date' => $this->date,
@@ -50,11 +52,17 @@ class ClientTripResource extends JsonResource
                     && $this->tripCar !== null
                     && $this->tripCar->relationLoaded('captain')
                     && $this->tripCar->captain !== null,
-                fn () => [
-                    'id' => $this->tripCar->captain->id,
-                    'name' => $this->tripCar->captain->name,
-                    'phone' => $this->tripCar->captain->phone,
-                ]
+                function () {
+                    $rating = app(CaptainRatingService::class)->aggregateForCaptainId((int) $this->tripCar->captain->id);
+
+                    return [
+                        'id' => $this->tripCar->captain->id,
+                        'name' => $this->tripCar->captain->name,
+                        'phone' => $this->tripCar->captain->phone,
+                        'rating_average' => $rating['average'],
+                        'ratings_count' => $rating['count'],
+                    ];
+                }
             ),
             'car' => $this->when(
                 $this->relationLoaded('tripCar')
@@ -71,6 +79,11 @@ class ClientTripResource extends JsonResource
                     'type' => $this->tripCar->car?->type,
                 ]
             ),
+            'dropped_off_at' => $this->dropped_off_at?->toIso8601String(),
+            'has_left_vehicle' => $this->dropped_off_at !== null,
+            'can_rate_captain' => $this->dropped_off_at !== null && $this->captain_rating === null,
+            'captain_rating' => $this->captain_rating,
+            'captain_feedback' => $this->captain_feedback,
         ];
     }
 
