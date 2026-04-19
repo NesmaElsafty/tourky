@@ -52,6 +52,14 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
+     * @return HasMany<TripCar, $this>
+     */
+    public function tripCarsAsCaptain(): HasMany
+    {
+        return $this->hasMany(TripCar::class, 'captain_id');
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>

@@ -8,13 +8,11 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class ReservationService
 {
-    /**
-     * @return LengthAwarePaginator<int, Reservation>
-     */
     public function getAdminReservationsPaginated(int $perPage = 10): LengthAwarePaginator
     {
         return Reservation::query()
@@ -24,8 +22,29 @@ class ReservationService
     }
 
     /**
-     * @param  'confirmed'|'cancelled'  $status
+     * Pending reservations grouped by `date`, then by `time_id`.
+     *
+     * @return Collection<string, Collection<string, Collection<int, Reservation>>>
      */
+    public function getPendingReservationsGroupedByDateAndTime(): Collection
+    {
+        $reservations = Reservation::query()
+            ->where('status', 'pending')
+            ->with(['user:id,name,phone,email,type', 'route', 'point', 'time'])
+            ->orderBy('date')
+            ->orderBy('time_id')
+            ->orderBy('id')
+            ->get();
+
+        return $reservations
+            ->groupBy(static fn (Reservation $reservation): string => (string) $reservation->date)
+            ->map(
+                static fn (Collection $forDate): Collection => $forDate
+                    ->groupBy(static fn (Reservation $reservation): string => (string) $reservation->time_id)
+                    ->map(static fn (Collection $group): Collection => $group->values())
+            );
+    }
+
     public function updateReservationStatus(Reservation $reservation, string $status): Reservation
     {
         if (! in_array($status, ['confirmed', 'cancelled'], true)) {

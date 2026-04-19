@@ -5,6 +5,7 @@ use App\Http\Controllers\Client\NotificationController as ClientNotificationCont
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Client\RouteController;
 use App\Http\Controllers\Client\TermController as ClientTermController;
+use App\Http\Controllers\Client\TripController as ClientTripController;
 use App\Http\Middleware\EnsureUserIsClient;
 use Illuminate\Support\Facades\Route;
 
@@ -28,4 +29,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
     Route::post('reservations', [ClientReservationController::class, 'store']);
     Route::patch('reservations/{reservation}/cancel', [ClientReservationController::class, 'cancel']);
     Route::delete('reservations/{reservation}', [ClientReservationController::class, 'destroy']);
+
+    Route::get('trips', [ClientTripController::class, 'index']);
+    Route::get('trips/{reservation}', [ClientTripController::class, 'show'])->whereNumber('reservation');
 });

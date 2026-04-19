@@ -2,25 +2,25 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Reservation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ReservationResource extends JsonResource
+/**
+ * Client view of an assigned trip: route, point, pickup time, captain, car only.
+ *
+ * @mixin Reservation
+ */
+class ClientTripResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
-
-        $status = $this->status;
-
         return [
-            'id' => $this->id,
-            'status' => $status,
-            'status_label' => $status !== null ? __('api.reservations.status_labels.'.$status) : null,
+            'reservation_id' => $this->id,
             'date' => $this->date,
-            'time_id' => $this->time_id,
             'route' => $this->when(
                 $this->relationLoaded('route') && $this->route !== null,
                 fn () => [
@@ -28,7 +28,6 @@ class ReservationResource extends JsonResource
                     'name' => $this->localizedModel($this->route, 'name_en', 'name_ar', $locale),
                     'name_en' => $this->route->name_en,
                     'name_ar' => $this->route->name_ar,
-                    'is_active' => (bool) $this->route->is_active,
                 ]
             ),
             'point' => $this->when(
@@ -42,23 +41,36 @@ class ReservationResource extends JsonResource
                     'long' => $this->point->long,
                 ]
             ),
-            'time' => $this->when(
+            'pickup_time' => $this->when(
                 $this->relationLoaded('time') && $this->time !== null,
-                new TimeResource($this->time),
+                fn () => $this->time->pickup_time
             ),
-            'user' => $this->when(
-                $this->relationLoaded('user') && $this->user !== null,
+            'captain' => $this->when(
+                $this->relationLoaded('tripCar')
+                    && $this->tripCar !== null
+                    && $this->tripCar->relationLoaded('captain')
+                    && $this->tripCar->captain !== null,
                 fn () => [
-                    'id' => $this->user->id,
-                    'name' => $this->user->name,
-                    'phone' => $this->user->phone,
-                    'email' => $this->user->email,
-                    'type' => $this->user->type,
+                    'id' => $this->tripCar->captain->id,
+                    'name' => $this->tripCar->captain->name,
+                    'phone' => $this->tripCar->captain->phone,
                 ]
             ),
-            'language' => $locale,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'car' => $this->when(
+                $this->relationLoaded('tripCar')
+                    && $this->tripCar !== null
+                    && $this->tripCar->relationLoaded('car')
+                    && $this->tripCar->car !== null,
+                fn () => [
+                    'id' => $this->tripCar->car?->id,
+                    'name' => $this->tripCar->car?->name,
+                    'number_of_seats' => $this->tripCar->car?->number_of_seats,
+                    'plate_numbers' => $this->tripCar->car?->plate_numbers,
+                    'plate_letters' => $this->tripCar->car?->plate_letters,
+                    'color' => $this->tripCar->car?->color,
+                    'type' => $this->tripCar->car?->type,
+                ]
+            ),
         ];
     }
 

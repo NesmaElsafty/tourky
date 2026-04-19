@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
@@ -17,16 +17,17 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         try {
-            $reservations = $this->reservationService->getAdminReservationsPaginated(
-                (int) ($request->per_page ?? 10),
+            $groupedReservations = $this->reservationService->getPendingReservationsGroupedByDateAndTime();
+            $data = $groupedReservations->map(
+                fn (Collection $byTime): Collection => $byTime->map(
+                    fn (Collection $reservations) => ReservationResource::collection($reservations)->resolve($request)
+                )
             );
-            $pagination = PaginationHelper::paginate($reservations);
 
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.reservations.admin_list_retrieved'),
-                'data' => ReservationResource::collection($reservations),
-                'pagination' => $pagination,
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([

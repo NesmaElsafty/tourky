@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\RouteController as AdminRouteController;
 use App\Http\Controllers\Admin\TermController as AdminTermController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
+use App\Http\Controllers\Admin\TripController as AdminTripController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,12 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('reservations', [AdminReservationController::class, 'index']);
     Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->whereNumber('reservation');
+    Route::get('trips', [AdminTripController::class, 'index']);
+    Route::get('trips/{trip}', [AdminTripController::class, 'show'])->whereNumber('trip');
+    Route::post('trips', [AdminTripController::class, 'store']);
+    Route::put('trips/{trip}', [AdminTripController::class, 'update'])->whereNumber('trip');
+    Route::patch('trips/{trip}', [AdminTripController::class, 'update'])->whereNumber('trip');
+    Route::delete('trips/{trip}', [AdminTripController::class, 'destroy'])->whereNumber('trip');
 
     Route::get('users/blocklist', [AdminUserController::class, 'blocklist']);
     Route::post('users/{id}/restore', [AdminUserController::class, 'restore'])->whereNumber('id');

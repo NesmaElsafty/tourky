@@ -45,4 +45,20 @@ class Reservation extends Model
     {
         return $this->belongsTo(Time::class);
     }
+
+    /**
+     * @return BelongsTo<Trip, $this>
+     */
+    public function trip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class);
+    }
+
+    /**
+     * @return BelongsTo<TripCar, $this>
+     */
+    public function tripCar(): BelongsTo
+    {
+        return $this->belongsTo(TripCar::class, 'trip_car_id');
+    }
 }

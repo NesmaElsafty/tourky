@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             CarSeeder::class,
             RouteSeeder::class,
             ReservationSeeder::class,
+            TripSeeder::class,
             TermSeeder::class,
             NotificationSeeder::class,
             FiredNotificationSeeder::class,
