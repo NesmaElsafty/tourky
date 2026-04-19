@@ -12,6 +12,7 @@ Route::post('register', [ClientAuthController::class, 'register']);
 Route::post('login', [ClientAuthController::class, 'login']);
 Route::get('routes', [RouteController::class, 'index']);
 Route::get('terms', [ClientTermController::class, 'index']);
+
 // Route::get('routes/{route}', [RouteController::class, 'show'])->whereNumber('route');
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->group(function (): void {
