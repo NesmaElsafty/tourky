@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use App\Services\CaptainRatingService;
 use App\Services\UserService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -13,7 +15,10 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(
+        private UserService $userService,
+        private CaptainRatingService $captainRatingService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -144,6 +149,7 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->findUserForAdmin($id, true);
+            $this->attachCaptainRatingProfile($user);
 
             return response()->json([
                 'status' => 'success',
@@ -198,6 +204,7 @@ class UserController extends Controller
             }
 
             $user = $this->userService->updateUser($user, $update);
+            $this->attachCaptainRatingProfile($user);
 
             return response()->json([
                 'status' => 'success',
@@ -320,5 +327,22 @@ class UserController extends Controller
             'email.unique' => __('api.users.validation_email_unique'),
             'role_id.exists' => __('api.users.validation_role_invalid'),
         ];
+    }
+
+    /**
+     * Extra fields for {@see UserResource} when the user is a captain (admin users API).
+     */
+    private function attachCaptainRatingProfile(User $user): void
+    {
+        if ($user->type !== 'captain') {
+            return;
+        }
+
+        $id = (int) $user->id;
+        $this->captainRatingService->aggregateForCaptainIds([$id]);
+        $agg = $this->captainRatingService->aggregateForCaptainId($id);
+        $user->setAttribute('captain_rating_average', $agg['average']);
+        $user->setAttribute('captain_ratings_count', $agg['count']);
+        $user->setAttribute('captain_feedback_entries', $this->captainRatingService->feedbackEntriesForCaptain($id));
     }
 }

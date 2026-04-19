@@ -143,7 +143,7 @@ class ClientTripService
     /**
      * @return array<int, string>
      */
-    private function assignedTripEagerLoads(): array
+    public function assignedTripEagerLoads(): array
     {
         return [
             'route:id,name_en,name_ar,is_active',
@@ -151,6 +151,7 @@ class ClientTripService
             'time:id,pickup_time,point_id',
             'tripCar.captain:id,name,phone',
             'tripCar.car:id,name,number_of_seats,type,plate_numbers,plate_letters,color',
+            'reports:id,reservation_id,type',
         ];
     }
 }

@@ -6,6 +6,7 @@ use Database\Factories\ReservationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Reservation extends Model
 {
@@ -60,6 +61,14 @@ class Reservation extends Model
     public function tripCar(): BelongsTo
     {
         return $this->belongsTo(TripCar::class, 'trip_car_id');
+    }
+
+    /**
+     * @return HasMany<CaptainReport, $this>
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(CaptainReport::class);
     }
 
     /**

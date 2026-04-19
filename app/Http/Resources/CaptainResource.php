@@ -15,7 +15,7 @@ class CaptainResource extends JsonResource
 
         $rating = app(CaptainRatingService::class)->aggregateForCaptainId((int) $this->id);
 
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'phone' => $this->phone,
@@ -26,6 +26,16 @@ class CaptainResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+
+        if ($this->resource->offsetExists('captain_feedback_entries')) {
+            $data['feedback_entries'] = $this->resource->getAttribute('captain_feedback_entries');
+        }
+
+        if ($this->resource->offsetExists('captain_report_entries')) {
+            $data['report_entries'] = $this->resource->getAttribute('captain_report_entries');
+        }
+
+        return $data;
     }
 
     private function resolveLocale(Request $request): string

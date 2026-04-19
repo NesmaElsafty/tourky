@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\CaptainReport;
 use App\Models\Reservation;
 use App\Services\CaptainRatingService;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +85,23 @@ class ClientTripResource extends JsonResource
             'can_rate_captain' => $this->dropped_off_at !== null && $this->captain_rating === null,
             'captain_rating' => $this->captain_rating,
             'captain_feedback' => $this->captain_feedback,
+            'can_report_trip' => $this->trip_id !== null
+                && $this->trip_car_id !== null
+                && $this->relationLoaded('reports')
+                && ! $this->reports->contains('type', CaptainReport::TYPE_TRIP),
+            'can_report_captain' => $this->tripCar?->captain_id !== null
+                && $this->trip_id !== null
+                && $this->trip_car_id !== null
+                && $this->relationLoaded('reports')
+                && ! $this->reports->contains('type', CaptainReport::TYPE_CAPTAIN),
+            'trip_report_submitted' => $this->when(
+                $this->relationLoaded('reports'),
+                fn () => $this->reports->contains('type', CaptainReport::TYPE_TRIP)
+            ),
+            'captain_report_submitted' => $this->when(
+                $this->relationLoaded('reports'),
+                fn () => $this->reports->contains('type', CaptainReport::TYPE_CAPTAIN)
+            ),
         ];
     }
 

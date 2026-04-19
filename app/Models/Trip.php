@@ -36,4 +36,12 @@ class Trip extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    /**
+     * @return HasMany<CaptainReport, $this>
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(CaptainReport::class);
+    }
 }

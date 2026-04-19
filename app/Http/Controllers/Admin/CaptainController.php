@@ -45,6 +45,14 @@ class CaptainController extends Controller
         try {
             $captain = $this->captainService->getCaptainById($id);
             $this->captainRatingService->aggregateForCaptainIds([(int) $captain->id]);
+            $captain->setAttribute(
+                'captain_feedback_entries',
+                $this->captainRatingService->feedbackEntriesForCaptain((int) $captain->id),
+            );
+            $captain->setAttribute(
+                'captain_report_entries',
+                $this->captainRatingService->reportEntriesForCaptain((int) $captain->id),
+            );
 
             return response()->json([
                 'status' => 'success',
@@ -88,6 +96,15 @@ class CaptainController extends Controller
     {
         try {
             $captain = $this->captainService->updateCaptain($request, $id);
+            $this->captainRatingService->aggregateForCaptainIds([(int) $captain->id]);
+            $captain->setAttribute(
+                'captain_feedback_entries',
+                $this->captainRatingService->feedbackEntriesForCaptain((int) $captain->id),
+            );
+            $captain->setAttribute(
+                'captain_report_entries',
+                $this->captainRatingService->reportEntriesForCaptain((int) $captain->id),
+            );
 
             return response()->json([
                 'status' => 'success',

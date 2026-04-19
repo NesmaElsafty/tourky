@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-client-reports-0001",
+		"name": "Tourky — Client reports",
+		"description": "Test client report APIs: list reports and submit trip/captain reports for a booking.\n\n1. Set `baseUrl` if needed (default `http://localhost:8000/api`).\n2. Set `reservationId` to a reservation that is already assigned to a trip (use trips list/history in your app or DB).\n3. Run **Login**, then the report requests (token is saved automatically).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8000/api" },
+		{ "key": "token", "value": "" },
+		{ "key": "reservationId", "value": "1" }
+	],
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"try {",
+							"  const j = pm.response.json();",
+							"  if (j.token) pm.collectionVariables.set('token', j.token);",
+							"} catch (e) {}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phone\": \"01000000000\",\n  \"password\": \"your-password\"\n}"
+				},
+				"url": "{{baseUrl}}/client/login",
+				"auth": { "type": "noauth" }
+			}
+		},
+		{
+			"name": "List my reports",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/client/reports?per_page=15",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Submit report (trip)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"type\": \"trip\",\n  \"message\": \"Example trip issue: scheduling or route concern (min 10 chars).\"\n}"
+				},
+				"url": "{{baseUrl}}/client/trips/{{reservationId}}/reports",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Submit report (captain)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"type\": \"captain\",\n  \"message\": \"Example captain feedback: behavior or safety concern during the ride (min 10 chars).\"\n}"
+				},
+				"url": "{{baseUrl}}/client/trips/{{reservationId}}/reports",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Trip detail (find reservation id)",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/client/trips/{{reservationId}}",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "List trips (history)",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/client/trips?scope=history&per_page=10",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		}
+	]
+}

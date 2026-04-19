@@ -255,6 +255,27 @@ return [
         'captain_feedback_validation_max' => 'Feedback may not be greater than 2000 characters.',
     ],
 
+    'reports' => [
+        'type_trip' => 'Trip',
+        'type_captain' => 'Captain',
+        'client_list_retrieved' => 'Your reports were retrieved successfully.',
+        'client_submitted' => 'Your report has been submitted. We will review it.',
+        'admin_list_retrieved' => 'Reports retrieved successfully.',
+        'admin_retrieved' => 'Report retrieved successfully.',
+        'admin_reply_saved' => 'Reply saved successfully.',
+        'server_error' => 'Something went wrong. Please try again later.',
+        'validation_type_required' => 'Please choose whether this is a trip or captain report.',
+        'validation_type_in' => 'Type must be trip or captain.',
+        'validation_type_invalid' => 'Invalid report type.',
+        'validation_already_submitted' => 'You have already submitted this kind of report for this trip.',
+        'validation_no_captain' => 'No captain is assigned for this trip.',
+        'validation_message_required' => 'Please describe what happened.',
+        'validation_message_min' => 'Please enter at least 10 characters.',
+        'validation_message_max' => 'The report may not be greater than 5000 characters.',
+        'validation_reply_required' => 'A reply message is required.',
+        'validation_reply_max' => 'The reply may not be greater than 5000 characters.',
+    ],
+
     'captain_trips' => [
         'notification_title_new' => 'You have a new trip',
         'list_retrieved' => 'Your assigned trips retrieved successfully.',

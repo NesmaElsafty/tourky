@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CaptainController as AdminCaptainController;
 use App\Http\Controllers\Admin\CarController as AdminCarController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PointController as AdminPointController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\RouteController as AdminRouteController;
@@ -84,6 +85,10 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('reservations', [AdminReservationController::class, 'index']);
     Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->whereNumber('reservation');
+
+    Route::get('reports', [AdminReportController::class, 'index']);
+    Route::get('reports/{report}', [AdminReportController::class, 'show'])->whereNumber('report');
+    Route::patch('reports/{report}/reply', [AdminReportController::class, 'reply'])->whereNumber('report');
     Route::get('trips', [AdminTripController::class, 'index']);
     Route::get('trips/{trip}', [AdminTripController::class, 'show'])->whereNumber('trip');
     Route::post('trips', [AdminTripController::class, 'store']);

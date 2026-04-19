@@ -1,0 +1,101 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-admin-reports-0002",
+		"name": "Tourky — Admin reports (list, view, reply)",
+		"description": "Test admin report inbox: list, open one, reply.\n\n1. Set `baseUrl` if needed.\n2. Run **Login** (token saved automatically).\n3. **List reports** — copy an `id` from the response into collection variable `reportId` for show/reply.\n4. **Reply** sends `admin_reply` and sets `replied_at` / `replied_by`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8000/api" },
+		{ "key": "token", "value": "" },
+		{ "key": "reportId", "value": "1" }
+	],
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"try {",
+							"  const j = pm.response.json();",
+							"  if (j.token) pm.collectionVariables.set('token', j.token);",
+							"} catch (e) {}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phone\": \"01000000000\",\n  \"password\": \"your-password\"\n}"
+				},
+				"url": "{{baseUrl}}/admin/login",
+				"auth": { "type": "noauth" }
+			}
+		},
+		{
+			"name": "List reports",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/admin/reports?per_page=20",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "List reports (filters)",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/admin/reports?type=captain&replied=0&per_page=20",
+				"description": "type: trip | captain. replied: 0 = unanswered, 1 = answered.",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Get report by id",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/admin/reports/{{reportId}}",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Reply to report",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"admin_reply\": \"Thank you for contacting us. We have reviewed your report and will follow up if needed.\"\n}"
+				},
+				"url": "{{baseUrl}}/admin/reports/{{reportId}}/reply",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+				}
+			}
+		}
+	]
+}

@@ -255,6 +255,27 @@ return [
         'captain_feedback_validation_max' => 'يجب ألا يتجاوز التعليق 2000 حرفًا.',
     ],
 
+    'reports' => [
+        'type_trip' => 'رحلة',
+        'type_captain' => 'كابتن',
+        'client_list_retrieved' => 'تم جلب بلاغاتك بنجاح.',
+        'client_submitted' => 'تم إرسال بلاغك وسيتم مراجعته.',
+        'admin_list_retrieved' => 'تم جلب البلاغات بنجاح.',
+        'admin_retrieved' => 'تم جلب البلاغ بنجاح.',
+        'admin_reply_saved' => 'تم حفظ الرد بنجاح.',
+        'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقًا.',
+        'validation_type_required' => 'يرجى اختيار نوع البلاغ: رحلة أو كابتن.',
+        'validation_type_in' => 'يجب أن يكون النوع رحلة أو كابتن.',
+        'validation_type_invalid' => 'نوع البلاغ غير صالح.',
+        'validation_already_submitted' => 'سبق أن أرسلت هذا النوع من البلاغ لهذه الرحلة.',
+        'validation_no_captain' => 'لا يوجد كابتن مسند لهذه الرحلة.',
+        'validation_message_required' => 'يرجى وصف ما حدث.',
+        'validation_message_min' => 'يرجى إدخال 10 أحرف على الأقل.',
+        'validation_message_max' => 'يجب ألا يتجاوز البلاغ 5000 حرفًا.',
+        'validation_reply_required' => 'نص الرد مطلوب.',
+        'validation_reply_max' => 'يجب ألا يزيد الرد عن 5000 حرف.',
+    ],
+
     'captain_trips' => [
         'notification_title_new' => 'عندك رحله جديده',
         'list_retrieved' => 'تم جلب رحلاتك المسندة بنجاح.',

@@ -34,6 +34,18 @@ class UserResource extends JsonResource
                 ],
             ),
             'role_id' => $this->when($this->type === 'admin', $this->role_id),
+            'rating_average' => $this->when(
+                $this->type === 'captain' && $this->resource->offsetExists('captain_rating_average'),
+                fn () => $this->resource->getAttribute('captain_rating_average'),
+            ),
+            'ratings_count' => $this->when(
+                $this->type === 'captain' && $this->resource->offsetExists('captain_ratings_count'),
+                fn () => $this->resource->getAttribute('captain_ratings_count'),
+            ),
+            'feedback_entries' => $this->when(
+                $this->type === 'captain' && $this->resource->offsetExists('captain_feedback_entries'),
+                fn () => $this->resource->getAttribute('captain_feedback_entries'),
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'display_locale' => $locale,
