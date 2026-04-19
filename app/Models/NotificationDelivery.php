@@ -14,6 +14,13 @@ class NotificationDelivery extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'read_at' => 'datetime',
+        ];
+    }
+
     /**
      * @return BelongsTo<Notification, $this>
      */

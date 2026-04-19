@@ -17,4 +17,6 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->
     Route::post('logout', [CaptainAuthController::class, 'logout']);
 
     Route::get('notifications', [CaptainNotificationController::class, 'index']);
+    Route::patch('notifications/{deliveryId}/markAsRead', [CaptainNotificationController::class, 'markAsRead']);
+    Route::patch('notifications/markAllAsRead', [CaptainNotificationController::class, 'markAllAsRead']);
 });

@@ -21,6 +21,8 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
     Route::post('logout', [ClientAuthController::class, 'logout']);
 
     Route::get('notifications', [ClientNotificationController::class, 'index']);
+    Route::patch('notifications/{deliveryId}/markAsRead', [ClientNotificationController::class, 'markAsRead']);
+    Route::patch('notifications/markAllAsRead', [ClientNotificationController::class, 'markAllAsRead']);
 
     Route::get('reservations', [ClientReservationController::class, 'index']);
     Route::post('reservations', [ClientReservationController::class, 'store']);

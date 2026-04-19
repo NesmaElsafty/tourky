@@ -43,6 +43,40 @@ class NotificationService
             ->paginate($perPage);
     }
 
+    public function getUnreadDeliveriesCountForUser(User $user): int
+    {
+        return NotificationDelivery::query()
+            ->where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+    }
+
+    public function markDeliveryAsReadForUser(User $user, int $deliveryId): bool
+    {
+        $delivery = NotificationDelivery::query()
+            ->where('id', $deliveryId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($delivery === null) {
+            return false;
+        }
+
+        if ($delivery->read_at === null) {
+            $delivery->forceFill(['read_at' => now()])->save();
+        }
+
+        return true;
+    }
+
+    public function markAllDeliveriesAsReadForUser(User $user): int
+    {
+        return NotificationDelivery::query()
+            ->where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+    }
+
     public function getNotificationById(int $id): Notification
     {
         return Notification::query()->findOrFail($id);

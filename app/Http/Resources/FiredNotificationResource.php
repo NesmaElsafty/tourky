@@ -19,6 +19,8 @@ class FiredNotificationResource extends JsonResource
             [
                 'delivery_id' => $this->id,
                 'fired_at' => $this->created_at,
+                'read_at' => $this->read_at,
+                'is_read' => $this->read_at !== null,
             ],
             $notification !== null
                 ? (new NotificationResource($notification))->toArray($request)
