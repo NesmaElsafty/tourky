@@ -61,4 +61,15 @@ class Reservation extends Model
     {
         return $this->belongsTo(TripCar::class, 'trip_car_id');
     }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'picked_up_at' => 'datetime',
+            'dropped_off_at' => 'datetime',
+        ];
+    }
 }

@@ -192,8 +192,14 @@ class TripService
                 }
             }
 
+            $tripId = (int) $trip->id;
+
+            DB::afterCommit(function () use ($tripId): void {
+                app(CaptainTripNotificationService::class)->notifyCaptainsTripCreated($tripId);
+            });
+
             return Trip::query()
-                ->whereKey($trip->id)
+                ->whereKey($tripId)
                 ->with([
                     'tripCars.captain:id,name,phone',
                     'tripCars.car',
