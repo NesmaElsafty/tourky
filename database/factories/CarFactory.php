@@ -27,7 +27,39 @@ class CarFactory extends Factory
             'plate_numbers' => fake()->numerify('####'),
             'plate_letters' => fake()->randomElement(['ABC', 'XYZ', 'RST', 'KLM']),
             'color' => fake()->safeColorName(),
+            'status' => fake()->randomElement([
+                'active', 'active', 'active', 'active',
+                'inactive', 'maintenance', 'in_use',
+            ]),
         ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status' => 'active',
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status' => 'inactive',
+        ]);
+    }
+
+    public function maintenance(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status' => 'maintenance',
+        ]);
+    }
+
+    public function inUse(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'status' => 'in_use',
+        ]);
     }
 
     public function sedan(): static

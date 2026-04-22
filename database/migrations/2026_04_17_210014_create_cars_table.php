@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('plate_numbers')->nullable();
             $table->string('plate_letters')->nullable();
             $table->string('color')->nullable();
+            $table->enum('status', ['active', 'inactive', 'maintenance', 'in_use'])->default('active');
             $table->timestamps();
         });
     }

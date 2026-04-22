@@ -24,6 +24,7 @@ class CarResource extends JsonResource
             'plate_letters' => $this->plate_letters,
             'color' => $this->color,
             'language' => $locale,
+            'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

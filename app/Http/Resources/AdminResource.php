@@ -20,7 +20,7 @@ class AdminResource extends JsonResource
             'type' => $this->type,
             'email' => $this->email,
             'language' => $locale,
-            'avatar' => $this->getMedia('avatar')->first()?->getUrl(),
+            'image' => $this->getMedia('avatar')->first()?->getUrl(),
             'role' => new RoleResource($this->role),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
