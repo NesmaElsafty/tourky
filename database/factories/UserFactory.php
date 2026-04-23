@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'language' => fake()->randomElement(['en', 'ar']),
             'type' => fake()->randomElement(['admin', 'captain', 'client']),
             'role_id' => null,
+            'company_id' => null,
             'remember_token' => Str::random(10),
         ];
     }

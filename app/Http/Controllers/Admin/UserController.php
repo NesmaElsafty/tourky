@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\CaptainRatingService;
 use App\Services\UserService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -25,7 +26,8 @@ class UserController extends Controller
         try {
             $filters = $this->validateListFilters($request);
 
-            $users = $this->userService->paginateUsers([
+            $actor = $request->user();
+            $paginateFilters = [
                 'type' => $filters['type'],
                 'search' => $filters['search'] ?? null,
                 'language' => $filters['language'] ?? null,
@@ -34,7 +36,17 @@ class UserController extends Controller
                 'created_to' => $filters['created_to'] ?? null,
                 'per_page' => (int) ($filters['per_page'] ?? 10),
                 'only_trashed' => false,
-            ]);
+            ];
+            // Company role: only clients with company_id = authenticated admin id (other filters apply in that scope).
+            if ($actor instanceof User && $actor->isCompanyOperator()) {
+                $paginateFilters['for_company_owner_id'] = $actor->id;
+            }
+
+            $users = $this->userService->paginateUsers($paginateFilters);
+
+            if($actor instanceof User && $actor->isCompanyOperator()){
+                $users =User::where('company_id', $actor->id)->paginate(10);
+            }
             $pagination = PaginationHelper::paginate($users);
 
             return response()->json([
@@ -61,7 +73,13 @@ class UserController extends Controller
         try {
             $filters = $this->validateListFilters($request);
 
-            $users = $this->userService->paginateUsers([
+            $actor = $request->user();
+            $denied = $this->ensureListPermission($actor, $filters['type']);
+            if ($denied !== null) {
+                return $denied;
+            }
+
+            $paginateFilters = [
                 'type' => $filters['type'],
                 'search' => $filters['search'] ?? null,
                 'language' => $filters['language'] ?? null,
@@ -70,7 +88,13 @@ class UserController extends Controller
                 'created_to' => $filters['created_to'] ?? null,
                 'per_page' => (int) ($filters['per_page'] ?? 10),
                 'only_trashed' => true,
-            ]);
+            ];
+            // Company role: blocked clients list is also limited to company_id = authenticated admin id.
+            if ($actor instanceof User && $actor->isCompanyOperator()) {
+                $paginateFilters['for_company_owner_id'] = $actor->id;
+            }
+
+            $users = $this->userService->paginateUsers($paginateFilters);
             $pagination = PaginationHelper::paginate($users);
 
             return response()->json([
@@ -117,6 +141,12 @@ class UserController extends Controller
                 ],
             ], $this->storeValidationMessages());
 
+            $actor = $request->user();
+            $denied = $this->ensureManagePermissionForUserType($actor, $data['type'], creating: true);
+            if ($denied !== null) {
+                return $denied;
+            }
+
             $payload = [
                 'name' => $data['name'],
                 'phone' => $data['phone'],
@@ -126,6 +156,11 @@ class UserController extends Controller
                 'language' => $data['language'],
                 'role_id' => $data['type'] === 'admin' ? (int) $data['role_id'] : null,
             ];
+            if ($actor instanceof User && $actor->isCompanyOperator()) {
+                $payload['type'] = 'client';
+                $payload['role_id'] = null;
+                $payload['company_id'] = $actor->id;
+            }
 
             $user = $this->userService->createUser($payload);
 
@@ -149,6 +184,13 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->findUserForAdmin($id, true);
+
+            $actor = $request->user();
+            $denied = $this->ensureViewPermissionForUser($actor, $user);
+            if ($denied !== null) {
+                return $denied;
+            }
+
             $this->attachCaptainRatingProfile($user);
 
             return response()->json([
@@ -169,6 +211,16 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->findActiveUserForAdmin($id);
+
+            $actor = $request->user();
+            $denied = $this->ensureManagePermissionForUserType($actor, $user->type, creating: false);
+            if ($denied !== null) {
+                return $denied;
+            }
+            $deniedCompany = $this->ensureCompanyOperatorOwnsClient($actor, $user);
+            if ($deniedCompany !== null) {
+                return $deniedCompany;
+            }
 
             $phoneRule = Rule::unique('users', 'phone')->where(
                 fn ($query) => $query->where('type', $user->type),
@@ -234,6 +286,15 @@ class UserController extends Controller
                 ], 401);
             }
 
+            $denied = $this->ensureManagePermissionForUserType($actor, $user->type, creating: false);
+            if ($denied !== null) {
+                return $denied;
+            }
+            $deniedCompany = $this->ensureCompanyOperatorOwnsClient($actor, $user);
+            if ($deniedCompany !== null) {
+                return $deniedCompany;
+            }
+
             $this->userService->softDeleteUser($user, $actor);
 
             return response()->json([
@@ -251,9 +312,27 @@ class UserController extends Controller
         }
     }
 
-    public function restore(int $id)
+    public function restore(Request $request, int $id)
     {
         try {
+            $trashed = User::onlyTrashed()->with(['role'])->find($id);
+            if ($trashed === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.users.not_in_blocklist'),
+                ], 404);
+            }
+
+            $actor = $request->user();
+            $denied = $this->ensureManagePermissionForUserType($actor, $trashed->type, creating: false);
+            if ($denied !== null) {
+                return $denied;
+            }
+            $deniedCompany = $this->ensureCompanyOperatorOwnsClient($actor, $trashed);
+            if ($deniedCompany !== null) {
+                return $deniedCompany;
+            }
+
             $user = $this->userService->restoreUser($id);
 
             return response()->json([
@@ -273,6 +352,94 @@ class UserController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function ensureListPermission(?User $actor, string $type): ?JsonResponse
+    {
+        if ($actor === null || ! $actor->hasPermission($this->listTypeViewPermission($type))) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        if ($actor->isCompanyOperator() && $type !== 'client') {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        return null;
+    }
+
+    private function listTypeViewPermission(string $type): string
+    {
+        return match ($type) {
+            'client' => 'clients.view',
+            'captain' => 'captains.view',
+            'admin' => 'admin-users.view',
+        };
+    }
+
+    /**
+     * @return JsonResponse|null
+     */
+    private function ensureViewPermissionForUser(?User $actor, User $target): ?JsonResponse
+    {
+        if ($actor === null || ! $actor->hasPermission($this->listTypeViewPermission($target->type))) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        return $this->ensureCompanyOperatorOwnsClient($actor, $target);
+    }
+
+    /**
+     * @return JsonResponse|null
+     */
+    private function ensureManagePermissionForUserType(?User $actor, string $type, bool $creating): ?JsonResponse
+    {
+        $permission = match ($type) {
+            'client' => 'clients.manage',
+            'captain' => 'captains.manage',
+            'admin' => $creating ? 'admin-users.create' : 'admin-users.update',
+        };
+
+        if ($actor === null || ! $actor->hasPermission($permission)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        if ($actor->isCompanyOperator() && $type !== 'client') {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return JsonResponse|null
+     */
+    private function ensureCompanyOperatorOwnsClient(?User $actor, User $target): ?JsonResponse
+    {
+        if ($actor?->isCompanyOperator()) {
+            if ($target->type !== 'client' || (int) $target->company_id !== (int) $actor->id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.auth.forbidden_permission'),
+                ], 403);
+            }
+        }
+
+        return null;
     }
 
     /**

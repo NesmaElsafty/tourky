@@ -23,7 +23,9 @@ class ReservationSeeder extends Seeder
     {
         $times = Time::query()
             ->with('point')
-            ->whereHas('point')
+            ->whereHas('point', function ($query): void {
+                $query->whereHas('route', fn ($routeQuery) => $routeQuery->where('type', 'b2c'));
+            })
             ->orderBy('id')
             ->get();
 

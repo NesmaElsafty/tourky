@@ -22,7 +22,9 @@ class ReservationFactory extends Factory
     {
         $time = Time::query()
             ->with('point')
-            ->whereHas('point')
+            ->whereHas('point', function ($query): void {
+                $query->whereHas('route', fn ($routeQuery) => $routeQuery->where('type', 'b2c'));
+            })
             ->inRandomOrder()
             ->first() ?? Time::factory()->create();
 

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->enum('language', ['en', 'ar'])->default('en');
             $table->enum('type', ['admin', 'captain', 'client'])->default('client');
+            $table->foreignId('company_id')->nullable()->constrained('users')->nullOnDelete();
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();

@@ -76,9 +76,16 @@ class PointController extends Controller
                 'lat' => 'nullable|string|max:255',
                 'long' => 'nullable|string|max:255',
                 'route_id' => 'required|exists:routes,id',
+                'times' => 'required|array',
+                'times.*.pickup_time' => 'required|string|max:255',
+                'times.*.is_active' => 'required|boolean',
             ]);
+            $times = $data['times'];
+            unset($data['times']);
             $point = $this->pointService->createPoint($data);
-            $point->load('route:id,name_en,name_ar');
+            foreach ($times as $time) {
+                $this->pointService->createTime($point->id, $time);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -105,8 +112,17 @@ class PointController extends Controller
                 'lat' => 'nullable|string|max:255',
                 'long' => 'nullable|string|max:255',
                 'route_id' => 'sometimes|required|exists:routes,id',
+                'times' => 'sometimes|required|array',
+                'times.*.pickup_time' => 'required|string|max:255',
+                'times.*.is_active' => 'required|boolean',
             ]);
             $point = $this->pointService->updatePoint($point, $data);
+
+            $times = $data['times'];
+            unset($data['times']);
+            foreach ($times as $time) {
+                $this->pointService->updateTime($point->id, $time);
+            }
             $point->load('route:id,name_en,name_ar');
 
             return response()->json([

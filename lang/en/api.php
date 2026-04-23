@@ -4,6 +4,7 @@ return [
     'auth' => [
         'wrong_credentials' => 'Wrong credentials.',
         'unauthorized' => 'Unauthorized.',
+        'forbidden_permission' => 'You do not have permission to perform this action.',
     ],
 
     'role' => [
@@ -74,6 +75,10 @@ return [
         'deleted' => 'Route deleted successfully.',
         'not_found' => 'Route not found or unavailable.',
         'server_error' => 'Something went wrong. Please try again later.',
+        'type_labels' => [
+            'b2b' => 'Company (B2B)',
+            'b2c' => 'Public (B2C)',
+        ],
     ],
 
     'points' => [
@@ -189,6 +194,7 @@ return [
         'invalid_time' => 'The selected pickup time is invalid.',
         'inactive_time' => 'This pickup time is not available.',
         'inactive_route' => 'This route is not available for booking.',
+        'company_route_not_allowed' => 'This company route is not available for your account.',
         'invalid_date_past' => 'The selected date and time must be in the future.',
         'duplicate_reservation' => 'You already have a reservation for this pickup time on this date.',
         'already_cancelled' => 'This reservation is already cancelled.',

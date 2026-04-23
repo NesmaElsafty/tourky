@@ -4,6 +4,7 @@ return [
     'auth' => [
         'wrong_credentials' => 'بيانات الدخول غير صحيحة.',
         'unauthorized' => 'غير مصرح.',
+        'forbidden_permission' => 'ليس لديك صلاحية لتنفيذ هذا الإجراء.',
     ],
 
     'role' => [
@@ -74,6 +75,10 @@ return [
         'deleted' => 'تم حذف المسار بنجاح.',
         'not_found' => 'المسار غير موجود أو غير متاح.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
+        'type_labels' => [
+            'b2b' => 'شركة (B2B)',
+            'b2c' => 'عام (B2C)',
+        ],
     ],
 
     'points' => [
@@ -189,6 +194,7 @@ return [
         'invalid_time' => 'وقت الالتقاط المحدد غير صالح.',
         'inactive_time' => 'وقت الالتقاط هذا غير متاح.',
         'inactive_route' => 'هذا المسار غير متاح للحجز.',
+        'company_route_not_allowed' => 'مسار الشركة هذا غير متاح لحسابك.',
         'invalid_date_past' => 'يجب أن يكون التاريخ والوقت في المستقبل.',
         'duplicate_reservation' => 'لديك بالفعل حجز لهذا الوقت في هذا اليوم.',
         'already_cancelled' => 'هذا الحجز ملغى بالفعل.',

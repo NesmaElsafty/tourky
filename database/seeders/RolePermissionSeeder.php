@@ -24,6 +24,7 @@ class RolePermissionSeeder extends Seeder
 
         $juniorSupportNames = [
             'dashboard.view',
+            'routes.view',
             'clients.view',
             'captains.view',
             'terms.view',
@@ -32,6 +33,7 @@ class RolePermissionSeeder extends Seeder
 
         $contentEditorNames = [
             'dashboard.view',
+            'routes.view',
             'media.view',
             'media.manage',
             'reports.view',
@@ -43,6 +45,7 @@ class RolePermissionSeeder extends Seeder
 
         $financeAnalystNames = [
             'dashboard.view',
+            'routes.view',
             'reports.view',
             'bookings.view',
             'clients.view',
@@ -54,6 +57,7 @@ class RolePermissionSeeder extends Seeder
 
         $regionalCoordinatorNames = [
             'dashboard.view',
+            'routes.view',
             'captains.view',
             'captains.manage',
             'clients.view',
@@ -83,6 +87,15 @@ class RolePermissionSeeder extends Seeder
                 ->pluck('id'),
             'Regional Coordinator' => Permission::query()
                 ->whereIn('name', $regionalCoordinatorNames)
+                ->orderBy('id')
+                ->pluck('id'),
+            'Company' => Permission::query()
+                ->whereIn('name', [
+                    'dashboard.view',
+                    'routes.view',
+                    'clients.view',
+                    'clients.manage',
+                ])
                 ->orderBy('id')
                 ->pluck('id'),
         ];

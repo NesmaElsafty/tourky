@@ -34,6 +34,17 @@ class RouteResource extends JsonResource
             'end_lat' => $this->end_lat,
             'end_long' => $this->end_long,
 
+            'type' => $this->type,
+            'type_label' => $this->type !== null ? __('api.routes.type_labels.'.$this->type) : null,
+            'company_id' => $this->company_id,
+            'company' => $this->when(
+                $this->relationLoaded('company') && $this->company !== null,
+                fn () => [
+                    'id' => $this->company->id,
+                    'name' => $this->company->name,
+                ],
+            ),
+
             'is_active' => (bool) $this->is_active,
 
             'points_count' => $pointsCount,

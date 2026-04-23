@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsCaptain;
 use App\Http\Middleware\EnsureUserIsClient;
@@ -47,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'type.admin' => EnsureUserIsAdmin::class,
             'type.captain' => EnsureUserIsCaptain::class,
             'type.client' => EnsureUserIsClient::class,
+            'permission' => EnsurePermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) use ($isApiRequest): void {

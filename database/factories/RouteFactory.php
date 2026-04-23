@@ -114,7 +114,25 @@ class RouteFactory extends Factory
         $segment = fake()->randomElement(self::cairoSegments());
 
         return array_merge($segment, [
+            'type' => 'b2c',
+            'company_id' => null,
             'is_active' => true,
+        ]);
+    }
+
+    public function b2c(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type' => 'b2c',
+            'company_id' => null,
+        ]);
+    }
+
+    public function b2b(int $companyUserId): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type' => 'b2b',
+            'company_id' => $companyUserId,
         ]);
     }
 }

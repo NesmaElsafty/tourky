@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Resources;
-
+use App\Http\Resources\ClientResource as ClientResourceResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\User;
 
 class ClientResource extends JsonResource
 {
@@ -19,6 +20,15 @@ class ClientResource extends JsonResource
             'email' => $this->email,
             'type' => $this->type,
             'language' => $locale,
+            'company' => $this->parentCompany ? [
+                'id' => $this->parentCompany->id,
+                'name' => $this->parentCompany->name,
+                'client_type' => 'b2b',
+            ] : null,
+            
+            'child_clients' => $this->childClients->map(function (User $client) {
+                return new ClientResourceResource($client);
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

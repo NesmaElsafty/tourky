@@ -33,6 +33,7 @@ class User extends Authenticatable implements HasMedia
         'language',
         'type',
         'role_id',
+        'company_id',
     ];
 
     /**
@@ -57,6 +58,46 @@ class User extends Authenticatable implements HasMedia
     public function tripCarsAsCaptain(): HasMany
     {
         return $this->hasMany(TripCar::class, 'captain_id');
+    }
+
+    public function parentCompany(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'company_id');
+    }
+
+    public function childClients(): HasMany
+    {
+        return $this->hasMany(User::class, 'company_id');
+    }
+
+    public function isCompanyOperator(): bool
+    {
+        $this->loadMissing('role');
+
+        return $this->type === 'admin'
+            && $this->role !== null
+            && $this->role->name_en === 'Company';
+    }
+
+    public function hasPermission(string $name): bool
+    {
+        $this->loadMissing('role.permissions');
+
+        return $this->role?->permissions->contains('name', $name) ?? false;
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    public function hasAnyPermission(array $names): bool
+    {
+        foreach ($names as $name) {
+            if ($this->hasPermission($name)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

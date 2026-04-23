@@ -18,7 +18,12 @@ class TripFactory extends Factory
      */
     public function definition(): array
     {
-        $time = Time::query()->inRandomOrder()->first();
+        $time = Time::query()
+            ->whereHas('point', function ($query): void {
+                $query->whereHas('route', fn ($routeQuery) => $routeQuery->where('type', 'b2c'));
+            })
+            ->inRandomOrder()
+            ->first();
 
         return [
             'time_id' => $time?->id ?? Time::factory(),

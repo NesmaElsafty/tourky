@@ -3,17 +3,35 @@
 namespace Database\Seeders;
 
 use App\Models\Point;
+use App\Models\Role;
 use App\Models\Route;
 use App\Models\Time;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class RouteSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach ($this->cairoRoutes() as $routeData) {
+        $companyRoleId = Role::query()->where('name_en', 'Company')->value('id');
+        $companyUserId = $companyRoleId !== null
+            ? User::query()->where('type', 'admin')->where('role_id', $companyRoleId)->value('id')
+            : null;
+
+        $definitions = $this->cairoRoutes();
+        if ($companyUserId !== null) {
+            $definitions[] = $this->companyShuttleRoute((int) $companyUserId);
+        }
+
+        foreach ($definitions as $routeData) {
             $points = $routeData['points'];
             unset($routeData['points']);
+
+            $routeData = array_merge([
+                'type' => 'b2c',
+                'company_id' => null,
+                'is_active' => true,
+            ], $routeData);
 
             $route = Route::query()->create($routeData);
 
@@ -307,6 +325,50 @@ class RouteSeeder extends Seeder
                             ['pickup_time' => '07:22', 'is_active' => true],
                             ['pickup_time' => '20:00', 'is_active' => true],
                         ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * B2B route tied to a company admin (seeded after AdminUserSeeder).
+     *
+     * @return array<string, mixed>
+     */
+    private function companyShuttleRoute(int $companyUserId): array
+    {
+        return [
+            'name_en' => 'Company shuttle (Heliopolis to Airport)',
+            'name_ar' => 'نقل الشركة (مصر الجديدة إلى المطار)',
+            'start_point_en' => 'Korba, Heliopolis',
+            'start_point_ar' => 'الكوربة، مصر الجديدة',
+            'start_lat' => '30.087500',
+            'start_long' => '31.324400',
+            'end_point_en' => 'Cairo International Airport (T3)',
+            'end_point_ar' => 'مطار القاهرة الدولي',
+            'end_lat' => '30.121900',
+            'end_long' => '31.405600',
+            'type' => 'b2b',
+            'company_id' => $companyUserId,
+            'is_active' => true,
+            'points' => [
+                [
+                    't' => 0.35,
+                    'name_en' => 'Cairo Festival City Mall',
+                    'name_ar' => 'كايرو فستيفال سيتي',
+                    'times' => [
+                        ['pickup_time' => '06:40', 'is_active' => true],
+                        ['pickup_time' => '14:20', 'is_active' => true],
+                    ],
+                ],
+                [
+                    't' => 0.72,
+                    'name_en' => 'Ring Road (airport branch)',
+                    'name_ar' => 'الطريق الدائري (فرع المطار)',
+                    'times' => [
+                        ['pickup_time' => '06:50', 'is_active' => true],
+                        ['pickup_time' => '21:30', 'is_active' => true],
                     ],
                 ],
             ],

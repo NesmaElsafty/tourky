@@ -36,6 +36,10 @@ class AuthService
             return null;
         }
 
+        if ($type === 'admin') {
+            $user->loadMissing(['role.permissions']);
+        }
+
         $token = $user->createToken($this->tokenName($type))->plainTextToken;
 
         return compact('user', 'token');

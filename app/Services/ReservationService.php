@@ -99,6 +99,15 @@ class ReservationService
             ]);
         }
 
+        $route = $time->point->route;
+        if ($route->type === 'b2b') {
+            if ($client->company_id === null || (int) $client->company_id !== (int) $route->company_id) {
+                throw ValidationException::withMessages([
+                    'time_id' => [__('api.reservations.company_route_not_allowed')],
+                ]);
+            }
+        }
+
         if (! $this->isScheduledAtOrAfterNow($date, (string) $time->pickup_time)) {
             throw ValidationException::withMessages([
                 'date' => [__('api.reservations.invalid_date_past')],

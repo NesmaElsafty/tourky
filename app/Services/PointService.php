@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Point;
+use App\Models\Time;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PointService
@@ -33,9 +34,16 @@ class PointService
         return Point::query()->create($data);
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
+
+    // create time for point
+    public function createTime(int $pointId, array $data): Time
+    {
+        return Time::query()->create([
+            'pickup_time' => $data['pickup_time'],
+            'point_id' => $pointId,
+            'is_active' => $data['is_active'],
+        ]);
+    }
     public function updatePoint(Point $point, array $data): Point
     {
         $point->update($data);

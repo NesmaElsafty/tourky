@@ -22,9 +22,6 @@ Route::post('login', [AdminAuthController::class, 'login']);
 Route::get('cars', [AdminCarController::class, 'index']);
 Route::get('cars/{car}', [AdminCarController::class, 'show']);
 
-Route::get('routes', [AdminRouteController::class, 'index']);
-Route::get('routes/{route}', [AdminRouteController::class, 'show']);
-
 Route::get('points', [AdminPointController::class, 'index']);
 Route::get('points/{point}', [AdminPointController::class, 'show']);
 
@@ -51,11 +48,17 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::patch('cars/{car}', [AdminCarController::class, 'update']);
     Route::delete('cars/{car}', [AdminCarController::class, 'destroy']);
 
-    Route::get('routes/all', [AdminRouteController::class, 'indexAll']);
+    Route::middleware(['permission:routes.view'])->group(function (): void {
+        Route::get('routes', [AdminRouteController::class, 'index']);
+        Route::get('routes/{route}', [AdminRouteController::class, 'show']);
+    });
 
-    Route::post('routes', [AdminRouteController::class, 'store']);
-    Route::put('routes/{route}', [AdminRouteController::class, 'update']);
-    Route::delete('routes/{route}', [AdminRouteController::class, 'destroy']);
+    Route::middleware(['permission:routes.manage'])->group(function (): void {
+        Route::get('AllRoutes', [AdminRouteController::class, 'indexAll']);
+        Route::post('routes', [AdminRouteController::class, 'store']);
+        Route::put('routes/{route}', [AdminRouteController::class, 'update']);
+        Route::delete('routes/{route}', [AdminRouteController::class, 'destroy']);
+    });
 
     Route::post('points', [AdminPointController::class, 'store']);
     Route::put('points/{point}', [AdminPointController::class, 'update']);

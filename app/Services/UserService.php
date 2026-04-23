@@ -18,7 +18,8 @@ class UserService
      *     created_from?: string|null,
      *     created_to?: string|null,
      *     per_page?: int,
-     *     only_trashed?: bool
+     *     only_trashed?: bool,
+     *     for_company_owner_id?: int|null
      * }  $filters
      * @return LengthAwarePaginator<int, User>
      */
@@ -67,6 +68,10 @@ class UserService
 
         if (($filters['type'] ?? '') === 'admin' && isset($filters['role_id']) && $filters['role_id'] !== '' && $filters['role_id'] !== null) {
             $query->where('role_id', (int) $filters['role_id']);
+        }
+
+        if (($filters['type'] ?? '') === 'client' && ! empty($filters['for_company_owner_id'])) {
+            $query->where('company_id', (int) $filters['for_company_owner_id']);
         }
 
         if (! empty($filters['created_from'])) {

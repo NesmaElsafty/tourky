@@ -77,6 +77,13 @@ class RoleSeeder extends Seeder
                 'description_ar' => 'تنسيق الكباتن والحجوزات في الميدان مع وصول محدود للعملاء.',
                 'parent' => 'Admin',
             ],
+            [
+                'name_en' => 'Company',
+                'name_ar' => 'شركة',
+                'description_en' => 'Company account with operational access without role or permission management.',
+                'description_ar' => 'حساب شركة مع صلاحيات تشغيلية دون إدارة الأدوار أو الأذونات.',
+                'parent' => 'Admin',
+            ],
         ];
     }
 

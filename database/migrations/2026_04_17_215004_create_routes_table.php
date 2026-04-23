@@ -28,16 +28,11 @@ return new class extends Migration
             $table->string('end_lat')->nullable();
             $table->string('end_long')->nullable();
 
+            $table->enum('type', ['b2b', 'b2c'])->default('b2c');
+            $table->foreignId('company_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->boolean('is_active')->default(true);
+
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('routes');
     }
 };

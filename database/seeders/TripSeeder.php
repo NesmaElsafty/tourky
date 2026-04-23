@@ -59,7 +59,12 @@ class TripSeeder extends Seeder
             $clients = User::query()->where('type', 'client')->get();
         }
 
-        $times = Time::query()->with('point')->whereHas('point')->get();
+        $times = Time::query()
+            ->with('point')
+            ->whereHas('point', function ($query): void {
+                $query->whereHas('route', fn ($routeQuery) => $routeQuery->where('type', 'b2c'));
+            })
+            ->get();
         if ($times->isEmpty() || $clients->isEmpty()) {
             return;
         }
