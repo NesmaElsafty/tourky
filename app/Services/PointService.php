@@ -26,14 +26,10 @@ class PointService
         return Point::query()->findOrFail($id);
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
     public function createPoint(array $data): Point
     {
         return Point::query()->create($data);
     }
-
 
     // create time for point
     public function createTime(int $pointId, array $data): Time
@@ -44,6 +40,7 @@ class PointService
             'is_active' => $data['is_active'],
         ]);
     }
+    
     public function updatePoint(Point $point, array $data): Point
     {
         $point->update($data);

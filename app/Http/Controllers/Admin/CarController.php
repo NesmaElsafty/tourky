@@ -57,11 +57,12 @@ class CarController extends Controller
         try {
             $data = $request->validate([
                 'name' => 'required|string|max:255',
-                'number_of_seats' => 'nullable|string|max:255',
+                'number_of_seats' => 'required|string|max:255',
                 'type' => 'required|in:sedan,microbus',
-                'plate_numbers' => 'nullable|string|max:255',
-                'plate_letters' => 'nullable|string|max:255',
-                'color' => 'nullable|string|max:255',
+                'plate_numbers' => 'required|string|max:255',
+                'plate_letters' => 'required|string|max:255',
+                'color' => 'required|string|max:255',
+                'status' => 'required|in:active,inactive,maintenance,in_use',
             ]);
             $car = $this->carService->createCar($data);
 
@@ -91,6 +92,7 @@ class CarController extends Controller
                 'plate_numbers' => 'nullable|string|max:255',
                 'plate_letters' => 'nullable|string|max:255',
                 'color' => 'nullable|string|max:255',
+                'status' => 'nullable|in:active,inactive,maintenance,in_use',
             ]);
             $car = $this->carService->updateCar($car, $data);
 

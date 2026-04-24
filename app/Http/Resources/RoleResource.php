@@ -23,7 +23,7 @@ class RoleResource extends JsonResource
             'id' => $this->id,
             'name' => $name,
             'description' => $description,
-            'role_id' => $this->role_id,
+            'parent_id' => $this->role_id,
         ];
 
         if ($case == 'roles.show') {
@@ -35,7 +35,7 @@ class RoleResource extends JsonResource
                     'description_ar' => $this->description_ar,
                     'name' => $name,
                     'description' => $description,
-                    'role_id' => $this->role_id,
+                    'parent_id' => $this->role_id,
             ];
             $data['permissions'] = $this->permissions->map(function ($permission) {
                 return [
@@ -47,7 +47,7 @@ class RoleResource extends JsonResource
                     'description_ar' => $permission->description_ar,
                     'group_en' => $permission->group_en,
                     'group_ar' => $permission->group_ar,
-                    'role_id' => $this->role_id,
+                    'parent_id' => $this->role_id,
                 ];
             });
         }else{

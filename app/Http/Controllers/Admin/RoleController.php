@@ -40,8 +40,9 @@ class RoleController extends Controller
                 'description_ar' => 'required|string|max:255',
                 'permissions' => 'required|array',
                 'permissions.*' => 'required|exists:permissions,id',
+                'parent_id' => 'nullable|exists:roles,id',
             ]);
-            $role = $this->roleService->createRole($request);
+            $role = $this->roleService->createRole($request->all());
 
             if (isset($request->permissions)) {
                 $role->permissions()->attach($request->permissions);
@@ -67,8 +68,9 @@ class RoleController extends Controller
                 'description_ar' => 'nullable|string|max:255',
                 'permissions' => 'nullable|array',
                 'permissions.*' => 'required|exists:permissions,id',
+                'parent_id' => 'nullable|exists:roles,id',
             ]);
-            $role = $this->roleService->updateRole($request, $id);
+            $role = $this->roleService->updateRole($request->all(), $id);
             if (isset($request->permissions)) {
                 $role->permissions()->sync($request->permissions);
             }

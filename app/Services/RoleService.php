@@ -14,27 +14,28 @@ class RoleService
         return $roles;
     }
 
-    public function createRole(Request $request)
+    public function createRole($data)
     {
         $role = Role::create([
-            'name_en' => $request->name_en,
-            'name_ar' => $request->name_ar,
-            'description_en' => $request->description_en,
-            'description_ar' => $request->description_ar,
+            'name_en' => $data['name_en'],
+            'name_ar' => $data['name_ar'],
+            'description_en' => $data['description_en'],
+            'description_ar' => $data['description_ar'],
+            'role_id' => $data['parent_id'],
         ]);
 
         return $role;
     }
 
-    public function updateRole(Request $request, $id)
+    public function updateRole($data, $id)
     {
         $role = Role::find($id);
-        $role->update([
-            'name_en' => $request->name_en ?? $role->name_en,
-            'name_ar' => $request->name_ar ?? $role->name_ar,
-            'description_en' => $request->description_en ?? $role->description_en,
-            'description_ar' => $request->description_ar ?? $role->description_ar,
-        ]);
+        $role->name_en = $data['name_en'] ?? $role->name_en;
+        $role->name_ar = $data['name_ar'] ?? $role->name_ar;
+        $role->description_en = $data['description_en'] ?? $role->description_en;
+        $role->description_ar = $data['description_ar'] ?? $role->description_ar;
+        $role->role_id = $data['parent_id'] ?? $role->role_id;
+        $role->save();
 
         return $role;
     }
