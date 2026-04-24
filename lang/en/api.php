@@ -30,6 +30,11 @@ return [
         'server_error' => 'Something went wrong. Please try again later.',
     ],
 
+    'permissions' => [
+        'list_retrieved' => 'Permissions retrieved successfully.',
+        'server_error' => 'Something went wrong. Please try again later.',
+    ],
+
     'captain' => [
         'registered' => 'Captain registered successfully.',
         'registration_failed' => 'Captain registration failed.',

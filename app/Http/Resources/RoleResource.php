@@ -19,14 +19,7 @@ class RoleResource extends JsonResource
             $name = $this->name_ar;
             $description = $this->description_ar;
         }
-        $data = [
-            'id' => $this->id,
-            'name' => $name,
-            'description' => $description,
-            'parent_id' => $this->role_id,
-        ];
-
-        if ($case == 'roles.show') {
+        
             $data = [
                     'id' => $this->id,
                     'name_en' => $this->name_en,
@@ -50,10 +43,6 @@ class RoleResource extends JsonResource
                     'parent_id' => $this->role_id,
                 ];
             });
-        }else{
-            $data['permissions'] = $this->permissions->pluck('name')->toArray();
-        }
-        
         
         return $data;
     }

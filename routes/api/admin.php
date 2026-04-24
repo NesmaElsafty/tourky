@@ -107,4 +107,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::put('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
     Route::patch('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
     Route::delete('users/{id}', [AdminUserController::class, 'destroy'])->whereNumber('id');
+    
+
+    Route::get('permissions', [AdminRoleController::class, 'getPermissions']);
 });

@@ -30,6 +30,11 @@ return [
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
     ],
 
+    'permissions' => [
+        'list_retrieved' => 'تم جلب الصلاحيات بنجاح.',
+        'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
+    ],
+
     'captain' => [
         'registered' => 'تم تسجيل الكابتن بنجاح.',
         'registration_failed' => 'فشل تسجيل الكابتن.',

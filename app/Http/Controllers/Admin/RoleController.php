@@ -6,9 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
 use App\Services\RoleService;
 use Illuminate\Http\Request;
+use App\Models\Permission;
+use App\Http\Resources\PermissionResource;
 
 class RoleController extends Controller
 {
+    private function localizedMessage(string $key): string
+    {
+        $language = auth()->user()?->language;
+        $locale = in_array($language, ['en', 'ar'], true) ? $language : 'en';
+
+        return __($key, [], $locale);
+    }
+
     // use service to get the data
     public function __construct(private RoleService $roleService)
     {
@@ -22,11 +32,11 @@ class RoleController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.roles.list_retrieved'),
+                'message' => $this->localizedMessage('api.roles.list_retrieved'),
                 'data' => RoleResource::collection($roles),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => __('api.roles.server_error')], 500);
+            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
         }
     }
 
@@ -50,11 +60,11 @@ class RoleController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.roles.created'),
+                'message' => $this->localizedMessage('api.roles.created'),
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
         }
     }
 
@@ -77,11 +87,11 @@ class RoleController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.roles.updated'),
+                'message' => $this->localizedMessage('api.roles.updated'),
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
         }
     }
 
@@ -92,11 +102,11 @@ class RoleController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.roles.retrieved'),
+                'message' => $this->localizedMessage('api.roles.retrieved'),
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => __('api.roles.server_error')], 500);
+            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
         }
     }
 
@@ -110,10 +120,25 @@ class RoleController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.roles.deleted'),
+                'message' => $this->localizedMessage('api.roles.deleted'),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => __('api.roles.server_error')], 500);
+            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
+        }
+    }
+
+    // get all permissions
+    public function getPermissions()
+    {
+        try {
+            $permissions = Permission::all();
+            return response()->json([
+                'status' => 'success',
+                'message' => $this->localizedMessage('api.permissions.list_retrieved'),
+                'data' => PermissionResource::collection($permissions),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.permissions.server_error')], 500);
         }
     }
 }
