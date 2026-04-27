@@ -41,11 +41,17 @@ class PointService
         ]);
     }
     
-    public function updatePoint(Point $point, array $data): Point
+    public function updatePoint($id, array $data): Point
     {
-        $point->update($data);
+        $point = Point::findOrFail($id);
+        $point->name_en = $data['name_en'] ?? $point->name_en;
+        $point->name_ar = $data['name_ar'] ?? $point->name_ar;
+        $point->lat = $data['lat'] ?? $point->lat;
+        $point->long = $data['long'] ?? $point->long;
+        $point->route_id = $data['route_id'] ?? $point->route_id;
+        $point->save();
 
-        return $point->fresh();
+        return $point;
     }
 
     public function deletePoint(Point $point): void

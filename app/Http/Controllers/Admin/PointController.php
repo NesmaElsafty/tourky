@@ -6,13 +6,15 @@ use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PointResource;
 use App\Models\Point;
+use App\Models\Time;
 use App\Services\PointService;
+use App\Services\TimeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class PointController extends Controller
 {
-    public function __construct(private PointService $pointService) {}
+    public function __construct(private PointService $pointService, private TimeService $timeService) {}
 
     public function index(Request $request)
     {
@@ -103,7 +105,7 @@ class PointController extends Controller
         }
     }
 
-    public function update(Request $request, Point $point)
+    public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
@@ -112,18 +114,8 @@ class PointController extends Controller
                 'lat' => 'nullable|string|max:255',
                 'long' => 'nullable|string|max:255',
                 'route_id' => 'sometimes|required|exists:routes,id',
-                'times' => 'sometimes|required|array',
-                'times.*.pickup_time' => 'required|string|max:255',
-                'times.*.is_active' => 'required|boolean',
             ]);
-            $point = $this->pointService->updatePoint($point, $data);
-
-            $times = $data['times'];
-            unset($data['times']);
-            foreach ($times as $time) {
-                $this->pointService->updateTime($point->id, $time);
-            }
-            $point->load('route:id,name_en,name_ar');
+            $point = $this->pointService->updatePoint($id, $data);
 
             return response()->json([
                 'status' => 'success',

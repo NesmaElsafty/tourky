@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('times/all', [AdminTimeController::class, 'indexAll']);
 
+    Route::post('times', [AdminTimeController::class, 'store']);
     Route::put('times/{time}', [AdminTimeController::class, 'update']);
     Route::delete('times/{time}', [AdminTimeController::class, 'destroy']);
 
@@ -110,4 +111,5 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     
 
     Route::get('permissions', [AdminRoleController::class, 'getPermissions']);
+    Route::get('companies', [AdminUserController::class, 'companiesList']);
 });

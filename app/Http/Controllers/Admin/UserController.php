@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-
+use App\Http\Resources\CompanyResource;
 class UserController extends Controller
 {
     public function __construct(
@@ -71,42 +71,43 @@ class UserController extends Controller
     public function blocklist(Request $request)
     {
         try {
-            $filters = $this->validateListFilters($request);
-
-            $actor = $request->user();
-            $denied = $this->ensureListPermission($actor, $filters['type']);
-            if ($denied !== null) {
-                return $denied;
-            }
-
-            $paginateFilters = [
-                'type' => $filters['type'],
-                'search' => $filters['search'] ?? null,
-                'language' => $filters['language'] ?? null,
-                'role_id' => $filters['role_id'] ?? null,
-                'created_from' => $filters['created_from'] ?? null,
-                'created_to' => $filters['created_to'] ?? null,
-                'per_page' => (int) ($filters['per_page'] ?? 10),
-                'only_trashed' => true,
-            ];
-            // Company role: blocked clients list is also limited to company_id = authenticated admin id.
-            if ($actor instanceof User && $actor->isCompanyOperator()) {
-                $paginateFilters['for_company_owner_id'] = $actor->id;
-            }
-
-            $users = $this->userService->paginateUsers($paginateFilters);
+            $users = User::onlyTrashed()->paginate(10);
             $pagination = PaginationHelper::paginate($users);
 
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.users.blocklist_retrieved', [
-                    'type' => __('api.users.type_list_labels.'.$filters['type']),
+                    'type' => __('api.users.type_list_labels.client'),
                 ]),
                 'data' => UserResource::collection($users),
                 'pagination' => $pagination,
             ]);
         } catch (ValidationException $e) {
             throw $e;
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.users.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // companies list
+    public function companiesList(Request $request)
+    {
+        try {
+            // company is user type admin and has role company
+            $companies = User::where('type', 'admin')->whereHas('role', function ($query) {
+                $query->where('name_en', 'Company');
+            })->paginate(10);
+            $pagination = PaginationHelper::paginate($companies);
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.users.companies_list_retrieved'),
+                'data' => CompanyResource::collection($companies),
+                'pagination' => $pagination,
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

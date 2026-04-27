@@ -35,15 +35,19 @@ class TimeService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function updateTime(Time $time, array $data): Time
+    public function updateTime($id, array $data): Time
     {
-        $time->update($data);
+        $time = Time::findOrFail($id); 
+        $time->pickup_time = $data['pickup_time'] ?? $time->pickup_time;
+        $time->is_active = $data['is_active'] ?? $time->is_active;
+        $time->save();
 
-        return $time->fresh();
+        return $time;
     }
 
-    public function deleteTime(Time $time): void
+    public function deleteTime($id): void
     {
+        $time = Time::findOrFail($id);
         $time->delete();
     }
 }

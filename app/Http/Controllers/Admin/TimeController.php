@@ -62,20 +62,20 @@ class TimeController extends Controller
         }
     }
 
-    public function show(Request $request, Time $time)
+    public function show($id)
     {
         try {
-            $time->loadMissing([
-                'point:id,name_en,name_ar,route_id',
-                'point.route:id,is_active',
-            ]);
-
-            if (! $time->is_active || ! $time->point || ! $time->point->route || ! $time->point->route->is_active) {
+            $time = Time::find($id);
+            if(!$time) {
                 return response()->json([
                     'status' => 'error',
                     'message' => __('api.times.not_found'),
                 ], 404);
             }
+            $time->loadMissing([
+                'point:id,name_en,name_ar,route_id',
+                'point.route:id,is_active',
+            ]);
 
             return response()->json([
                 'status' => 'success',
@@ -95,8 +95,8 @@ class TimeController extends Controller
     {
         try {
             $data = $request->validate([
-                'pickup_time' => 'nullable|string|max:255',
                 'point_id' => 'required|exists:points,id',
+                'pickup_time' => 'required|string|max:255',
                 'is_active' => 'sometimes|boolean',
             ]);
             $time = $this->timeService->createTime($data);
@@ -118,16 +118,14 @@ class TimeController extends Controller
         }
     }
 
-    public function update(Request $request, Time $time)
+    public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
-                'pickup_time' => 'nullable|string|max:255',
-                'point_id' => 'sometimes|required|exists:points,id',
-                'is_active' => 'sometimes|boolean',
+                'pickup_time' => 'required|string|max:255',
+                'is_active' => 'required|boolean',
             ]);
-            $time = $this->timeService->updateTime($time, $data);
-            $time->load('point:id,name_en,name_ar,route_id');
+            $time = $this->timeService->updateTime($id, $data);
 
             return response()->json([
                 'status' => 'success',
@@ -145,10 +143,17 @@ class TimeController extends Controller
         }
     }
 
-    public function destroy(Time $time)
+    public function destroy($id)
     {
         try {
-            $this->timeService->deleteTime($time);
+            $time = Time::find($id);
+            if(!$time) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.times.not_found'),
+                ], 404);
+            }
+            $time->delete();
 
             return response()->json([
                 'status' => 'success',

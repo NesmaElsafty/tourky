@@ -40,7 +40,6 @@ class RoleResource extends JsonResource
                     'description_ar' => $permission->description_ar,
                     'group_en' => $permission->group_en,
                     'group_ar' => $permission->group_ar,
-                    'parent_id' => $this->role_id,
                 ];
             });
         
