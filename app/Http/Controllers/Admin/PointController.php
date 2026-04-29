@@ -22,7 +22,7 @@ class PointController extends Controller
             $request->validate([
                 'route_id' => 'required|exists:routes,id',
             ]);
-            $points = $this->pointService->getPointsPaginated($request->route_id)->paginate(10);
+            $points = $this->pointService->getPointsPaginated($request->route_id);
             $pagination = PaginationHelper::paginate($points);
 
             return response()->json([

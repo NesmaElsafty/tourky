@@ -7,9 +7,10 @@ use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
-
+use App\Helpers\PaginationHelper;
 class ReservationController extends Controller
 {
     public function __construct(private ReservationService $reservationService) {}
@@ -18,16 +19,29 @@ class ReservationController extends Controller
     {
         try {
             $groupedReservations = $this->reservationService->getPendingReservationsGroupedByDateAndTime();
-            $data = $groupedReservations->map(
+            $perPage = (int) $request->input('per_page', 10);
+            $perPage = max(1, $perPage);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
+            $paginatedGroups = new LengthAwarePaginator(
+                $groupedReservations->forPage($currentPage, $perPage)->values(),
+                $groupedReservations->count(),
+                $perPage,
+                $currentPage
+            );
+
+            $pagination = PaginationHelper::paginate($paginatedGroups);
+            $data = $paginatedGroups->getCollection()->map(
                 fn (Collection $byTime): Collection => $byTime->map(
                     fn (Collection $reservations) => ReservationResource::collection($reservations)->resolve($request)
-                )
-            );
+                    )
+                );
 
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.reservations.admin_list_retrieved'),
                 'data' => $data,
+                'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
             return response()->json([
