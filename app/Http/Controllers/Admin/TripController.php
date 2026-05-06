@@ -50,7 +50,7 @@ class TripController extends Controller
     {
         try {
             $trip->load([
-                'tripCars.captain:id,name,phone',
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
                 'time',
                 'reservations.user:id,name,phone',
@@ -75,7 +75,7 @@ class TripController extends Controller
         try {
             $data = $request->validate([
                 'date' => ['required', 'date'],
-                'time_id' => ['required', 'integer', 'exists:times,id'],
+                'route_time_id' => ['required', 'integer', 'exists:route_times,id'],
                 'cars' => ['required', 'array', 'min:1'],
                 'cars.*.captain_id' => ['required', 'integer', 'distinct', 'exists:users,id'],
                 'cars.*.car_id' => ['required', 'integer', 'distinct', 'exists:cars,id'],
@@ -84,8 +84,8 @@ class TripController extends Controller
                 [
                     'date.required' => __('api.trips.validation_date_required'),
                     'date.date' => __('api.trips.validation_date_date'),
-                    'time_id.required' => __('api.trips.validation_time_id_required'),
-                    'time_id.exists' => __('api.trips.validation_time_id_exists'),
+                    'route_time_id.required' => __('api.trips.validation_route_time_id_required'),
+                    'route_time_id.exists' => __('api.trips.validation_route_time_id_exists'),
                     'cars.required' => __('api.trips.validation_cars_required'),
                     'cars.array' => __('api.trips.validation_cars_array'),
                     'cars.min' => __('api.trips.validation_cars_min'),
@@ -95,7 +95,7 @@ class TripController extends Controller
 
             $trip = $this->tripService->createTripForReservationGroup(
                 (string) $data['date'],
-                (int) $data['time_id'],
+                (int) $data['route_time_id'],
                 $data['cars'],
             );
 

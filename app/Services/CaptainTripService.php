@@ -22,6 +22,7 @@ class CaptainTripService
                 'time:id,pickup_time,point_id',
                 'time.point.route:id,name_en,name_ar',
                 'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car:id,name,type,number_of_seats,plate_numbers,plate_letters,color',
             ])
             ->withCount([
@@ -54,6 +55,7 @@ class CaptainTripService
                 'time.point.route:id,name_en,name_ar',
                 'time.point:id,name_en,name_ar,lat,long,route_id',
                 'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car:id,name,type,number_of_seats,plate_numbers,plate_letters,color',
             ])
             ->with([
@@ -80,6 +82,7 @@ class CaptainTripService
             return $trip->fresh([
                 'time.point.route',
                 'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
             ]) ?? $trip;
         }
@@ -90,6 +93,7 @@ class CaptainTripService
             'time.point.route',
             'time.point',
             'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+            'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
             'tripCars.car',
         ]) ?? $trip;
     }
@@ -189,6 +193,7 @@ class CaptainTripService
                 'time.point.route',
                 'time.point',
                 'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
             ]) ?? $trip;
         }
@@ -211,6 +216,7 @@ class CaptainTripService
             'time.point.route',
             'time.point',
             'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+            'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
             'tripCars.car',
         ]) ?? $trip;
     }

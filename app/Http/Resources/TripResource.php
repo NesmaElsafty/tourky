@@ -35,6 +35,11 @@ class TripResource extends JsonResource
                                     'id' => $tripCar->captain->id,
                                     'name' => $tripCar->captain->name,
                                     'phone' => $tripCar->captain->phone,
+                                    'lat' => $tripCar->captain->lat,
+                                    'long' => $tripCar->captain->long,
+                                    'status' => $tripCar->captain->status,
+                                    'has_trip' => $tripCar->captain->has_trip,
+                                    'trip_id' => $tripCar->captain->trip_id,
                                 ]
                                 : null,
                             'car' => $tripCar->relationLoaded('car') && $tripCar->car !== null

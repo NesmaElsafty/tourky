@@ -16,26 +16,24 @@ class AdminUserSeeder extends Seeder
         $companyRole = Role::query()->where('name_en', 'Company')->firstOrFail();
 
         User::query()->updateOrCreate(
-            ['phone' => '01000000001'],
+            ['phone' => '01000000001', 'type' => 'admin'],
             [
                 'name' => 'Admin User',
                 'email' => 'admin@tourky.local',
                 'password' => Hash::make('123456'),
                 'language' => 'en',
-                'type' => 'admin',
                 'role_id' => $superAdminRole->id,
                 'company_id' => null,
             ]
         );
 
         User::query()->updateOrCreate(
-            ['phone' => '01000000002'],
+            ['phone' => '01000000002', 'type' => 'admin'],
             [
                 'name' => 'cib',
                 'email' => 'cib@tourky.local',
                 'password' => Hash::make('123456'),
                 'language' => 'en',
-                'type' => 'admin',
                 'role_id' => $companyRole->id,
                 'company_id' => null,
             ]

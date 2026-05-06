@@ -24,6 +24,9 @@ class CaptainTripListResource extends JsonResource
 
         $tripCar = $this->relationLoaded('tripCars') ? $this->tripCars->first() : null;
         $car = $tripCar !== null && $tripCar->relationLoaded('car') ? $tripCar->car : null;
+        $captain = $tripCar !== null && $tripCar->relationLoaded('captain') && $tripCar->captain !== null
+            ? $tripCar->captain
+            : null;
 
         return [
             'id' => $this->id,
@@ -45,6 +48,16 @@ class CaptainTripListResource extends JsonResource
                 'plate_numbers' => $car->plate_numbers,
                 'plate_letters' => $car->plate_letters,
                 'color' => $car->color,
+            ] : null,
+            'captain' => $captain !== null ? [
+                'id' => $captain->id,
+                'name' => $captain->name,
+                'phone' => $captain->phone,
+                'lat' => $captain->lat,
+                'long' => $captain->long,
+                'status' => $captain->status,
+                'has_trip' => $captain->has_trip,
+                'trip_id' => $captain->trip_id,
             ] : null,
             'my_clients_count' => (int) ($this->my_clients_count ?? 0),
         ];

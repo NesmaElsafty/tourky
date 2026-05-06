@@ -30,10 +30,7 @@ class TripCarFactory extends Factory
         return [
             'trip_id' => Trip::factory(),
             'car_id' => $car?->id ?? Car::factory(),
-            'captain_id' => $captain?->id ?? User::factory()->state([
-                'type' => 'captain',
-                'role_id' => null,
-            ]),
+            'captain_id' => $captain?->id ?? User::factory()->captain(),
         ];
     }
 }

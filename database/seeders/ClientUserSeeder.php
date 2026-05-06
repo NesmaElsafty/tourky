@@ -14,15 +14,16 @@ class ClientUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Client User',
-            'phone' => '01000000003',
-            'email' => 'client@tourky.local',
-            'password' => Hash::make('123456'),
-            'language' => 'ar',
-            'type' => 'client',
-            'company_id' => null,
-        ]);
+        User::query()->updateOrCreate(
+            ['phone' => '01000000003', 'type' => 'client'],
+            [
+                'name' => 'Client User',
+                'email' => 'client@tourky.local',
+                'password' => Hash::make('123456'),
+                'language' => 'ar',
+                'company_id' => null,
+            ]
+        );
 
         $companyRoleId = Role::query()->where('name_en', 'Company')->value('id');
 

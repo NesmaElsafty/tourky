@@ -23,6 +23,11 @@ class CaptainResource extends JsonResource
             'language' => $locale,
             'rating_average' => $rating['average'],
             'ratings_count' => $rating['count'],
+            'lat' => $this->when($this->type === 'captain', $this->lat),
+            'long' => $this->when($this->type === 'captain', $this->long),
+            'status' => $this->when($this->type === 'captain', $this->status),
+            'has_trip' => $this->when($this->type === 'captain', $this->has_trip),
+            'trip_id' => $this->when($this->type === 'captain', $this->trip_id),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

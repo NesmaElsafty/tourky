@@ -13,19 +13,24 @@ class CaptainUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Captain User',
-            'phone' => '01000000002',
-            'email' => 'captain@tourky.local',
-            'password' => Hash::make('123456'),
-            'language' => 'en',
-            'type' => 'captain',
-        ]);
+        User::query()->updateOrCreate(
+            ['phone' => '01000000002', 'type' => 'captain'],
+            [
+                'name' => 'Captain User',
+                'email' => 'captain@tourky.local',
+                'password' => Hash::make('123456'),
+                'language' => 'en',
+                'status' => 'available',
+                'has_trip' => false,
+                'trip_id' => null,
+                'lat' => 30.0444,
+                'long' => 31.2357,
+            ]
+        );
 
         User::factory()
+            ->captain()
             ->count(20)
-            ->create([
-                'type' => 'captain',
-            ]);
+            ->create();
     }
 }

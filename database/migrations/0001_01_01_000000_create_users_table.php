@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('language', ['en', 'ar'])->default('en');
             $table->enum('type', ['admin', 'captain', 'client'])->default('client');
             $table->foreignId('company_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->decimal('lat', 10, 8)->nullable();
+            $table->decimal('long', 10, 8)->nullable();
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();

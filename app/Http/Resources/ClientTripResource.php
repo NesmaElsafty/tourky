@@ -60,6 +60,11 @@ class ClientTripResource extends JsonResource
                         'id' => $this->tripCar->captain->id,
                         'name' => $this->tripCar->captain->name,
                         'phone' => $this->tripCar->captain->phone,
+                        'lat' => $this->tripCar->captain->lat,
+                        'long' => $this->tripCar->captain->long,
+                        'status' => $this->tripCar->captain->status,
+                        'has_trip' => $this->tripCar->captain->has_trip,
+                        'trip_id' => $this->tripCar->captain->trip_id,
                         'rating_average' => $rating['average'],
                         'ratings_count' => $rating['count'],
                     ];

@@ -38,4 +38,12 @@ class Route extends Model
     {
         return $this->hasMany(Point::class);
     }
+
+    /**
+     * @return HasMany<RouteTime, $this>
+     */
+    public function routeTimes(): HasMany
+    {
+        return $this->hasMany(RouteTime::class);
+    }
 }

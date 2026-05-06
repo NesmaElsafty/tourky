@@ -44,4 +44,14 @@ class Trip extends Model
     {
         return $this->hasMany(CaptainReport::class);
     }
+
+    /**
+     * Captains with this trip set as their current trip (users.trip_id).
+     *
+     * @return HasMany<User, $this>
+     */
+    public function captainsWithCurrentTrip(): HasMany
+    {
+        return $this->hasMany(User::class, 'trip_id');
+    }
 }

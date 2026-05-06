@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Services\CaptainRatingService;
 use App\Services\ClientTripService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TripController extends Controller
@@ -22,10 +23,9 @@ class TripController extends Controller
     {
         try {
             $request->validate([
-                'scope' => ['required', 'in:upcoming,history,today'],
+                'scope' => ['sometimes', Rule::in(['upcoming', 'history', 'today'])],
                 'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             ], [
-                'scope.required' => __('api.trips.client_validation_scope_required'),
                 'scope.in' => __('api.trips.client_validation_scope_invalid'),
             ]);
 
@@ -37,7 +37,9 @@ class TripController extends Controller
                 ], 401);
             }
 
-            $scope = $request->string('scope')->toString();
+            $scope = $request->filled('scope')
+                ? $request->string('scope')->toString()
+                : 'history';
             $perPage = (int) ($request->input('per_page', 10));
 
             if ($scope === 'today') {

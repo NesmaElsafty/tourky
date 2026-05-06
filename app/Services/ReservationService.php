@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Models\Reservation;
+use App\Models\RouteTime;
 use App\Models\Time;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator as PaginationLengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -22,16 +24,18 @@ class ReservationService
     }
 
     /**
-     * Pending reservations grouped by `date`, then by `time_id`.
+     * Pending reservations grouped by `date`, then by `route_time_id`.
      *
      * @return Collection<string, Collection<string, Collection<int, Reservation>>>
      */
-    public function getPendingReservationsGroupedByDateAndTime(): Collection
+    public function getPendingReservationsGroupedByDateAndRouteTime(): Collection
     {
         $reservations = Reservation::query()
             ->where('status', 'pending')
-            ->with(['user:id,name,phone,email,type', 'route', 'point', 'time'])
+            ->whereNotNull('route_time_id')
+            ->with(['user:id,name,phone,email,type', 'route', 'point', 'time', 'routeTime'])
             ->orderBy('date')
+            ->orderBy('route_time_id')
             ->orderBy('time_id')
             ->orderBy('id')
             ->get();
@@ -40,9 +44,70 @@ class ReservationService
             ->groupBy(static fn (Reservation $reservation): string => (string) $reservation->date)
             ->map(
                 static fn (Collection $forDate): Collection => $forDate
-                    ->groupBy(static fn (Reservation $reservation): string => (string) $reservation->time_id)
+                    ->groupBy(static fn (Reservation $reservation): string => (string) ($reservation->route_time_id ?? 0))
                     ->map(static fn (Collection $group): Collection => $group->values())
-            );
+            )
+            ->sortKeys();
+    }
+
+    /**
+     * Pending reservation groups summarized by `date + route_time_id`.
+     *
+     * @return PaginationLengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function getPendingReservationGroupSummariesPaginated(int $perPage = 10): PaginationLengthAwarePaginator
+    {
+        $perPage = max(1, min(100, $perPage));
+
+        $groups = Reservation::query()
+            ->selectRaw('date, route_time_id, COUNT(*) as reservations_count')
+            ->where('status', 'pending')
+            ->whereNotNull('route_time_id')
+            ->groupBy('date', 'route_time_id')
+            ->orderBy('date')
+            ->orderBy('route_time_id')
+            ->paginate($perPage);
+
+        $routeTimeIds = collect($groups->items())
+            ->pluck('route_time_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $routeTimesById = RouteTime::query()
+            ->with('route:id,name_en,name_ar,is_active')
+            ->whereIn('id', $routeTimeIds->all())
+            ->get()
+            ->keyBy('id');
+
+        $items = collect($groups->items())
+            ->map(function ($group) use ($routeTimesById): array {
+                $routeTime = $routeTimesById->get((int) $group->route_time_id);
+                $timeIds = collect($routeTime?->time_ids ?? [])
+                    ->map(static fn ($id): int => (int) $id)
+                    ->filter(static fn (int $id): bool => $id > 0)
+                    ->values()
+                    ->all();
+
+                return [
+                    'date' => (string) $group->date,
+                    'route_time_id' => (int) $group->route_time_id,
+                    'reservations_count' => (int) $group->reservations_count,
+                    'route_id' => $routeTime?->route_id,
+                    'time_ids' => $timeIds,
+                    'route' => $routeTime?->route,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return new PaginationLengthAwarePaginator(
+            $items,
+            $groups->total(),
+            $groups->perPage(),
+            $groups->currentPage(),
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
     }
 
     public function updateReservationStatus(Reservation $reservation, string $status): Reservation
@@ -124,11 +189,17 @@ class ReservationService
             ]);
         }
 
+        $routeTimeId = $this->resolveRouteTimeIdForReservation(
+            (int) $time->point->route_id,
+            (int) $time->id,
+        );
+
         return Reservation::query()->create([
             'user_id' => $client->id,
             'route_id' => $time->point->route_id,
             'point_id' => $time->point_id,
             'time_id' => $time->id,
+            'route_time_id' => $routeTimeId,
             'date' => $date,
             'status' => 'pending',
         ]);
@@ -239,5 +310,21 @@ class ReservationService
         $scheduled = Carbon::parse($date.' '.$pickupTime, config('app.timezone'));
 
         return $scheduled->greaterThanOrEqualTo(now());
+    }
+
+    private function resolveRouteTimeIdForReservation(int $routeId, int $timeId): int
+    {
+        $existing = RouteTime::query()
+            ->where('route_id', $routeId)
+            ->containingTime($timeId)
+            ->first();
+
+        if ($existing !== null) {
+            return (int) $existing->id;
+        }
+
+        throw ValidationException::withMessages([
+            'time_id' => [__('api.reservations.route_time_not_configured')],
+        ]);
     }
 }

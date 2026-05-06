@@ -25,16 +25,7 @@ class User extends Authenticatable implements HasMedia
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'phone',
-        'email',
-        'password',
-        'language',
-        'type',
-        'role_id',
-        'company_id',
-    ];
+    protected $guarded = [];
 
     /**
      * @return BelongsTo<Role, $this>
@@ -58,6 +49,16 @@ class User extends Authenticatable implements HasMedia
     public function tripCarsAsCaptain(): HasMany
     {
         return $this->hasMany(TripCar::class, 'captain_id');
+    }
+
+    /**
+     * Active trip pointer for captains (see users.trip_id).
+     *
+     * @return BelongsTo<Trip, $this>
+     */
+    public function currentCaptainTrip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class, 'trip_id');
     }
 
     public function parentCompany(): BelongsTo
@@ -119,6 +120,9 @@ class User extends Authenticatable implements HasMedia
     {
         return [
             'password' => 'hashed',
+            'has_trip' => 'boolean',
+            'lat' => 'decimal:8',
+            'long' => 'decimal:8',
         ];
     }
 

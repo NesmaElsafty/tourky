@@ -10,7 +10,7 @@ return [
     'role' => [
         'unauthorized_admin' => 'Unauthorized for admin role.',
         'unauthorized_captain' => 'Unauthorized for captain role.',
-        'unauthorized_client' => 'Unauthorized for client role.',
+        'unauthorized_client' => 'Client endpoints require a client account token. Use POST /api/client/login and send the returned Bearer token.',
     ],
 
     'admin' => [
@@ -106,6 +106,17 @@ return [
         'server_error' => 'Something went wrong. Please try again later.',
     ],
 
+    'route_times' => [
+        'list_retrieved' => 'Route times retrieved successfully.',
+        'created' => 'Route time created successfully.',
+        'updated' => 'Route time updated successfully.',
+        'retrieved' => 'Route time retrieved successfully.',
+        'deleted' => 'Route time deleted successfully.',
+        'server_error' => 'Something went wrong. Please try again later.',
+        'time_ids_required' => 'At least one pickup time is required.',
+        'time_ids_must_belong_to_route' => 'All pickup times must belong to the selected route.',
+    ],
+
     'terms' => [
         'list_retrieved' => 'Terms retrieved successfully.',
         'created' => 'Term created successfully.',
@@ -187,6 +198,7 @@ return [
 
     'reservations' => [
         'admin_list_retrieved' => 'Reservations retrieved successfully.',
+        'admin_groups_retrieved' => 'Reservation groups retrieved successfully.',
         'admin_status_updated' => 'Reservation status updated successfully.',
         'client_upcoming_retrieved' => 'Upcoming reservations retrieved successfully.',
         'client_history_retrieved' => 'Past reservations retrieved successfully.',
@@ -199,6 +211,7 @@ return [
         'invalid_time' => 'The selected pickup time is invalid.',
         'inactive_time' => 'This pickup time is not available.',
         'inactive_route' => 'This route is not available for booking.',
+        'route_time_not_configured' => 'This pickup time is not configured by admin yet.',
         'company_route_not_allowed' => 'This company route is not available for your account.',
         'invalid_date_past' => 'The selected date and time must be in the future.',
         'duplicate_reservation' => 'You already have a reservation for this pickup time on this date.',
@@ -239,6 +252,9 @@ return [
         'validation_date_date' => 'Date must be a valid date.',
         'validation_time_id_required' => 'Time id is required.',
         'validation_time_id_exists' => 'Selected time was not found.',
+        'validation_route_time_id_required' => 'Route time id is required.',
+        'validation_route_time_id_exists' => 'Selected route time was not found.',
+        'invalid_route_time_times' => 'Selected route time has no valid pickup times.',
         'validation_trips_required' => 'Trips payload is required.',
         'validation_trips_array' => 'Trips payload must be an array.',
         'validation_trips_min' => 'At least one trip is required.',
@@ -247,6 +263,8 @@ return [
         'validation_cars_min' => 'At least one vehicle is required.',
         'validation_captain_distinct' => 'Each car must have a different captain.',
         'validation_car_distinct' => 'Each vehicle must use a different car.',
+        'validation_car_slot_conflict' => 'This car is already assigned to another trip on the same date and pickup time.',
+        'validation_captain_slot_conflict' => 'This captain is already assigned to another trip on the same date and pickup time.',
         'validation_per_page_integer' => 'Per page must be an integer.',
         'validation_per_page_min' => 'Per page must be at least 1.',
         'validation_per_page_max' => 'Per page may not be greater than 100.',

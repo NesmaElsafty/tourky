@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Car;
 use App\Models\Reservation;
+use App\Models\RouteTime;
 use App\Models\Time;
 use App\Models\User;
 use App\Services\TripService;
@@ -35,10 +36,7 @@ class TripSeeder extends Seeder
             ->values();
 
         if ($captainIds->count() < 2) {
-            User::factory()->count(8)->create([
-                'type' => 'captain',
-                'role_id' => null,
-            ]);
+            User::factory()->captain()->count(8)->create();
             $captainIds = User::query()
                 ->where('type', 'captain')
                 ->orderBy('id')
@@ -82,6 +80,7 @@ class TripSeeder extends Seeder
             $time = $times->random();
             $date = now()->addDays($groupIndex + 4)->toDateString();
             $reservationsCount = fake()->numberBetween(15, 30);
+            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
 
             for ($i = 0; $i < $reservationsCount; $i++) {
                 Reservation::query()->create([
@@ -89,6 +88,7 @@ class TripSeeder extends Seeder
                     'route_id' => $time->point->route_id,
                     'point_id' => $time->point_id,
                     'time_id' => $time->id,
+                    'route_time_id' => $routeTimeId,
                     'date' => $date,
                     'status' => 'pending',
                     'trip_id' => null,
@@ -97,24 +97,25 @@ class TripSeeder extends Seeder
         }
 
         $groups = Reservation::query()
-            ->select(['date', 'time_id'])
+            ->select(['date', 'route_time_id'])
             ->where('status', 'pending')
             ->whereNull('trip_id')
             ->whereNotNull('date')
-            ->groupBy('date', 'time_id')
+            ->whereNotNull('route_time_id')
+            ->groupBy('date', 'route_time_id')
             ->havingRaw('COUNT(*) > 14')
             ->orderBy('date')
-            ->orderBy('time_id')
+            ->orderBy('route_time_id')
             ->get();
 
         foreach ($groups as $group) {
             $date = (string) $group->date;
-            $timeId = (int) $group->time_id;
+            $routeTimeId = (int) $group->route_time_id;
             $pendingCount = Reservation::query()
                 ->where('status', 'pending')
                 ->whereNull('trip_id')
                 ->where('date', $date)
-                ->where('time_id', $timeId)
+                ->where('route_time_id', $routeTimeId)
                 ->count();
             if ($pendingCount <= 0) {
                 continue;
@@ -159,7 +160,7 @@ class TripSeeder extends Seeder
             }
 
             try {
-                $tripService->createTripForReservationGroup($date, $timeId, $carsData);
+                $tripService->createTripForReservationGroup($date, $routeTimeId, $carsData);
             } catch (Throwable) {
                 // Skip groups that fail validation (e.g. race with other seed steps).
             }
@@ -221,7 +222,11 @@ class TripSeeder extends Seeder
                     $time,
                     $clients,
                 );
-                $tripService->createTripForReservationGroup($date, (int) $time->id, $carsData);
+                $tripService->createTripForReservationGroup(
+                    $date,
+                    $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id),
+                    $carsData
+                );
             } catch (Throwable) {
                 // Ignore if duplicates or validation fails so the rest of the seeder still runs.
             }
@@ -234,6 +239,7 @@ class TripSeeder extends Seeder
         if ($time->point === null) {
             return;
         }
+        $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
 
         $picked = $clients->shuffle()->unique('id')->take(self::CLIENT_DEMO_PENDING_COUNT);
         if ($picked->count() < self::CLIENT_DEMO_PENDING_COUNT) {
@@ -246,11 +252,31 @@ class TripSeeder extends Seeder
                 'route_id' => $time->point->route_id,
                 'point_id' => $time->point_id,
                 'time_id' => $time->id,
+                'route_time_id' => $routeTimeId,
                 'date' => $date,
                 'status' => 'pending',
                 'trip_id' => null,
             ]);
         }
+    }
+
+    private function resolveOrCreateRouteTimeId(int $routeId, int $timeId): int
+    {
+        $routeTime = RouteTime::query()
+            ->where('route_id', $routeId)
+            ->whereJsonContains('time_ids', $timeId)
+            ->first();
+
+        if ($routeTime !== null) {
+            return (int) $routeTime->id;
+        }
+
+        $created = RouteTime::query()->create([
+            'route_id' => $routeId,
+            'time_ids' => [$timeId],
+        ]);
+
+        return (int) $created->id;
     }
 
     private function carsWithSeats()

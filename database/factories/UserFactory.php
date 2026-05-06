@@ -36,4 +36,18 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
         ];
     }
+
+    /**
+     * Captain portal user with availability defaults (DB columns are nullable / defaulted for other types).
+     */
+    public function captain(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => 'captain',
+            'role_id' => null,
+            'status' => 'available',
+            'has_trip' => false,
+            'trip_id' => null,
+        ]);
+    }
 }

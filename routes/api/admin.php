@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\RouteController as AdminRouteController;
+use App\Http\Controllers\Admin\RouteTimeController as AdminRouteTimeController;
 use App\Http\Controllers\Admin\TermController as AdminTermController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
 use App\Http\Controllers\Admin\TripController as AdminTripController;
@@ -88,7 +89,15 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::delete('notifications/{notification}', [AdminNotificationController::class, 'destroy']);
 
     Route::get('reservations', [AdminReservationController::class, 'index']);
+    Route::get('reservations/groups', [AdminReservationController::class, 'groups']);
     Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->whereNumber('reservation');
+
+    Route::get('route-times', [AdminRouteTimeController::class, 'index']);
+    Route::post('route-times', [AdminRouteTimeController::class, 'store']);
+    Route::get('route-times/{routeTime}', [AdminRouteTimeController::class, 'show'])->whereNumber('routeTime');
+    Route::put('route-times/{routeTime}', [AdminRouteTimeController::class, 'update'])->whereNumber('routeTime');
+    Route::patch('route-times/{routeTime}', [AdminRouteTimeController::class, 'update'])->whereNumber('routeTime');
+    Route::delete('route-times/{routeTime}', [AdminRouteTimeController::class, 'destroy'])->whereNumber('routeTime');
 
     Route::get('reports', [AdminReportController::class, 'index']);
     Route::get('reports/{report}', [AdminReportController::class, 'show'])->whereNumber('report');

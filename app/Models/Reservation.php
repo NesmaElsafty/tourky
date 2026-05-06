@@ -64,6 +64,14 @@ class Reservation extends Model
     }
 
     /**
+     * @return BelongsTo<RouteTime, $this>
+     */
+    public function routeTime(): BelongsTo
+    {
+        return $this->belongsTo(RouteTime::class);
+    }
+
+    /**
      * @return HasMany<CaptainReport, $this>
      */
     public function reports(): HasMany

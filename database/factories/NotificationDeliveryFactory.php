@@ -27,7 +27,11 @@ class NotificationDeliveryFactory extends Factory
                 ->first();
 
             if ($user === null) {
-                $user = User::factory()->create([
+                $userFactory = User::factory();
+                if ($notification->user_type === 'captain') {
+                    $userFactory = $userFactory->captain();
+                }
+                $user = $userFactory->create([
                     'type' => $notification->user_type,
                     'role_id' => null,
                 ]);
@@ -40,12 +44,16 @@ class NotificationDeliveryFactory extends Factory
         }
 
         $userType = fake()->randomElement(Notification::USER_TYPES);
+        $userFactory = User::factory();
+        if ($userType === 'captain') {
+            $userFactory = $userFactory->captain();
+        }
 
         return [
             'notification_id' => Notification::factory()->state([
                 'user_type' => $userType,
             ]),
-            'user_id' => User::factory()->state([
+            'user_id' => $userFactory->state([
                 'type' => $userType,
                 'role_id' => null,
             ]),
@@ -87,7 +95,7 @@ class NotificationDeliveryFactory extends Factory
                 ->where('type', 'captain')
                 ->inRandomOrder()
                 ->first()
-                ?? User::factory()->create(['type' => 'captain', 'role_id' => null]);
+                ?? User::factory()->captain()->create();
 
             return [
                 'notification_id' => $notification->id,

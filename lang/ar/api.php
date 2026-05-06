@@ -10,7 +10,7 @@ return [
     'role' => [
         'unauthorized_admin' => 'غير مصرح لهذا الدور (مدير).',
         'unauthorized_captain' => 'غير مصرح لهذا الدور (كابتن).',
-        'unauthorized_client' => 'غير مصرح لهذا الدور (عميل).',
+        'unauthorized_client' => 'مسارات العميل تحتاج توكن حساب عميل. سجّل الدخول من POST /api/client/login وأرسل التوكن في Authorization Bearer.',
     ],
 
     'admin' => [
@@ -106,6 +106,17 @@ return [
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
     ],
 
+    'route_times' => [
+        'list_retrieved' => 'تم جلب route_times بنجاح.',
+        'created' => 'تم إنشاء route_time بنجاح.',
+        'updated' => 'تم تحديث route_time بنجاح.',
+        'retrieved' => 'تم جلب route_time بنجاح.',
+        'deleted' => 'تم حذف route_time بنجاح.',
+        'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
+        'time_ids_required' => 'لازم تبعت وقت التقاط واحد على الأقل.',
+        'time_ids_must_belong_to_route' => 'كل أوقات الالتقاط لازم تكون تابعة لنفس المسار المختار.',
+    ],
+
     'terms' => [
         'list_retrieved' => 'تم جلب البنود بنجاح.',
         'created' => 'تم إنشاء البند بنجاح.',
@@ -187,6 +198,7 @@ return [
 
     'reservations' => [
         'admin_list_retrieved' => 'تم جلب الحجوزات بنجاح.',
+        'admin_groups_retrieved' => 'تم جلب مجموعات الحجوزات بنجاح.',
         'admin_status_updated' => 'تم تحديث حالة الحجز بنجاح.',
         'client_upcoming_retrieved' => 'تم جلب الحجوزات القادمة بنجاح.',
         'client_history_retrieved' => 'تم جلب سجل الحجوزات بنجاح.',
@@ -199,6 +211,7 @@ return [
         'invalid_time' => 'وقت الالتقاط المحدد غير صالح.',
         'inactive_time' => 'وقت الالتقاط هذا غير متاح.',
         'inactive_route' => 'هذا المسار غير متاح للحجز.',
+        'route_time_not_configured' => 'وقت الالتقاط ده لسه الأدمن ماجهزوش للحجز.',
         'company_route_not_allowed' => 'مسار الشركة هذا غير متاح لحسابك.',
         'invalid_date_past' => 'يجب أن يكون التاريخ والوقت في المستقبل.',
         'duplicate_reservation' => 'لديك بالفعل حجز لهذا الوقت في هذا اليوم.',
@@ -239,6 +252,9 @@ return [
         'validation_date_date' => 'يجب أن يكون التاريخ صالحًا.',
         'validation_time_id_required' => 'حقل وقت الانطلاق مطلوب.',
         'validation_time_id_exists' => 'وقت الانطلاق المحدد غير موجود.',
+        'validation_route_time_id_required' => 'حقل route_time_id مطلوب.',
+        'validation_route_time_id_exists' => 'قيمة route_time_id المحددة غير موجودة.',
+        'invalid_route_time_times' => 'قيمة route_time_id المحددة لا تحتوي على أوقات التقاط صالحة.',
         'validation_trips_required' => 'بيانات الرحلات مطلوبة.',
         'validation_trips_array' => 'بيانات الرحلات يجب أن تكون مصفوفة.',
         'validation_trips_min' => 'يجب إدخال رحلة واحدة على الأقل.',
@@ -247,6 +263,8 @@ return [
         'validation_cars_min' => 'يجب إدخال مركبة واحدة على الأقل.',
         'validation_captain_distinct' => 'يجب اختيار كابتن مختلف لكل سيارة.',
         'validation_car_distinct' => 'يجب اختيار سيارة مختلفة لكل مركبة.',
+        'validation_car_slot_conflict' => 'العربية دي متسجّلة على رحلة تانية في نفس اليوم ونفس وقت الالتقاط.',
+        'validation_captain_slot_conflict' => 'الكابتن ده متسجّل على رحلة تانية في نفس اليوم ونفس وقت الالتقاط.',
         'validation_per_page_integer' => 'يجب أن يكون حقل لكل صفحة عددًا صحيحًا.',
         'validation_per_page_min' => 'يجب ألا يقل حقل لكل صفحة عن 1.',
         'validation_per_page_max' => 'يجب ألا يزيد حقل لكل صفحة عن 100.',

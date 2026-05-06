@@ -1,0 +1,222 @@
+{
+	"info": {
+		"_postman_id": "f1a2b3c4-route-time-flow-0001",
+		"name": "Tourky — RouteTime Reservation Trip Flow",
+		"description": "End-to-end test flow for route_times + client reservation + admin grouping + trip creation.\n\nSteps:\n1) Run Admin Login.\n2) Run Create Route Time (or List Route Times then set `routeTimeId`).\n3) Run Client Login.\n4) Run Client Create Reservation (stores `reservationId`).\n5) Run Admin Reservation Groups.\n6) Run Admin Create Trip with `route_time_id`.\n\nCollection variables to review/edit: baseUrl, adminPhone/adminPassword, clientPhone/clientPassword, routeId, timeId, captainId1, captainId2, carId1, carId2, date.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8000/api" },
+		{ "key": "adminToken", "value": "" },
+		{ "key": "clientToken", "value": "" },
+		{ "key": "adminPhone", "value": "01000000000" },
+		{ "key": "adminPassword", "value": "your-admin-password" },
+		{ "key": "clientPhone", "value": "01000000001" },
+		{ "key": "clientPassword", "value": "your-client-password" },
+		{ "key": "routeId", "value": "1" },
+		{ "key": "timeId", "value": "1" },
+		{ "key": "routeTimeId", "value": "1" },
+		{ "key": "reservationId", "value": "1" },
+		{ "key": "captainId1", "value": "5" },
+		{ "key": "captainId2", "value": "6" },
+		{ "key": "carId1", "value": "2" },
+		{ "key": "carId2", "value": "3" },
+		{ "key": "date", "value": "2026-05-10" }
+	],
+	"item": [
+		{
+			"name": "Admin Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+							"try {",
+							"  const j = pm.response.json();",
+							"  if (j.token) pm.collectionVariables.set('adminToken', j.token);",
+							"} catch (e) {}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phone\": \"{{adminPhone}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+				},
+				"url": "{{baseUrl}}/admin/login",
+				"auth": { "type": "noauth" }
+			}
+		},
+		{
+			"name": "Route Times - Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+							"try {",
+							"  const j = pm.response.json();",
+							"  const id = j?.data?.id;",
+							"  if (id) pm.collectionVariables.set('routeTimeId', String(id));",
+							"} catch (e) {}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"route_id\": {{routeId}},\n  \"time_ids\": [{{timeId}}]\n}"
+				},
+				"url": "{{baseUrl}}/admin/route-times",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Route Times - List",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/admin/route-times?per_page=20",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Client Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+							"try {",
+							"  const j = pm.response.json();",
+							"  if (j.token) pm.collectionVariables.set('clientToken', j.token);",
+							"} catch (e) {}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phone\": \"{{clientPhone}}\",\n  \"password\": \"{{clientPassword}}\"\n}"
+				},
+				"url": "{{baseUrl}}/client/login",
+				"auth": { "type": "noauth" }
+			}
+		},
+		{
+			"name": "Client Reservations - Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+							"try {",
+							"  const j = pm.response.json();",
+							"  const id = j?.data?.id;",
+							"  if (id) pm.collectionVariables.set('reservationId', String(id));",
+							"} catch (e) {}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"time_id\": {{timeId}},\n  \"date\": \"{{date}}\"\n}"
+				},
+				"url": "{{baseUrl}}/client/reservations",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{clientToken}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Admin Reservations - Groups",
+			"request": {
+				"method": "GET",
+				"header": [{ "key": "Accept", "value": "application/json" }],
+				"url": "{{baseUrl}}/admin/reservations/groups?per_page=20",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Admin Trips - Create by route_time_id",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"date\": \"{{date}}\",\n  \"route_time_id\": {{routeTimeId}},\n  \"cars\": [\n    {\n      \"captain_id\": {{captainId1}},\n      \"car_id\": {{carId1}},\n      \"status\": \"planned\"\n    },\n    {\n      \"captain_id\": {{captainId2}},\n      \"car_id\": {{carId2}},\n      \"status\": \"planned\"\n    }\n  ]\n}"
+				},
+				"url": "{{baseUrl}}/admin/trips",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+				}
+			}
+		},
+		{
+			"name": "Admin Reservations - Update Status",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"confirmed\"\n}"
+				},
+				"url": "{{baseUrl}}/admin/reservations/{{reservationId}}/status",
+				"auth": {
+					"type": "bearer",
+					"bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+				}
+			}
+		}
+	]
+}

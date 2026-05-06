@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Car;
 use App\Models\Reservation;
+use App\Models\RouteTime;
+use App\Models\Time;
 use App\Models\Trip;
 use App\Models\TripCar;
 use App\Models\User;
@@ -22,7 +24,7 @@ class TripService
     {
         return Trip::query()
             ->with([
-                'tripCars.captain:id,name,phone',
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
                 'time',
                 'reservations.user:id,name,phone',
@@ -35,7 +37,7 @@ class TripService
     {
         return Trip::query()
             ->with([
-                'tripCars.captain:id,name,phone',
+                'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
                 'time',
                 'reservations.user:id,name,phone',
@@ -46,13 +48,27 @@ class TripService
     /**
      * @param  array<int, array{captain_id:int,car_id:int,status?:string}>  $carsData
      */
-    public function createTripForReservationGroup(string $date, int $timeId, array $carsData): Trip
+    public function createTripForReservationGroup(string $date, int $routeTimeId, array $carsData): Trip
     {
+        $routeTime = RouteTime::query()->findOrFail($routeTimeId);
+        $timeIds = collect($routeTime->time_ids ?? [])
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->values();
+
+        if ($timeIds->isEmpty()) {
+            throw ValidationException::withMessages([
+                'route_time_id' => [__('api.trips.invalid_route_time_times')],
+            ]);
+        }
+
+        $primaryTimeId = (int) $timeIds->first();
+
         $pendingReservations = Reservation::query()
             ->where('status', 'pending')
             ->whereNull('trip_id')
             ->where('date', $date)
-            ->where('time_id', $timeId)
+            ->where('route_time_id', $routeTimeId)
             ->with('user:id,name,phone')
             ->orderBy('id')
             ->get();
@@ -134,9 +150,11 @@ class TripService
             ]);
         }
 
-        return DB::transaction(function () use ($carsData, $carsById, $pendingReservations, $date, $timeId): Trip {
+        $this->assertCarsAndCaptainsFreeForDateAndPickupSlot($date, $primaryTimeId, $carsData);
+
+        return DB::transaction(function () use ($carsData, $carsById, $pendingReservations, $date, $primaryTimeId): Trip {
             $trip = Trip::query()->create([
-                'time_id' => $timeId,
+                'time_id' => $primaryTimeId,
                 'date' => $date,
                 'status' => (string) ($carsData[0]['status'] ?? 'planned'),
             ]);
@@ -201,7 +219,7 @@ class TripService
             return Trip::query()
                 ->whereKey($tripId)
                 ->with([
-                    'tripCars.captain:id,name,phone',
+                    'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                     'tripCars.car',
                     'time',
                     'reservations.user:id,name,phone',
@@ -221,7 +239,7 @@ class TripService
         $trip->update($data);
 
         return $trip->fresh([
-            'tripCars.captain:id,name,phone',
+            'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
             'tripCars.car',
             'time',
             'reservations.user:id,name,phone',
@@ -246,6 +264,98 @@ class TripService
         });
     }
 
+    /**
+     * @param  array<int, array{captain_id:int,car_id:int,status?:string}>  $carsData
+     */
+    private function assertCarsAndCaptainsFreeForDateAndPickupSlot(string $date, int $timeId, array $carsData): void
+    {
+        $tripIds = $this->existingTripIdsForDateAndPickupSlot($date, $timeId);
+        if ($tripIds->isEmpty()) {
+            return;
+        }
+
+        foreach ($carsData as $index => $row) {
+            $carId = (int) $row['car_id'];
+            $captainId = (int) $row['captain_id'];
+
+            $carTaken = TripCar::query()
+                ->whereIn('trip_id', $tripIds->all())
+                ->where('car_id', $carId)
+                ->exists();
+
+            if ($carTaken) {
+                throw ValidationException::withMessages([
+                    "cars.$index.car_id" => [__('api.trips.validation_car_slot_conflict')],
+                ]);
+            }
+
+            $captainTaken = TripCar::query()
+                ->whereIn('trip_id', $tripIds->all())
+                ->where('captain_id', $captainId)
+                ->exists();
+
+            if ($captainTaken) {
+                throw ValidationException::withMessages([
+                    "cars.$index.captain_id" => [__('api.trips.validation_captain_slot_conflict')],
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Trips on the same calendar date whose schedule row shares the same pickup clock (any route / time row).
+     *
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    private function existingTripIdsForDateAndPickupSlot(string $date, int $timeId): \Illuminate\Support\Collection
+    {
+        $sameSlotTimeIds = $this->resolveTimeIdsSharingSamePickupSlot($timeId);
+
+        return Trip::query()
+            ->where('date', $date)
+            ->where('status', '!=', 'cancelled')
+            ->whereIn('time_id', $sameSlotTimeIds)
+            ->pluck('id');
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function resolveTimeIdsSharingSamePickupSlot(int $timeId): array
+    {
+        $time = Time::query()->findOrFail($timeId);
+        $raw = trim((string) ($time->pickup_time ?? ''));
+        if ($raw === '') {
+            return [$timeId];
+        }
+
+        $slotKey = $this->normalizePickupTime($raw);
+
+        return Time::query()
+            ->whereNotNull('pickup_time')
+            ->get()
+            ->filter(fn (Time $t): bool => $this->normalizePickupTime((string) $t->pickup_time) === $slotKey)
+            ->pluck('id')
+            ->push($timeId)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function normalizePickupTime(string $value): string
+    {
+        $pickupTime = trim($value);
+        if ($pickupTime === '') {
+            return '00:00';
+        }
+
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', $pickupTime, $m)) {
+            return sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
+        }
+
+        return $pickupTime;
+    }
+
     private function ensureTripCanBeChanged(Trip $trip): void
     {
         if (! $this->isAtLeast24HoursBeforeTrip($trip)) {
@@ -261,14 +371,7 @@ class TripService
             return false;
         }
 
-        $pickupTime = trim((string) $trip->time->pickup_time);
-        if ($pickupTime === '') {
-            $pickupTime = '00:00';
-        }
-
-        if (preg_match('/^(\d{1,2}):(\d{2})$/', $pickupTime, $m)) {
-            $pickupTime = sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
-        }
+        $pickupTime = $this->normalizePickupTime((string) ($trip->time->pickup_time ?? ''));
 
         $tripStart = Carbon::parse($trip->date.' '.$pickupTime, config('app.timezone'));
 

@@ -149,7 +149,7 @@ class ClientTripService
             'route:id,name_en,name_ar,is_active',
             'point:id,name_en,name_ar,lat,long',
             'time:id,pickup_time,point_id',
-            'tripCar.captain:id,name,phone',
+            'tripCar.captain:id,name,phone,lat,long,status,has_trip,trip_id',
             'tripCar.car:id,name,number_of_seats,type,plate_numbers,plate_letters,color',
             'reports:id,reservation_id,type',
         ];
