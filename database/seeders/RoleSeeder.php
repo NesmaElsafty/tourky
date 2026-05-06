@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
@@ -22,66 +23,24 @@ class RoleSeeder extends Seeder
     {
         return [
             [
-                'name_en' => 'Super Admin',
-                'name_ar' => 'مدير النظام',
+                'name_en' => 'Admin',
+                'name_ar' => 'مدير',
                 'description_en' => 'Full access to every permission, including roles and permission management.',
                 'description_ar' => 'صلاحية كاملة لكل الأذونات، بما فيها إدارة الأدوار والأذونات.',
                 'parent' => null,
-            ],
-            [
-                'name_en' => 'Admin',
-                'name_ar' => 'مدير',
-                'description_en' => 'Day-to-day administration without changing roles or global permissions.',
-                'description_ar' => 'إدارة يومية دون تعديل الأدوار أو تعريفات الأذونات العامة.',
-                'parent' => 'Super Admin',
-            ],
-            [
-                'name_en' => 'Support',
-                'name_ar' => 'دعم فني',
-                'description_en' => 'Read-only access to dashboards and records for support staff.',
-                'description_ar' => 'وصول للقراءة فقط للوحات والسجلات لفريق الدعم.',
-                'parent' => 'Admin',
-            ],
-            [
-                'name_en' => 'Junior Support',
-                'name_ar' => 'دعم مبتدئ',
-                'description_en' => 'Limited read access for trainees (dashboard, clients, captains).',
-                'description_ar' => 'وصول قراءة محدود للمتدربين (لوحة التحكم، العملاء، الكباتن).',
-                'parent' => 'Support',
-            ],
-            [
-                'name_en' => 'Operations Manager',
-                'name_ar' => 'مدير العمليات',
-                'description_en' => 'Manages captains, clients, and bookings without system role configuration.',
-                'description_ar' => 'إدارة الكباتن والعملاء والحجوزات دون ضبط أدوار النظام.',
-                'parent' => 'Admin',
-            ],
-            [
-                'name_en' => 'Content Editor',
-                'name_ar' => 'محرر المحتوى',
-                'description_en' => 'Manages media assets and views reports.',
-                'description_ar' => 'إدارة الوسائط وعرض التقارير.',
-                'parent' => 'Admin',
-            ],
-            [
-                'name_en' => 'Finance Analyst',
-                'name_ar' => 'محلل مالي',
-                'description_en' => 'Views financial-related modules: reports, bookings, clients, and settings.',
-                'description_ar' => 'عرض الوحدات المالية: التقارير، الحجوزات، العملاء، والإعدادات.',
-                'parent' => 'Admin',
-            ],
-            [
-                'name_en' => 'Regional Coordinator',
-                'name_ar' => 'منسق إقليمي',
-                'description_en' => 'Coordinates captains and bookings in the field with limited client access.',
-                'description_ar' => 'تنسيق الكباتن والحجوزات في الميدان مع وصول محدود للعملاء.',
-                'parent' => 'Admin',
             ],
             [
                 'name_en' => 'Company',
                 'name_ar' => 'شركة',
                 'description_en' => 'Company account with operational access without role or permission management.',
                 'description_ar' => 'حساب شركة مع صلاحيات تشغيلية دون إدارة الأدوار أو الأذونات.',
+                'parent' => 'Admin',
+            ],
+            [
+                'name_en' => 'Employee',
+                'name_ar' => 'موظف',
+                'description_en' => 'Day-to-day administration without changing roles or global permission definitions.',
+                'description_ar' => 'إدارة يومية دون تعديل الأدوار أو تعريفات الأذونات العامة.',
                 'parent' => 'Admin',
             ],
         ];
@@ -104,6 +63,50 @@ class RoleSeeder extends Seeder
                     'role_id' => $parentId,
                 ]
             );
+        }
+
+        $this->migrateUsersOffObsoleteRoles();
+        $this->deleteObsoleteRoles();
+    }
+
+    private function migrateUsersOffObsoleteRoles(): void
+    {
+        $keep = ['Admin', 'Company', 'Employee'];
+
+        $admin = Role::query()->where('name_en', 'Admin')->first();
+        $employee = Role::query()->where('name_en', 'Employee')->first();
+
+        if ($admin === null || $employee === null) {
+            return;
+        }
+
+        $obsolete = Role::query()->whereNotIn('name_en', $keep)->get();
+
+        foreach ($obsolete as $role) {
+            $targetId = $role->name_en === 'Super Admin'
+                ? $admin->id
+                : $employee->id;
+
+            User::query()->where('role_id', $role->id)->update(['role_id' => $targetId]);
+        }
+    }
+
+    private function deleteObsoleteRoles(): void
+    {
+        $keep = ['Admin', 'Company', 'Employee'];
+
+        while (true) {
+            $leaf = Role::query()
+                ->whereNotIn('name_en', $keep)
+                ->whereDoesntHave('children')
+                ->first();
+
+            if ($leaf === null) {
+                break;
+            }
+
+            $leaf->permissions()->detach();
+            $leaf->delete();
         }
     }
 }

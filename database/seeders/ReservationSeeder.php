@@ -34,23 +34,17 @@ class ReservationSeeder extends Seeder
         }
 
         $clients = User::query()->where('type', 'client')->get();
-
-        $minClients = self::PENDING_PER_DATE_AND_TIME + 5;
-        if ($clients->count() < $minClients) {
-            User::factory()
-                ->count($minClients - $clients->count())
-                ->create([
-                    'type' => 'client',
-                    'role_id' => null,
-                ]);
-            $clients = User::query()->where('type', 'client')->get();
+        if ($clients->isEmpty()) {
+            return;
         }
 
         $dates = $this->spreadFutureDates(self::FUTURE_DATE_COUNT);
 
+        $take = min(self::PENDING_PER_DATE_AND_TIME, $clients->count());
+
         foreach ($times as $time) {
             foreach ($dates as $date) {
-                foreach ($clients->shuffle()->take(self::PENDING_PER_DATE_AND_TIME) as $client) {
+                foreach ($clients->shuffle()->take($take) as $client) {
                     Reservation::factory()
                         ->forTime($time)
                         ->create([

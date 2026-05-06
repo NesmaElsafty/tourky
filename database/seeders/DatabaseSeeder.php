@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             CaptainUserSeeder::class,
             ClientUserSeeder::class,
             CarSeeder::class,
-            RouteSeeder::class,
+            HsbcRouteSeeder::class,
             ReservationSeeder::class,
             TripSeeder::class,
             CaptainRatingSeeder::class,

@@ -27,10 +27,5 @@ class CaptainUserSeeder extends Seeder
                 'long' => 31.2357,
             ]
         );
-
-        User::factory()
-            ->captain()
-            ->count(20)
-            ->create();
     }
 }

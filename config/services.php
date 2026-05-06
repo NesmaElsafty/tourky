@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'tracking' => [
+        'base_url' => env('TRACKING_SERVICE_URL', 'http://127.0.0.1:6001'),
+        'internal_secret' => env('TRACKING_INTERNAL_SECRET'),
+    ],
+
 ];

@@ -1,0 +1,20 @@
+{
+  "name": "tourky-tracking-service",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Socket.io tracking microservice (Redis adapter) for captain live location",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.4.2",
+    "socket.io": "^4.8.1"
+  }
+}

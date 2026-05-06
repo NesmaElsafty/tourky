@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CaptainController as AdminCaptainController;
 use App\Http\Controllers\Admin\CarController as AdminCarController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
@@ -36,6 +37,8 @@ Route::get('notifications', [AdminNotificationController::class, 'index']);
 Route::get('notifications/{notification}', [AdminNotificationController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->group(function (): void {
+        Route::get('dashboard', [AdminDashboardController::class, 'index']);
+
     Route::get('profile', [AdminAuthController::class, 'profile']);
     Route::put('profile', [AdminAuthController::class, 'updateProfile']);
     Route::post('logout', [AdminAuthController::class, 'logout']);

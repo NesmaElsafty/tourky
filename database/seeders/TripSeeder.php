@@ -35,27 +35,11 @@ class TripSeeder extends Seeder
             ->pluck('id')
             ->values();
 
-        if ($captainIds->count() < 2) {
-            User::factory()->captain()->count(8)->create();
-            $captainIds = User::query()
-                ->where('type', 'captain')
-                ->orderBy('id')
-                ->pluck('id')
-                ->values();
-        }
-
         if ($cars->count() < 2 || $captainIds->count() < 2) {
             return;
         }
 
         $clients = User::query()->where('type', 'client')->get();
-        if ($clients->count() < 80) {
-            User::factory()->count(100 - $clients->count())->create([
-                'type' => 'client',
-                'role_id' => null,
-            ]);
-            $clients = User::query()->where('type', 'client')->get();
-        }
 
         $times = Time::query()
             ->with('point')

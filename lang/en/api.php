@@ -21,6 +21,11 @@ return [
         'update_profile_success' => 'Admin profile updated successfully.',
     ],
 
+    'dashboard' => [
+        'retrieved' => 'Dashboard statistics retrieved successfully.',
+        'server_error' => 'Something went wrong while loading the dashboard. Please try again later.',
+    ],
+
     'roles' => [
         'list_retrieved' => 'Roles retrieved successfully.',
         'created' => 'Role created successfully.',

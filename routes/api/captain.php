@@ -3,6 +3,7 @@
 use App\Http\Controllers\Captain\AuthController as CaptainAuthController;
 use App\Http\Controllers\Captain\NotificationController as CaptainNotificationController;
 use App\Http\Controllers\Captain\TermController as CaptainTermController;
+use App\Http\Controllers\Captain\TrackingController as CaptainTrackingController;
 use App\Http\Controllers\Captain\TripController as CaptainTripController;
 use App\Http\Middleware\EnsureUserIsCaptain;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->
 
     Route::get('trips', [CaptainTripController::class, 'index']);
     Route::post('trips/{trip}/start', [CaptainTripController::class, 'start'])->whereNumber('trip');
+    Route::post('trips/{trip}/location', [CaptainTrackingController::class, 'updateLocation'])->whereNumber('trip');
     Route::get('trips/{trip}', [CaptainTripController::class, 'show'])->whereNumber('trip');
     Route::patch('trips/{trip}/reservations/{reservation}/pickup', [CaptainTripController::class, 'confirmPickup'])
         ->whereNumber('trip')

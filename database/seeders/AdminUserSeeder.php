@@ -11,8 +11,7 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $superAdminRole = Role::query()->where('name_en', 'Super Admin')->firstOrFail();
-        $staffAdminRole = Role::query()->where('name_en', 'Admin')->firstOrFail();
+        $adminRole = Role::query()->where('name_en', 'Admin')->firstOrFail();
         $companyRole = Role::query()->where('name_en', 'Company')->firstOrFail();
 
         User::query()->updateOrCreate(
@@ -22,7 +21,7 @@ class AdminUserSeeder extends Seeder
                 'email' => 'admin@tourky.local',
                 'password' => Hash::make('123456'),
                 'language' => 'en',
-                'role_id' => $superAdminRole->id,
+                'role_id' => $adminRole->id,
                 'company_id' => null,
             ]
         );
@@ -39,20 +38,16 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        User::factory()
-            ->count(2)
-            ->create([
-                'type' => 'admin',
+        User::query()->updateOrCreate(
+            ['phone' => '01000000003', 'type' => 'admin'],
+            [
+                'name' => 'HSBC',
+                'email' => 'hsbc@tourky.local',
+                'password' => Hash::make('123456'),
+                'language' => 'en',
                 'role_id' => $companyRole->id,
                 'company_id' => null,
-            ]);
-
-        User::factory()
-            ->count(20)
-            ->create([
-                'type' => 'admin',
-                'role_id' => $staffAdminRole->id,
-                'company_id' => null,
-            ]);
+            ]
+        );
     }
 }
