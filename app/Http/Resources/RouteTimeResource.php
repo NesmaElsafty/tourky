@@ -18,8 +18,9 @@ class RouteTimeResource extends JsonResource
             ->filter(static fn (int $id): bool => $id > 0)
             ->values();
 
+
         $times = Time::query()
-            ->with('point:id,route_id')
+            ->with('point:id,route_id,name_en,name_ar')
             ->whereIn('id', $timeIds->all())
             ->orderBy('pickup_time')
             ->get()
@@ -27,6 +28,9 @@ class RouteTimeResource extends JsonResource
                 'id' => $time->id,
                 'pickup_time' => $time->pickup_time,
                 'point_id' => $time->point_id,
+                'point_name' => $locale === 'ar'
+                    ? ($time->point?->name_ar ?? $time->point?->name_en)
+                    : ($time->point?->name_en ?? $time->point?->name_ar),
             ])
             ->values();
 
@@ -47,6 +51,7 @@ class RouteTimeResource extends JsonResource
                     'is_active' => (bool) $this->route->is_active,
                 ]
             ),
+            
             'language' => $locale,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

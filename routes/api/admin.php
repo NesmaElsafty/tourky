@@ -26,6 +26,7 @@ Route::get('cars/{car}', [AdminCarController::class, 'show']);
 
 Route::get('points', [AdminPointController::class, 'index']);
 Route::get('points/{point}', [AdminPointController::class, 'show']);
+Route::get('points/route/{routeId}', [AdminPointController::class, 'getPointsByRouteId']);
 
 Route::get('times', [AdminTimeController::class, 'index']);
 Route::get('times/{time}', [AdminTimeController::class, 'show']);

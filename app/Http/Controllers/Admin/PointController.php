@@ -6,6 +6,7 @@ use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PointResource;
 use App\Models\Point;
+use App\Models\Route;
 use App\Models\Time;
 use App\Services\PointService;
 use App\Services\TimeService;
@@ -162,6 +163,32 @@ class PointController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.points.deleted'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.points.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // get points by route id
+    public function getPointsByRouteId($routeId)
+    {
+        try {
+            $route = Route::find($routeId);
+            if($route === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.routes.not_found'),
+                ], 404);
+            }
+            $points = $route->points()->with('times')->get();
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.points.list_retrieved'),
+                'data' => PointResource::collection($points),
             ]);
         } catch (\Exception $e) {
             return response()->json([

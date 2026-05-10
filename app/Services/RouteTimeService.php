@@ -24,9 +24,6 @@ class RouteTimeService
             ->findOrFail($id);
     }
 
-    /**
-     * @param  array{route_id:int,time_ids:array<int,int|string>}  $data
-     */
     public function createRouteTime(array $data): RouteTime
     {
         $normalizedTimeIds = $this->normalizeAndValidateTimeIds((int) $data['route_id'], $data['time_ids']);
@@ -37,32 +34,19 @@ class RouteTimeService
         ])->load('route:id,name_en,name_ar,is_active');
     }
 
-    /**
-     * @param  array{route_id?:int,time_ids?:array<int,int|string>}  $data
-     */
-    public function updateRouteTime(RouteTime $routeTime, array $data): RouteTime
+    public function updateRouteTime($routeTime, array $data): RouteTime
     {
         $routeId = (int) ($data['route_id'] ?? $routeTime->route_id);
         $timeIds = $data['time_ids'] ?? ($routeTime->time_ids ?? []);
         $normalizedTimeIds = $this->normalizeAndValidateTimeIds($routeId, $timeIds);
 
-        $routeTime->update([
-            'route_id' => $routeId,
-            'time_ids' => $normalizedTimeIds,
-        ]);
+        $routeTime->route_id = $routeId;
+        $routeTime->time_ids = $normalizedTimeIds;
+        $routeTime->save();
 
-        return $routeTime->fresh('route:id,name_en,name_ar,is_active') ?? $routeTime;
+        return $routeTime;
     }
 
-    public function deleteRouteTime(RouteTime $routeTime): void
-    {
-        $routeTime->delete();
-    }
-
-    /**
-     * @param  array<int,int|string>  $timeIds
-     * @return list<int>
-     */
     private function normalizeAndValidateTimeIds(int $routeId, array $timeIds): array
     {
         $normalized = collect($timeIds)

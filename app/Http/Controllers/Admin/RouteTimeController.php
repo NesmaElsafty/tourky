@@ -41,10 +41,16 @@ class RouteTimeController extends Controller
         }
     }
 
-    public function show(RouteTime $routeTime)
+    public function show($id)
     {
         try {
-            $routeTime = $this->routeTimeService->getRouteTimeById((int) $routeTime->id);
+            $routeTime = RouteTime::find($id);
+            if($routeTime === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.route_times.not_found'),
+                ], 404);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -87,9 +93,16 @@ class RouteTimeController extends Controller
         }
     }
 
-    public function update(Request $request, RouteTime $routeTime)
+    public function update(Request $request, $id)
     {
         try {
+            $routeTime = RouteTime::find($id);
+            if($routeTime === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.route_times.not_found'),
+                ], 404);
+            }
             $data = $request->validate([
                 'route_id' => 'sometimes|required|integer|exists:routes,id',
                 'time_ids' => 'sometimes|required|array|min:1',
@@ -114,10 +127,17 @@ class RouteTimeController extends Controller
         }
     }
 
-    public function destroy(RouteTime $routeTime)
+    public function destroy($id)
     {
         try {
-            $this->routeTimeService->deleteRouteTime($routeTime);
+            $routeTime = RouteTime::find($id);
+            if($routeTime === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.route_times.not_found'),
+                ], 404);
+            }
+            $routeTime->delete();
 
             return response()->json([
                 'status' => 'success',
