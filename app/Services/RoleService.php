@@ -27,9 +27,8 @@ class RoleService
         return $role;
     }
 
-    public function updateRole($data, $id)
+    public function updateRole($data, $role)
     {
-        $role = Role::find($id);
         $role->name_en = $data['name_en'] ?? $role->name_en;
         $role->name_ar = $data['name_ar'] ?? $role->name_ar;
         $role->description_en = $data['description_en'] ?? $role->description_en;

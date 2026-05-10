@@ -101,10 +101,16 @@ class RouteController extends Controller
         }
     }
 
-    public function show(Request $request, Route $route)
+    public function show(Request $request, $id)
     {
         try {
-            /** @var User|null $actor */
+            $route = Route::find($id);
+            if($route === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.routes.not_found'),
+                ], 404);
+            }
             $actor = $request->user();
             if ($actor instanceof User && $actor->isCompanyOperator()) {
                 if ($route->type !== 'b2b' || (int) $route->company_id !== (int) $actor->id) {
@@ -200,7 +206,7 @@ class RouteController extends Controller
         }
     }
 
-    public function update(Request $request, Route $route)
+    public function update(Request $request, $id)
     {
         try {
             if ($request->user()?->isCompanyOperator()) {
@@ -209,7 +215,13 @@ class RouteController extends Controller
                     'message' => __('api.auth.forbidden_permission'),
                 ], 403);
             }
-
+            $route = Route::find($id);
+            if($route === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.routes.not_found'),
+                ], 404);
+            }
             $data = $request->validate([
                 'name_en' => 'sometimes|required|string|max:255',
                 'name_ar' => 'sometimes|required|string|max:255',
@@ -221,21 +233,20 @@ class RouteController extends Controller
                 'end_point_ar' => 'nullable|string|max:255',
                 'end_lat' => 'nullable|string|max:255',
                 'end_long' => 'nullable|string|max:255',
-                'type' => ['sometimes', Rule::in(['b2b', 'b2c'])],
-                'company_id' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
-                'is_active' => 'sometimes|boolean',
+                'type' => ['nullable', Rule::in(['b2b', 'b2c'])],
+                'company_id' => ['nullable', 'integer', 'exists:users,id', 'required_if:type,b2b'],
+                'is_active' => 'nullable|boolean',
             ]);
-            $effectiveType = $data['type'] ?? $route->type;
-            if ($effectiveType === 'b2c') {
-                $data['company_id'] = null;
-            }
-            $effectiveCompanyId = array_key_exists('company_id', $data)
-                ? $data['company_id']
-                : $route->company_id;
-            if ($effectiveType === 'b2b' && ($effectiveCompanyId === null || $effectiveCompanyId === '')) {
-                throw ValidationException::withMessages([
-                    'company_id' => [__('validation.required', ['attribute' => 'company id'])],
-                ]);
+
+            $companyId = $route->company_id;
+            if(isset($data['company_id']) && $data['company_id'] !== null) {
+                $company = User::find($data['company_id']);
+                if($company->role->name_en !== 'Company') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'the selected company is not a company',
+                    ], 400);
+                }
             }
             $route = $this->routeService->updateRoute($route, $data);
 
@@ -255,9 +266,16 @@ class RouteController extends Controller
         }
     }
 
-    public function destroy(Request $request, Route $route)
+    public function destroy(Request $request, $id)
     {
         try {
+            $route = Route::find($id);
+            if($route === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.routes.not_found'),
+                ], 404);
+            }
             if ($request->user()?->isCompanyOperator()) {
                 return response()->json([
                     'status' => 'error',
@@ -265,7 +283,7 @@ class RouteController extends Controller
                 ], 403);
             }
 
-            $this->routeService->deleteRoute($route);
+            $route->delete();
 
             return response()->json([
                 'status' => 'success',

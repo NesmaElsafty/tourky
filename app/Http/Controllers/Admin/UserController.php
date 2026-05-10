@@ -47,6 +47,7 @@ class UserController extends Controller
             if($actor instanceof User && $actor->isCompanyOperator()){
                 $users =User::where('company_id', $actor->id)->paginate(10);
             }
+
             $pagination = PaginationHelper::paginate($users);
 
             return response()->json([
@@ -57,8 +58,6 @@ class UserController extends Controller
                 'data' => UserResource::collection($users),
                 'pagination' => $pagination,
             ]);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -278,7 +277,13 @@ class UserController extends Controller
     public function destroy(Request $request, int $id)
     {
         try {
-            $user = $this->userService->findActiveUserForAdmin($id);
+            $user = User::find($id);
+            if($user === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.users.not_found'),
+                ], 404);
+            }
             $actor = $request->user();
             if ($actor === null) {
                 return response()->json([

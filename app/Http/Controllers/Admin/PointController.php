@@ -40,9 +40,16 @@ class PointController extends Controller
         }
     }
 
-    public function show(Request $request, Point $point)
+    public function show(Request $request,$id)
     {
         try {
+            $point = Point::find($id);
+            if($point === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.points.not_found'),
+                ], 404);
+            }
             $point->loadMissing([
                 'route:id,name_en,name_ar,is_active',
                 'times' => fn ($query) => $query->where('is_active', true)->orderBy('pickup_time'),
@@ -108,6 +115,13 @@ class PointController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $point = Point::find($id);
+            if($point === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.points.not_found'),
+                ], 404);
+            }
             $data = $request->validate([
                 'name_en' => 'sometimes|required|string|max:255',
                 'name_ar' => 'sometimes|required|string|max:255',
@@ -115,7 +129,7 @@ class PointController extends Controller
                 'long' => 'nullable|string|max:255',
                 'route_id' => 'sometimes|required|exists:routes,id',
             ]);
-            $point = $this->pointService->updatePoint($id, $data);
+            $point = $this->pointService->updatePoint($point->id, $data);
 
             return response()->json([
                 'status' => 'success',
@@ -133,10 +147,17 @@ class PointController extends Controller
         }
     }
 
-    public function destroy(Point $point)
+    public function destroy($id)
     {
         try {
-            $this->pointService->deletePoint($point);
+            $point = Point::find($id);
+            if($point === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.points.not_found'),
+                ], 404);
+            }
+            $point->delete();
 
             return response()->json([
                 'status' => 'success',

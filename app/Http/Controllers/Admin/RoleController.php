@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
 use App\Services\RoleService;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\Permission;
 use App\Http\Resources\PermissionResource;
@@ -80,7 +81,15 @@ class RoleController extends Controller
                 'permissions.*' => 'required|exists:permissions,id',
                 'parent_id' => 'nullable|exists:roles,id',
             ]);
-            $role = $this->roleService->updateRole($request->all(), $id);
+            $role = Role::find($id);
+            if($role === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.roles.not_found'),
+                ], 404);
+            }
+            $role = $this->roleService->updateRole($request->all(), $role);
+
             if (isset($request->permissions)) {
                 $role->permissions()->sync($request->permissions);
             }
@@ -91,7 +100,7 @@ class RoleController extends Controller
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -106,7 +115,7 @@ class RoleController extends Controller
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -114,16 +123,27 @@ class RoleController extends Controller
     {
         try {
             // detach all permissions from the role
-            $role = $this->roleService->getRoleById($id);
+            $role = Role::find($id);
+            if($role === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.roles.not_found'),
+                ], 404);
+            }
+            if($role->users()->count() > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.roles.has_users'),
+                ], 400);
+            }
             $role->permissions()->detach();
             $role->delete();
-
             return response()->json([
                 'status' => 'success',
-                'message' => $this->localizedMessage('api.roles.deleted'),
+                'message' => __('api.roles.deleted'),
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $this->localizedMessage('api.roles.server_error')], 500);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 

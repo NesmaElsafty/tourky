@@ -50,9 +50,23 @@ class RouteService
      */
     public function updateRoute(Route $route, array $data): Route
     {
-        $route->update($data);
+        $route->name_en = $data['name_en'] ?? $route->name_en;
+        $route->name_ar = $data['name_ar'] ?? $route->name_ar;
+        $route->start_point_en = $data['start_point_en'] ?? $route->start_point_en;
+        $route->start_point_ar = $data['start_point_ar'] ?? $route->start_point_ar;
+        $route->start_lat = $data['start_lat'] ?? $route->start_lat;
+        $route->start_long = $data['start_long'] ?? $route->start_long;
+        $route->end_point_en = $data['end_point_en'] ?? $route->end_point_en;
+        $route->end_point_ar = $data['end_point_ar'] ?? $route->end_point_ar;
+        $route->end_lat = $data['end_lat'] ?? $route->end_lat;
+        $route->end_long = $data['end_long'] ?? $route->end_long;
+        $route->type = $data['type'] ?? $route->type;
+        $route->company_id = $data['company_id'] ?? $route->company_id;
+        $route->is_active = $data['is_active'] ?? $route->is_active;
 
-        return $route->fresh(['company']) ?? $route;
+        $route->save();
+
+        return $route;
     }
 
     public function deleteRoute(Route $route): void

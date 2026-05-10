@@ -35,9 +35,16 @@ class CarController extends Controller
         }
     }
 
-    public function show(Request $request, Car $car)
+    public function show(Request $request, $id)
     {
         try {
+            $car = Car::find($id);
+            if($car === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.cars.not_found'),
+                ], 404);
+            }
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.cars.retrieved'),
@@ -82,7 +89,7 @@ class CarController extends Controller
         }
     }
 
-    public function update(Request $request, Car $car)
+    public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
@@ -94,6 +101,13 @@ class CarController extends Controller
                 'color' => 'nullable|string|max:255',
                 'status' => 'nullable|in:active,inactive,maintenance,in_use',
             ]);
+            $car = Car::find($id);
+            if($car === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.cars.not_found'),
+                ], 404);
+            }
             $car = $this->carService->updateCar($car, $data);
 
             return response()->json([
@@ -112,9 +126,16 @@ class CarController extends Controller
         }
     }
 
-    public function destroy(Car $car)
+    public function destroy($id)
     {
         try {
+            $car = Car::find($id);
+            if($car === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.cars.not_found'),
+                ], 404);
+            }
             $this->carService->deleteCar($car);
 
             return response()->json([

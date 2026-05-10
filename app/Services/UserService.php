@@ -41,6 +41,7 @@ class UserService
 
         $this->applyListFilters($query, $filters);
 
+        // dd($query->get());
         return $query->orderByDesc('id')->paginate($perPage);
     }
 
