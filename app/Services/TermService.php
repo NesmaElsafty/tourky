@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class TermService
 {
-    public function getTermsPaginated(int $perPage = 10, bool $onlyActive = true): LengthAwarePaginator
+    public function getTermsPaginated(int $perPage = 10, bool $onlyActive = true)
     {
         return Term::query()
             ->when($onlyActive, fn ($query) => $query->where('is_active', true))
@@ -19,27 +19,27 @@ class TermService
     /**
      * Active terms for a portal (client or captain).
      */
-    public function getActiveTermsForUserType(string $userType, string $type): Collection
+    public function getActiveTermsForUserType(string $userType, string $type)
     {
-        return Term::query()
-            ->where('is_active', true)
+        $terms = Term::query();
+        $terms->where('is_active', true)
             ->where('user_type', $userType)
             ->where('type', $type)
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        return $terms;
     }
 
     // get all terms for a portal (client or captain).
-    public function getAllTermsForUserType(string $userType, string $type): Collection
+    public function getAllTermsForUserType(string $userType, string $type)
     {
-        return Term::query()
-            ->where('user_type', $userType)
+        $terms = Term::query();
+        $terms->where('user_type', $userType)
             ->where('type', $type)
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        return $terms;
     }
 
-    public function getTermById(int $id): Term
+    public function getTermById(int $id)
     {
         return Term::query()->findOrFail($id);
     }
@@ -47,7 +47,7 @@ class TermService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function createTerm(array $data): Term
+    public function createTerm(array $data)
     {
         return Term::query()->create($data);
     }
@@ -55,7 +55,7 @@ class TermService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function updateTerm(Term $term, array $data): Term
+    public function updateTerm(Term $term, array $data)
     {
         $term->update($data);
 

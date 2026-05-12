@@ -16,13 +16,13 @@ class TermController extends Controller
     public function __construct(private TermService $termService) {}
 
     public function index(Request $request)
-    {
+    { 
         try {
             $request->validate([
                 'type' => 'required|in:terms_conditions,privacy_policy,FAQ',
                 'user_type' => ['required', Rule::in(Term::USER_TYPES)],
             ]);
-            $terms = $this->termService->getAllTermsForUserType($request->user_type, $request->type);
+            $terms = $this->termService->getAllTermsForUserType($request->user_type, $request->type)->paginate(10);
             $pagination = PaginationHelper::paginate($terms);
 
             return response()->json([
@@ -64,10 +64,11 @@ class TermController extends Controller
         }
     }
 
-    public function show(Request $request, Term $term)
+    public function show($id)
     {
         try {
-            if (! $term->is_active) {
+            $term = Term::find($id);
+            if($term === null) {
                 return response()->json([
                     'status' => 'error',
                     'message' => __('api.terms.not_found'),
@@ -118,7 +119,7 @@ class TermController extends Controller
         }
     }
 
-    public function update(Request $request, Term $term)
+    public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
@@ -130,6 +131,13 @@ class TermController extends Controller
                 'type' => ['sometimes', 'required', Rule::in(Term::TYPES)],
                 'user_type' => ['sometimes', 'required', Rule::in(Term::USER_TYPES)],
             ]);
+            $term = Term::find($id);
+            if($term === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.terms.not_found'),
+                ], 404);
+            }
             $term = $this->termService->updateTerm($term, $data);
 
             return response()->json([
@@ -148,9 +156,16 @@ class TermController extends Controller
         }
     }
 
-    public function destroy(Term $term)
+    public function destroy($id)
     {
         try {
+            $term = Term::find($id);
+            if($term === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.terms.not_found'),
+                ], 404);
+            }
             $this->termService->deleteTerm($term);
 
             return response()->json([

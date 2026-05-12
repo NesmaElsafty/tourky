@@ -67,9 +67,16 @@ class NotificationController extends Controller
         }
     }
 
-    public function show(Request $request, Notification $notification)
+    public function show($id)
     {
         try {
+            $notification = Notification::find($id);
+            if($notification === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.notifications.not_found'),
+                ], 404);
+            }
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.notifications.retrieved'),
@@ -112,7 +119,7 @@ class NotificationController extends Controller
         }
     }
 
-    public function update(Request $request, Notification $notification)
+    public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
@@ -122,6 +129,13 @@ class NotificationController extends Controller
                 'description_ar' => 'nullable|string',
                 'user_type' => ['sometimes', 'required', Rule::in(Notification::USER_TYPES)],
             ]);
+            $notification = Notification::find($id);
+            if($notification === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.notifications.not_found'),
+                ], 404);
+            }
             $notification = $this->notificationService->updateNotification($notification, $data);
 
             return response()->json([
@@ -140,9 +154,16 @@ class NotificationController extends Controller
         }
     }
 
-    public function destroy(Notification $notification)
+    public function destroy($id)
     {
         try {
+            $notification = Notification::find($id);
+            if($notification === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.notifications.not_found'),
+                ], 404);
+            }
             $this->notificationService->deleteNotification($notification);
 
             return response()->json([
@@ -158,7 +179,7 @@ class NotificationController extends Controller
         }
     }
 
-    public function fireNotification(Request $request, Notification $notification)
+    public function fireNotification(Request $request, $id)
     {
         try {
             $request->validate([
@@ -171,6 +192,13 @@ class NotificationController extends Controller
             ]);
 
             $onlyIds = $request->input('user_ids');
+            $notification = Notification::find($id);
+            if($notification === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.notifications.not_found'),
+                ], 404);
+            }
             $count = $this->notificationService->fireNotification(
                 $notification,
                 is_array($onlyIds) ? $onlyIds : null,

@@ -46,9 +46,16 @@ class TripController extends Controller
         }
     }
 
-    public function show(Trip $trip)
+    public function show($id)
     {
         try {
+            $trip = Trip::find($id);
+            if($trip === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.trips.not_found'),
+                ], 404);
+            }
             $trip->load([
                 'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
@@ -115,7 +122,7 @@ class TripController extends Controller
         }
     }
 
-    public function update(Request $request, Trip $trip)
+    public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
@@ -124,6 +131,13 @@ class TripController extends Controller
                 'status' => ['sometimes', 'required', 'string', Rule::in(['planned', 'in_progress', 'completed', 'cancelled'])],
             ]);
 
+            $trip = Trip::find($id);
+            if($trip === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.trips.not_found'),
+                ], 404);
+            }
             $updated = $this->tripService->updateTrip($trip, $data);
 
             return response()->json([
@@ -142,23 +156,27 @@ class TripController extends Controller
         }
     }
 
-    public function destroy(Trip $trip)
+    public function destroy($id)
     {
         try {
-            $this->tripService->deleteTrip($trip);
-
+            $trip = Trip::find($id);
+            if($trip === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.trips.not_found'),
+                ], 404);
+            }
+            $trip->delete();
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.trips.deleted'),
             ]);
-        } catch (ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),
                 'error' => $e->getMessage(),
             ], 500);
-        }
+        }        
     }
 }
