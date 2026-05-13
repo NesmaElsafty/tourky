@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdminResource;
 use App\Services\AuthService;
+use App\Services\PasswordResetOtpService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $authService) {}
+    public function __construct(
+        private readonly AuthService $authService,
+        private readonly PasswordResetOtpService $passwordResetOtpService,
+    ) {}
 
     public function register(Request $request)
     {
@@ -94,11 +98,71 @@ class AuthController extends Controller
         ]);
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $this->applyLocale($request);
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $this->passwordResetOtpService->sendOtp($request->string('email')->toString(), 'admin');
+
+        return response()->json([
+            'message' => __('api.password_reset.otp_sent'),
+        ]);
+    }
+
+    public function verifyForgotPasswordOtp(Request $request)
+    {
+        $this->applyLocale($request);
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'otp' => ['required', 'string', 'regex:/^[0-9]{4,8}$/'],
+        ]);
+
+        $result = $this->passwordResetOtpService->verifyOtp($data['email'], 'admin', $data['otp']);
+
+        if (! $result['ok']) {
+            $message = match ($result['reason']) {
+                'locked' => __('api.password_reset.locked_otp'),
+                'expired' => __('api.password_reset.expired_otp'),
+                default => __('api.password_reset.invalid_otp'),
+            };
+
+            return response()->json(['message' => $message], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return response()->json([
+            'message' => __('api.password_reset.otp_verified'),
+            'reset_token' => $result['reset_token'],
+        ]);
+    }
+
+    public function resetPasswordWithToken(Request $request)
+    {
+        $this->applyLocale($request);
+        $data = $request->validate([
+            'reset_token' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        if (! $this->passwordResetOtpService->resetPassword($data['reset_token'], $data['password'])) {
+            return response()->json([
+                'message' => __('api.password_reset.invalid_reset_token'),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return response()->json([
+            'message' => __('api.password_reset.password_reset'),
+        ]);
+    }
+
     private function applyLocale(Request $request, $user = null): string
     {
         $userLanguage = strtolower((string) ($user?->language ?? ''));
         if ($userLanguage === 'en' || $userLanguage === 'ar') {
             app()->setLocale($userLanguage);
+
             return $userLanguage;
         }
 

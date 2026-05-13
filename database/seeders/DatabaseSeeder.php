@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             TripSeeder::class,
             CaptainRatingSeeder::class,
             CaptainReportSeeder::class,
+            TicketSeeder::class,
             TermSeeder::class,
             NotificationSeeder::class,
             FiredNotificationSeeder::class,

@@ -59,14 +59,41 @@ class TripSeeder extends Seeder
             $times,
         );
 
-        // Create several heavy groups: each group > 14 reservations.
-        for ($groupIndex = 0; $groupIndex < 6; $groupIndex++) {
+        // Heavy groups: each > 14 pending reservations so TripService can form multi-car trips.
+        $heavyGroupCount = 16;
+        for ($groupIndex = 0; $groupIndex < $heavyGroupCount; $groupIndex++) {
             $time = $times->random();
-            $date = now()->addDays($groupIndex + 4)->toDateString();
-            $reservationsCount = fake()->numberBetween(15, 30);
+            $date = now()->addDays($groupIndex + 3)->toDateString();
+            $reservationsCount = fake()->numberBetween(16, 36);
             $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
 
             for ($i = 0; $i < $reservationsCount; $i++) {
+                Reservation::query()->create([
+                    'user_id' => $clients->random()->id,
+                    'route_id' => $time->point->route_id,
+                    'point_id' => $time->point_id,
+                    'time_id' => $time->id,
+                    'route_time_id' => $routeTimeId,
+                    'date' => $date,
+                    'status' => 'pending',
+                    'trip_id' => null,
+                ]);
+            }
+        }
+
+        // Medium / small pending pools: stay below trip auto-formation threshold so admins see backlog queues.
+        $smallPoolIterations = 40;
+        for ($s = 0; $s < $smallPoolIterations; $s++) {
+            $time = $times->random();
+            $time->loadMissing('point');
+            if ($time->point === null) {
+                continue;
+            }
+            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+            $date = now()->addDays(fake()->numberBetween(45, 200))->toDateString();
+            $poolSize = fake()->numberBetween(4, 12);
+
+            for ($i = 0; $i < $poolSize; $i++) {
                 Reservation::query()->create([
                     'user_id' => $clients->random()->id,
                     'route_id' => $time->point->route_id,

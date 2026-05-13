@@ -6,12 +6,16 @@ use App\Http\Controllers\Client\ReportController as ClientReportController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\Client\RouteController;
 use App\Http\Controllers\Client\TermController as ClientTermController;
+use App\Http\Controllers\Client\TicketController as ClientTicketController;
 use App\Http\Controllers\Client\TripController as ClientTripController;
 use App\Http\Middleware\EnsureUserIsClient;
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [ClientAuthController::class, 'register']);
 Route::post('login', [ClientAuthController::class, 'login']);
+Route::post('forgot-password', [ClientAuthController::class, 'forgotPassword'])->middleware('throttle:6,1');
+Route::post('forgot-password/verify-otp', [ClientAuthController::class, 'verifyForgotPasswordOtp'])->middleware('throttle:12,1');
+Route::post('forgot-password/reset', [ClientAuthController::class, 'resetPasswordWithToken'])->middleware('throttle:6,1');
 Route::get('routes', [RouteController::class, 'index']);
 Route::get('routes/{routeId}/points', [RouteController::class, 'getPoints']);
 Route::get('terms', [ClientTermController::class, 'index']);
@@ -37,4 +41,11 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
     Route::post('trips/{reservation}/reports', [ClientReportController::class, 'store'])->whereNumber('reservation');
     Route::get('reports', [ClientReportController::class, 'index']);
     Route::get('trips/{reservation}', [ClientTripController::class, 'show'])->whereNumber('reservation');
+
+    Route::get('tickets', [ClientTicketController::class, 'index']);
+    Route::post('tickets', [ClientTicketController::class, 'store']);
+    Route::get('tickets/{ticket}', [ClientTicketController::class, 'show'])->whereNumber('ticket');
+    Route::put('tickets/{ticket}', [ClientTicketController::class, 'update'])->whereNumber('ticket');
+    Route::patch('tickets/{ticket}', [ClientTicketController::class, 'update'])->whereNumber('ticket');
+    Route::delete('tickets/{ticket}', [ClientTicketController::class, 'destroy'])->whereNumber('ticket');
 });

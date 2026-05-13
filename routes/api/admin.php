@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CaptainController as AdminCaptainController;
 use App\Http\Controllers\Admin\CarController as AdminCarController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PointController as AdminPointController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\RouteController as AdminRouteController;
 use App\Http\Controllers\Admin\RouteTimeController as AdminRouteTimeController;
 use App\Http\Controllers\Admin\TermController as AdminTermController;
+use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
 use App\Http\Controllers\Admin\TripController as AdminTripController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -20,6 +21,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AdminAuthController::class, 'register']);
 Route::post('login', [AdminAuthController::class, 'login']);
+Route::post('forgot-password', [AdminAuthController::class, 'forgotPassword'])->middleware('throttle:6,1');
+Route::post('forgot-password/verify-otp', [AdminAuthController::class, 'verifyForgotPasswordOtp'])->middleware('throttle:12,1');
+Route::post('forgot-password/reset', [AdminAuthController::class, 'resetPasswordWithToken'])->middleware('throttle:6,1');
 
 Route::get('cars', [AdminCarController::class, 'index']);
 Route::get('cars/{car}', [AdminCarController::class, 'show']);
@@ -38,7 +42,7 @@ Route::get('notifications', [AdminNotificationController::class, 'index']);
 Route::get('notifications/{notification}', [AdminNotificationController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->group(function (): void {
-        Route::get('dashboard', [AdminDashboardController::class, 'index']);
+    Route::get('dashboard', [AdminDashboardController::class, 'index']);
 
     Route::get('profile', [AdminAuthController::class, 'profile']);
     Route::put('profile', [AdminAuthController::class, 'updateProfile']);
@@ -106,6 +110,11 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::get('reports', [AdminReportController::class, 'index']);
     Route::get('reports/{report}', [AdminReportController::class, 'show'])->whereNumber('report');
     Route::patch('reports/{report}/reply', [AdminReportController::class, 'reply'])->whereNumber('report');
+
+    Route::get('tickets', [AdminTicketController::class, 'index']);
+    Route::get('tickets/{ticket}', [AdminTicketController::class, 'show'])->whereNumber('ticket');
+    Route::post('tickets/{ticket}/reply', [AdminTicketController::class, 'reply'])->whereNumber('ticket');
+    Route::patch('tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->whereNumber('ticket');
     Route::get('trips', [AdminTripController::class, 'index']);
     Route::get('trips/{trip}', [AdminTripController::class, 'show'])->whereNumber('trip');
     Route::post('trips', [AdminTripController::class, 'store']);
@@ -121,7 +130,6 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::put('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
     Route::patch('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
     Route::delete('users/{id}', [AdminUserController::class, 'destroy'])->whereNumber('id');
-    
 
     Route::get('permissions', [AdminRoleController::class, 'getPermissions']);
     Route::get('companies', [AdminUserController::class, 'companiesList']);

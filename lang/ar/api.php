@@ -7,6 +7,22 @@ return [
         'forbidden_permission' => 'ليس لديك صلاحية لتنفيذ هذا الإجراء.',
     ],
 
+    'password_reset' => [
+        'otp_sent' => 'إذا كان هناك حساب مرتبط بهذا البريد، فقد أُرسل رمز التحقق.',
+        'otp_verified' => 'تم التحقق من الرمز. استخدم رمز إعادة التعيين لتعيين كلمة مرور جديدة.',
+        'password_reset' => 'تمت إعادة تعيين كلمة المرور بنجاح. يمكنك تسجيل الدخول بكلمة المرور الجديدة.',
+        'invalid_otp' => 'رمز التحقق غير صحيح.',
+        'expired_otp' => 'انتهت صلاحية رمز التحقق أو لم يعد صالحاً. اطلب رمزاً جديداً.',
+        'locked_otp' => 'تجاوزت عدد المحاولات الخاطئة. اطلب رمز تحقق جديداً.',
+        'invalid_reset_token' => 'رابط إعادة التعيين غير صالح أو منتهٍ. تحقق من الرمز مرة أخرى.',
+        'mail_subject' => 'رمز إعادة تعيين كلمة المرور',
+        'mail_intro' => 'طلبت إعادة تعيين كلمة المرور على :portal.',
+        'portal_admin' => 'بوابة المدير',
+        'portal_client' => 'بوابة العميل',
+        'mail_expiry' => 'تنتهي صلاحية هذا الرمز خلال :minutes دقيقة.',
+        'mail_ignore' => 'إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد.',
+    ],
+
     'role' => [
         'unauthorized_admin' => 'غير مصرح لهذا الدور (مدير).',
         'unauthorized_captain' => 'غير مصرح لهذا الدور (كابتن).',
@@ -308,6 +324,35 @@ return [
         'validation_message_max' => 'يجب ألا يتجاوز البلاغ 5000 حرفًا.',
         'validation_reply_required' => 'نص الرد مطلوب.',
         'validation_reply_max' => 'يجب ألا يزيد الرد عن 5000 حرف.',
+    ],
+
+    'tickets' => [
+        'admin_list_retrieved' => 'تم جلب التذاكر بنجاح.',
+        'admin_retrieved' => 'تم جلب التذكرة بنجاح.',
+        'admin_reply_saved' => 'تم إرسال ردك بنجاح.',
+        'admin_status_updated' => 'تم تحديث حالة التذكرة بنجاح.',
+        'client_list_retrieved' => 'تم جلب تذاكرك بنجاح.',
+        'client_retrieved' => 'تم جلب التذكرة بنجاح.',
+        'client_created' => 'تم إنشاء التذكرة بنجاح.',
+        'client_updated' => 'تم تحديث التذكرة بنجاح.',
+        'client_deleted' => 'تم حذف التذكرة بنجاح.',
+        'not_found' => 'التذكرة غير موجودة.',
+        'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقًا.',
+        'locked_after_admin_reply' => 'مش هتقدر تعدّل أو تمسح التذكرة دي لأن الدعم رد عليك بالفعل.',
+        'forbidden_not_admin' => 'رد الدعم متاح لحسابات الإدارة فقط.',
+        'validation_title_required' => 'العنوان مطلوب.',
+        'validation_description_required' => 'الوصف مطلوب.',
+        'validation_message_required' => 'نص الرسالة مطلوب.',
+        'validation_message_max' => 'يجب ألا تتجاوز الرسالة 5000 حرفًا.',
+        'validation_status_required' => 'حالة التذكرة مطلوبة.',
+        'validation_status_in' => 'الحالة يجب أن تكون pending أو in_progress أو solved أو closed.',
+        'validation_at_least_one_field' => 'ابعت حقل واحد على الأقل للتحديث.',
+        'status_labels' => [
+            'pending' => 'معلّقة',
+            'in_progress' => 'جاري المعالجة',
+            'solved' => 'تم الحل',
+            'closed' => 'مغلقة',
+        ],
     ],
 
     'captain_trips' => [

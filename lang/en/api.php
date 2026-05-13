@@ -7,6 +7,22 @@ return [
         'forbidden_permission' => 'You do not have permission to perform this action.',
     ],
 
+    'password_reset' => [
+        'otp_sent' => 'If an account exists for that email, a verification code has been sent.',
+        'otp_verified' => 'Code verified. Use the reset token to set a new password.',
+        'password_reset' => 'Your password has been reset successfully. You can sign in with the new password.',
+        'invalid_otp' => 'Invalid or incorrect verification code.',
+        'expired_otp' => 'This verification code has expired or is no longer valid. Request a new code.',
+        'locked_otp' => 'Too many incorrect attempts. Request a new verification code.',
+        'invalid_reset_token' => 'This reset link is invalid or has expired. Verify your code again.',
+        'mail_subject' => 'Your password reset code',
+        'mail_intro' => 'You requested to reset your password on the :portal.',
+        'portal_admin' => 'admin portal',
+        'portal_client' => 'client portal',
+        'mail_expiry' => 'This code expires in :minutes minutes.',
+        'mail_ignore' => 'If you did not request a password reset, you can ignore this email.',
+    ],
+
     'role' => [
         'unauthorized_admin' => 'Unauthorized for admin role.',
         'unauthorized_captain' => 'Unauthorized for captain role.',
@@ -308,6 +324,35 @@ return [
         'validation_message_max' => 'The report may not be greater than 5000 characters.',
         'validation_reply_required' => 'A reply message is required.',
         'validation_reply_max' => 'The reply may not be greater than 5000 characters.',
+    ],
+
+    'tickets' => [
+        'admin_list_retrieved' => 'Tickets retrieved successfully.',
+        'admin_retrieved' => 'Ticket retrieved successfully.',
+        'admin_reply_saved' => 'Your reply was posted successfully.',
+        'admin_status_updated' => 'Ticket status updated successfully.',
+        'client_list_retrieved' => 'Your tickets were retrieved successfully.',
+        'client_retrieved' => 'Ticket retrieved successfully.',
+        'client_created' => 'Ticket created successfully.',
+        'client_updated' => 'Ticket updated successfully.',
+        'client_deleted' => 'Ticket deleted successfully.',
+        'not_found' => 'Ticket not found.',
+        'server_error' => 'Something went wrong. Please try again later.',
+        'locked_after_admin_reply' => 'This ticket can no longer be edited or deleted because support has already replied.',
+        'forbidden_not_admin' => 'Only admin users can post support replies.',
+        'validation_title_required' => 'A title is required.',
+        'validation_description_required' => 'A description is required.',
+        'validation_message_required' => 'A message is required.',
+        'validation_message_max' => 'The message may not be greater than 5000 characters.',
+        'validation_status_required' => 'Status is required.',
+        'validation_status_in' => 'Status must be pending, in_progress, solved, or closed.',
+        'validation_at_least_one_field' => 'Provide at least one field to update.',
+        'status_labels' => [
+            'pending' => 'Pending',
+            'in_progress' => 'In progress',
+            'solved' => 'Solved',
+            'closed' => 'Closed',
+        ],
     ],
 
     'captain_trips' => [
