@@ -23,6 +23,17 @@ return [
         'mail_ignore' => 'إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد.',
     ],
 
+    'feedbacks' => [
+        'created' => 'تم إرسال التقييم بنجاح.',
+        'server_error' => 'حدث خطأ أثناء حفظ التقييم.',
+        'captain_not_found' => 'الكابتن المحدد غير موجود.',
+        'no_completed_trip' => 'يمكنك ترك تقييم للكابتن فقط بعد رحلة مكتملة معه.',
+        'cannot_rate_self' => 'اختيار الكابتن غير صالح.',
+        'validation_captain_required' => 'الكابتن مطلوب.',
+        'validation_feedback_required' => 'نص التقييم مطلوب.',
+        'validation_rating_required' => 'التقييم بالنجوم مطلوب.',
+    ],
+
     'role' => [
         'unauthorized_admin' => 'غير مصرح لهذا الدور (مدير).',
         'unauthorized_captain' => 'غير مصرح لهذا الدور (كابتن).',

@@ -39,6 +39,12 @@ class AuthController extends Controller
     {
         try {
             $user = $this->authService->profile($request);
+            if ($user->type === 'captain') {
+                $user->load([
+                    'receivedFeedbacks' => fn ($q) => $q->with('client:id,name')->latest()->limit(50),
+                ]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captain.profile_retrieved'),
@@ -55,9 +61,9 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-        $this->authService->logout($request);
+            $this->authService->logout($request);
 
-        return response()->json([
+            return response()->json([
                 'message' => __('api.captain.logged_out'),
             ]);
         } catch (\Exception $e) {

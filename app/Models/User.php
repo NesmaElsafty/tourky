@@ -52,6 +52,22 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
+     * @return HasMany<Feedback, $this>
+     */
+    public function receivedFeedbacks(): HasMany
+    {
+        return $this->hasMany(Feedback::class, 'captain_id');
+    }
+
+    /**
+     * @return HasMany<Feedback, $this>
+     */
+    public function sentFeedbacks(): HasMany
+    {
+        return $this->hasMany(Feedback::class, 'client_id');
+    }
+
+    /**
      * Active trip pointer for captains (see users.trip_id).
      *
      * @return BelongsTo<Trip, $this>

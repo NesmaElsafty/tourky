@@ -35,8 +35,8 @@ Route::get('points/route/{routeId}', [AdminPointController::class, 'getPointsByR
 Route::get('times', [AdminTimeController::class, 'index']);
 Route::get('times/{time}', [AdminTimeController::class, 'show']);
 
-Route::get('terms', [AdminTermController::class, 'index']);
-Route::get('terms/{term}', [AdminTermController::class, 'show']);
+Route::get('AdminTerms', [AdminTermController::class, 'index']);
+Route::get('AdminTerms/{term}', [AdminTermController::class, 'show']);
 
 Route::get('notifications', [AdminNotificationController::class, 'index']);
 Route::get('notifications/{notification}', [AdminNotificationController::class, 'show']);
@@ -79,7 +79,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::put('times/{time}', [AdminTimeController::class, 'update']);
     Route::delete('times/{time}', [AdminTimeController::class, 'destroy']);
 
-    Route::get('terms/all', [AdminTermController::class, 'indexAll']);
+    // Route::get('terms/all', [AdminTermController::class, 'indexAll']);
 
     Route::post('terms', [AdminTermController::class, 'store']);
     Route::put('terms/{term}', [AdminTermController::class, 'update']);

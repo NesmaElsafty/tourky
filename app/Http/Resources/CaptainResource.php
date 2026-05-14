@@ -40,6 +40,11 @@ class CaptainResource extends JsonResource
             $data['report_entries'] = $this->resource->getAttribute('captain_report_entries');
         }
 
+        $data['feedbacks'] = $this->when(
+            $this->type === 'captain' && $this->relationLoaded('receivedFeedbacks'),
+            fn () => FeedbackResource::collection($this->receivedFeedbacks),
+        );
+
         return $data;
     }
 

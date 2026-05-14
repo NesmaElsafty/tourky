@@ -20,7 +20,7 @@ class TermController extends Controller
         try {
             $request->validate([
                 'type' => 'required|in:terms_conditions,privacy_policy,FAQ',
-                'user_type' => ['required', Rule::in(Term::USER_TYPES)],
+                'user_type' => 'required|in:client,captain'
             ]);
             $terms = $this->termService->getAllTermsForUserType($request->user_type, $request->type)->paginate(10);
             $pagination = PaginationHelper::paginate($terms);

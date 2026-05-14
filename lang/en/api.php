@@ -23,6 +23,17 @@ return [
         'mail_ignore' => 'If you did not request a password reset, you can ignore this email.',
     ],
 
+    'feedbacks' => [
+        'created' => 'Feedback submitted successfully.',
+        'server_error' => 'Something went wrong while saving feedback.',
+        'captain_not_found' => 'The selected captain was not found.',
+        'no_completed_trip' => 'You can only leave feedback for a captain after a completed trip with them.',
+        'cannot_rate_self' => 'Invalid captain selected.',
+        'validation_captain_required' => 'Captain is required.',
+        'validation_feedback_required' => 'Feedback text is required.',
+        'validation_rating_required' => 'Rating is required.',
+    ],
+
     'role' => [
         'unauthorized_admin' => 'Unauthorized for admin role.',
         'unauthorized_captain' => 'Unauthorized for captain role.',

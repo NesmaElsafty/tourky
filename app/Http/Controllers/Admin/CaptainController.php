@@ -45,6 +45,9 @@ class CaptainController extends Controller
         try {
             $captain = $this->captainService->getCaptainById($id);
             $this->captainRatingService->aggregateForCaptainIds([(int) $captain->id]);
+            $captain->load([
+                'receivedFeedbacks' => fn ($q) => $q->with('client:id,name')->latest()->limit(50),
+            ]);
             $captain->setAttribute(
                 'captain_feedback_entries',
                 $this->captainRatingService->feedbackEntriesForCaptain((int) $captain->id),
@@ -97,6 +100,9 @@ class CaptainController extends Controller
         try {
             $captain = $this->captainService->updateCaptain($request, $id);
             $this->captainRatingService->aggregateForCaptainIds([(int) $captain->id]);
+            $captain->load([
+                'receivedFeedbacks' => fn ($q) => $q->with('client:id,name')->latest()->limit(50),
+            ]);
             $captain->setAttribute(
                 'captain_feedback_entries',
                 $this->captainRatingService->feedbackEntriesForCaptain((int) $captain->id),

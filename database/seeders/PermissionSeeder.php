@@ -7,17 +7,6 @@ use Illuminate\Database\Seeder;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * @return list<array{
-     *     name: string,
-     *     display_name_en: string,
-     *     display_name_ar: string,
-     *     description_en: string|null,
-     *     description_ar: string|null,
-     *     group_en: string,
-     *     group_ar: string
-     * }>
-     */
     private function definitions(): array
     {
         return [
@@ -366,13 +355,13 @@ class PermissionSeeder extends Seeder
                 'group_ar' => 'أوقات المسارات',
             ],
             [
-                'name' => 'reports.manage',
-                'display_name_en' => 'Manage captain reports',
-                'display_name_ar' => 'إدارة بلاغات الكباتن',
-                'description_en' => 'Reply to and moderate captain reports.',
-                'description_ar' => 'الرد على بلاغات الكباتن وإدارتها.',
-                'group_en' => 'reports',
-                'group_ar' => 'التقارير',
+                'name' => 'tickets.manage',
+                'display_name_en' => 'Manage tickets',
+                'display_name_ar' => 'إدارة التذاكر',
+                'description_en' => 'Create, update, or delete tickets.',
+                'description_ar' => 'إنشاء أو تعديل أو حذف التذاكر.',
+                'group_en' => 'tickets',
+                'group_ar' => 'التذاكر',
             ],
         ];
     }

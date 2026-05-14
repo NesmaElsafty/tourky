@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\AuthController as ClientAuthController;
+use App\Http\Controllers\Client\FeedbackController as ClientFeedbackController;
 use App\Http\Controllers\Client\NotificationController as ClientNotificationController;
 use App\Http\Controllers\Client\ReportController as ClientReportController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
@@ -41,6 +42,8 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
     Route::post('trips/{reservation}/reports', [ClientReportController::class, 'store'])->whereNumber('reservation');
     Route::get('reports', [ClientReportController::class, 'index']);
     Route::get('trips/{reservation}', [ClientTripController::class, 'show'])->whereNumber('reservation');
+
+    Route::post('feedbacks', [ClientFeedbackController::class, 'store']);
 
     Route::get('tickets', [ClientTicketController::class, 'index']);
     Route::post('tickets', [ClientTicketController::class, 'store']);
