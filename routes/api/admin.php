@@ -35,8 +35,8 @@ Route::get('points/route/{routeId}', [AdminPointController::class, 'getPointsByR
 Route::get('times', [AdminTimeController::class, 'index']);
 Route::get('times/{time}', [AdminTimeController::class, 'show']);
 
-Route::get('AdminTerms', [AdminTermController::class, 'index']);
-Route::get('AdminTerms/{term}', [AdminTermController::class, 'show']);
+Route::get('terms', [AdminTermController::class, 'index']);
+Route::get('terms/{term}', [AdminTermController::class, 'show']);
 
 Route::get('notifications', [AdminNotificationController::class, 'index']);
 Route::get('notifications/{notification}', [AdminNotificationController::class, 'show']);

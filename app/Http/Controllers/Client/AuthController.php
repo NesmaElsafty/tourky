@@ -17,7 +17,7 @@ class AuthController extends Controller
         private readonly PasswordResetOtpService $passwordResetOtpService,
     ) {}
 
-    public function register(Request $request): JsonResponse
+    public function register(Request $request)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -38,7 +38,7 @@ class AuthController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
         $this->applyLocale($request);
 
@@ -86,7 +86,7 @@ class AuthController extends Controller
         return new ClientResource($user);
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request)
     {
         $this->applyLocale($request, $request->user());
         $this->authService->logout($request);
@@ -96,7 +96,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function forgotPassword(Request $request): JsonResponse
+    public function forgotPassword(Request $request)
     {
         $this->applyLocale($request);
         $request->validate([
@@ -110,7 +110,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyForgotPasswordOtp(Request $request): JsonResponse
+    public function verifyForgotPasswordOtp(Request $request)
     {
         $this->applyLocale($request);
         $data = $request->validate([
@@ -136,7 +136,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function resetPasswordWithToken(Request $request): JsonResponse
+    public function resetPasswordWithToken(Request $request)
     {
         $this->applyLocale($request);
         $data = $request->validate([
@@ -155,7 +155,7 @@ class AuthController extends Controller
         ]);
     }
 
-    private function applyLocale(Request $request, $user = null): string
+    private function applyLocale(Request $request, $user = null)
     {
         $userLanguage = strtolower((string) ($user?->language ?? ''));
         if ($userLanguage === 'en' || $userLanguage === 'ar') {
