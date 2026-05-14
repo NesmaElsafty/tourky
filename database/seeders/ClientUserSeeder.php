@@ -25,7 +25,7 @@ class ClientUserSeeder extends Seeder
                 'email' => 'client@tourky.local',
                 'password' => Hash::make('123456'),
                 'language' => 'ar',
-                'company_id' => null,
+                'company_id' => 2
             ]
         );
 
@@ -40,7 +40,7 @@ class ClientUserSeeder extends Seeder
                     'email' => 'demo.client.'.$i.'@tourky.local',
                     'password' => Hash::make('123456'),
                     'language' => $i % 2 === 0 ? 'en' : 'ar',
-                    'company_id' => null,
+                    'company_id' => null
                 ]
             );
         }

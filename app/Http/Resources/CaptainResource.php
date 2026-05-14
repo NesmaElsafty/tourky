@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\CaptainRatingService;
+use App\Http\Resources\FeedbackResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,6 +24,8 @@ class CaptainResource extends JsonResource
             'language' => $locale,
             'rating_average' => $rating['average'],
             'ratings_count' => $rating['count'],
+            // feedbacks is the feedbacks of the captain take last 7 feedbacks
+            'feedbacks' => $this->receivedFeedbacks->take(7),
             'lat' => $this->when($this->type === 'captain', $this->lat),
             'long' => $this->when($this->type === 'captain', $this->long),
             'status' => $this->when($this->type === 'captain', $this->status),
@@ -30,6 +33,7 @@ class CaptainResource extends JsonResource
             'trip_id' => $this->when($this->type === 'captain', $this->trip_id),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
         ];
 
         if ($this->resource->offsetExists('captain_feedback_entries')) {

@@ -27,18 +27,6 @@ class AdminUserSeeder extends Seeder
         );
 
         User::query()->updateOrCreate(
-            ['phone' => '01000000002', 'type' => 'admin'],
-            [
-                'name' => 'cib',
-                'email' => 'cib@tourky.local',
-                'password' => Hash::make('123456'),
-                'language' => 'en',
-                'role_id' => $companyRole->id,
-                'company_id' => null,
-            ]
-        );
-
-        User::query()->updateOrCreate(
             ['phone' => '01000000003', 'type' => 'admin'],
             [
                 'name' => 'HSBC',

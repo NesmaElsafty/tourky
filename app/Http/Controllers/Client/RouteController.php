@@ -24,12 +24,14 @@ class RouteController extends Controller
                 ], 401);
             }
             
-            $routes = Route::query()
-            ->where('is_active', true);
-            if($user->company_id === null) {
-                $routes->where('type', 'b2c');
-            }else{
+            $routes = Route::query();
+            $routes->where('is_active', true);
+            
+            if($user->company_id !== null) {
+
                 $routes->where(['type'=> 'b2b', 'company_id'=> $user->company_id]);
+            }else{
+                $routes->where('type', 'b2c');
             }
             $routes = $routes->get();
 

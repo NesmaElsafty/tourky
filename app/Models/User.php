@@ -20,58 +20,36 @@ class User extends Authenticatable implements HasMedia
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, InteractsWithMedia, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+   
     protected $guarded = [];
 
-    /**
-     * @return BelongsTo<Role, $this>
-     */
+    
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
-    /**
-     * @return HasMany<NotificationDelivery, $this>
-     */
     public function notificationDeliveries(): HasMany
     {
         return $this->hasMany(NotificationDelivery::class);
     }
 
-    /**
-     * @return HasMany<TripCar, $this>
-     */
     public function tripCarsAsCaptain(): HasMany
     {
         return $this->hasMany(TripCar::class, 'captain_id');
     }
 
-    /**
-     * @return HasMany<Feedback, $this>
-     */
+
     public function receivedFeedbacks(): HasMany
     {
         return $this->hasMany(Feedback::class, 'captain_id');
     }
 
-    /**
-     * @return HasMany<Feedback, $this>
-     */
     public function sentFeedbacks(): HasMany
     {
         return $this->hasMany(Feedback::class, 'client_id');
     }
 
-    /**
-     * Active trip pointer for captains (see users.trip_id).
-     *
-     * @return BelongsTo<Trip, $this>
-     */
     public function currentCaptainTrip(): BelongsTo
     {
         return $this->belongsTo(Trip::class, 'trip_id');

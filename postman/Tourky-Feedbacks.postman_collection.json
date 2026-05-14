@@ -1,0 +1,230 @@
+{
+	"info": {
+		"_postman_id": "c4e8f1a2-feedbacks-01",
+		"name": "Tourky — Client feedbacks",
+		"description": "Tests feedback API tied to routes.\n\n**Routes**\n- `POST {{baseUrl}}/client/feedbacks` — client submits feedback for a captain (requires completed trip with that captain).\n- `GET {{baseUrl}}/captain/profile` — captain profile includes `feedbacks` when loaded.\n\n**Setup**\n1. Set `baseUrl` (default `http://localhost:8000/api`).\n2. Run **Client login** then **Captain login** (demo seeds: client `01000000003` / `123456`, captain `01000000002` / `123456`). Tokens and `captainId` are saved from responses.\n3. Run **Create feedback** — expects **201** only if the logged-in client has at least one reservation with `dropped_off_at` and that captain on `trip_car`; otherwise expect **422** (`no_completed_trip`).\n4. Run **Captain profile (feedbacks)** — bearer captain token; asserts `feedbacks` key when present.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8000/api" },
+		{ "key": "clientPhone", "value": "01000000003" },
+		{ "key": "clientPassword", "value": "123456" },
+		{ "key": "captainPhone", "value": "01000000002" },
+		{ "key": "captainPassword", "value": "123456" },
+		{ "key": "clientToken", "value": "" },
+		{ "key": "captainToken", "value": "" },
+		{ "key": "captainId", "value": "" },
+		{ "key": "feedbackText", "value": "Great trip via Postman collection test." }
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Client login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('Has token', function () { pm.expect(j.token).to.be.a('string').that.is.not.empty; });",
+									"if (j.token) { pm.collectionVariables.set('clientToken', j.token); }"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{clientPhone}}\",\n  \"password\": \"{{clientPassword}}\"\n}"
+						},
+						"url": "{{baseUrl}}/client/login",
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "Captain login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('Has token', function () { pm.expect(j.token).to.be.a('string').that.is.not.empty; });",
+									"if (j.token) { pm.collectionVariables.set('captainToken', j.token); }",
+									"const id = j.data && j.data.id != null ? String(j.data.id) : '';",
+									"if (id) { pm.collectionVariables.set('captainId', id); }",
+									"pm.test('Has captain id in data', function () { pm.expect(id).to.be.a('string').that.is.not.empty; });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{captainPhone}}\",\n  \"password\": \"{{captainPassword}}\"\n}"
+						},
+						"url": "{{baseUrl}}/captain/login",
+						"auth": { "type": "noauth" }
+					}
+				}
+			]
+		},
+		{
+			"name": "Feedbacks",
+			"item": [
+				{
+					"name": "POST client/feedbacks (create)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 201 or 422', function () { pm.expect([201, 422]).to.include(pm.response.code); });",
+									"const j = pm.response.json();",
+									"if (pm.response.code === 201) {",
+									"  pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"  pm.test('data has id and rating', function () {",
+									"    pm.expect(j.data).to.include.keys('id', 'rating', 'feedback', 'captain');",
+									"  });",
+									"} else {",
+									"  pm.test('validation errors shape', function () { pm.expect(j).to.have.property('errors'); });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "lang", "value": "en" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"captain_id\": {{captainId}},\n  \"feedback\": \"{{feedbackText}}\",\n  \"rating\": 5\n}"
+						},
+						"url": "{{baseUrl}}/client/feedbacks",
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{clientToken}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "POST client/feedbacks (no auth — expect 401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+									"const j = pm.response.json();",
+									"pm.test('Has message', function () { pm.expect(j.message).to.be.a('string').that.is.not.empty; });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"captain_id\": 1,\n  \"feedback\": \"Should fail without token\",\n  \"rating\": 4\n}"
+						},
+						"url": "{{baseUrl}}/client/feedbacks",
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "POST client/feedbacks (invalid body — expect 422)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 422', function () { pm.response.to.have.status(422); });",
+									"const j = pm.response.json();",
+									"pm.test('has errors', function () { pm.expect(j).to.have.property('errors'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"captain_id\": 999999999,\n  \"feedback\": \"ab\",\n  \"rating\": 10\n}"
+						},
+						"url": "{{baseUrl}}/client/feedbacks",
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{clientToken}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "GET captain/profile (includes feedbacks)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('data has feedbacks', function () { pm.expect(j.data).to.have.property('feedbacks'); });",
+									"if (j.data.feedbacks && j.data.feedbacks.length) {",
+									"  pm.test('first feedback shape', function () {",
+									"    const f = j.data.feedbacks[0];",
+									"    pm.expect(f).to.include.keys('id', 'rating', 'feedback', 'client');",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "lang", "value": "en" }
+						],
+						"url": "{{baseUrl}}/captain/profile",
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{captainToken}}", "type": "string" }]
+						}
+					}
+				}
+			]
+		}
+	]
+}
