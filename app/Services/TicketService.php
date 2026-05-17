@@ -139,9 +139,6 @@ class TicketService
         return $fresh;
     }
 
-    /**
-     * @return LengthAwarePaginator<int, Ticket>
-     */
     public function paginateForClient(User $client, int $perPage = 15): LengthAwarePaginator
     {
         return Ticket::query()
@@ -199,9 +196,6 @@ class TicketService
         ]);
     }
 
-    /**
-     * @param  array{title?: string, description?: string, captain_id?: int|null, trip_id?: int|null}  $data
-     */
     public function updateForClient(User $client, Ticket $ticket, array $data): Ticket
     {
         if ($ticket->client_id !== $client->id) {
@@ -256,5 +250,16 @@ class TicketService
         }
 
         $ticket->delete();
+    }
+
+    public function replyAsClient(Ticket $ticket, string $message): Ticket
+    {
+        $ticketMsg = new TicketMsg();
+        $ticketMsg->ticket_id = $ticket->id;
+        $ticketMsg->user_id = $ticket->client_id;
+        $ticketMsg->message = $message;
+        $ticketMsg->save();
+
+        return $ticket;
     }
 }

@@ -41,6 +41,9 @@ Route::get('terms/{term}', [AdminTermController::class, 'show']);
 Route::get('notifications', [AdminNotificationController::class, 'index']);
 Route::get('notifications/{notification}', [AdminNotificationController::class, 'show']);
 
+// calculate price for reservation
+Route::post('calculatePrice', [AdminReservationController::class, 'calculatePrice']);
+
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->group(function (): void {
     Route::get('dashboard', [AdminDashboardController::class, 'index']);
 

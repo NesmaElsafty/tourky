@@ -116,6 +116,7 @@ class RouteFactory extends Factory
         return array_merge($segment, [
             'type' => 'b2c',
             'company_id' => null,
+            'point_price' => round(fake()->randomFloat(2, 25, 150), 2),
             'is_active' => true,
         ]);
     }
@@ -133,6 +134,7 @@ class RouteFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'type' => 'b2b',
             'company_id' => $companyUserId,
+            'point_price' => null,
         ]);
     }
 }

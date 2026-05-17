@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
@@ -10,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
-use App\Helpers\PaginationHelper;
+
 class ReservationController extends Controller
 {
     public function __construct(private ReservationService $reservationService) {}
@@ -145,6 +146,30 @@ class ReservationController extends Controller
             ]);
         } catch (ValidationException $e) {
             throw $e;
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.reservations.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function calculatePrice(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'time_id' => 'required|integer|exists:times,id',
+                'drop_off_time_id' => 'required|integer|exists:times,id',
+            ]);
+
+            $price = $this->reservationService->calculatePriceForReservation($data['time_id'], $data['drop_off_time_id']);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.reservations.price_calculated'),
+                'data' => $price,
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

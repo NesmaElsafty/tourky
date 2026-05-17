@@ -260,22 +260,80 @@ class ReservationService
             ->select('reservations.*');
     }
 
-    /**
-     * @param  Builder<Reservation>  $query
-     */
-    private function applyUpcomingScope(Builder $query): void
+    public function calculatePriceForReservation(int $timeId, int $dropOffTimeId): float
     {
-        $today = now()->toDateString();
-        $nowTime = now()->format('H:i');
+        if ($timeId === $dropOffTimeId) {
+            throw ValidationException::withMessages([
+                'drop_off_time_id' => [__('api.reservations.drop_off_must_differ_from_pickup')],
+            ]);
+        }
 
-        $query->whereIn('reservations.status', ['pending', 'confirmed'])
-            ->where(function (Builder $q) use ($today, $nowTime): void {
-                $q->where('reservations.date', '>', $today)
-                    ->orWhere(function (Builder $q2) use ($today, $nowTime): void {
-                        $q2->where('reservations.date', '=', $today)
-                            ->where('times.pickup_time', '>=', $nowTime);
-                    });
-            });
+        $time = Time::query()->with('point.route')->find($timeId);
+        $dropOffTime = Time::query()->with('point')->find($dropOffTimeId);
+
+        if ($time === null) {
+            throw ValidationException::withMessages([
+                'time_id' => [__('api.reservations.invalid_time')],
+            ]);
+        }
+
+        if ($dropOffTime === null) {
+            throw ValidationException::withMessages([
+                'drop_off_time_id' => [__('api.reservations.invalid_drop_off_time')],
+            ]);
+        }
+
+        if ($time->point === null || $dropOffTime->point === null) {
+            throw ValidationException::withMessages([
+                'time_id' => [__('api.reservations.invalid_time')],
+            ]);
+        }
+
+        $routeId = (int) $time->point->route_id;
+        if ((int) $dropOffTime->point->route_id !== $routeId) {
+            throw ValidationException::withMessages([
+                'drop_off_time_id' => [__('api.reservations.drop_off_different_route')],
+            ]);
+        }
+
+        $routeTime = RouteTime::query()
+            ->where('route_id', $routeId)
+            ->containingTimes($timeId, $dropOffTimeId)
+            ->first();
+
+        if ($routeTime === null) {
+            throw ValidationException::withMessages([
+                'drop_off_time_id' => [__('api.reservations.route_time_pair_not_configured')],
+            ]);
+        }
+
+        $timeIds = collect($routeTime->time_ids ?? [])
+            ->map(static fn ($id): int => (int) $id)
+            ->values();
+
+        $pickupIndex = $timeIds->search($timeId, strict: true);
+        $dropoffIndex = $timeIds->search($dropOffTimeId, strict: true);
+
+        if ($pickupIndex === false || $dropoffIndex === false) {
+            throw ValidationException::withMessages([
+                'drop_off_time_id' => [__('api.reservations.route_time_pair_not_configured')],
+            ]);
+        }
+
+        if ($pickupIndex >= $dropoffIndex) {
+            throw ValidationException::withMessages([
+                'drop_off_time_id' => [__('api.reservations.drop_off_must_be_after_pickup')],
+            ]);
+        }
+
+        $pointPrice = $time->point->route?->point_price;
+        if ($pointPrice === null) {
+            return 0.0;
+        }
+
+        $pointCount = $dropoffIndex - $pickupIndex + 1;
+
+        return round((float) $pointPrice * $pointCount, 2);
     }
 
     /**

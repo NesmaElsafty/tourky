@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
 
     Route::get('tickets', [ClientTicketController::class, 'index']);
     Route::post('tickets', [ClientTicketController::class, 'store']);
+    Route::post('tickets/{ticket}/messages', [ClientTicketController::class, 'addMessage'])->whereNumber('ticket');
     Route::get('tickets/{ticket}', [ClientTicketController::class, 'show'])->whereNumber('ticket');
     Route::put('tickets/{ticket}', [ClientTicketController::class, 'update'])->whereNumber('ticket');
     Route::patch('tickets/{ticket}', [ClientTicketController::class, 'update'])->whereNumber('ticket');

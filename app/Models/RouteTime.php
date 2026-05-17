@@ -45,4 +45,17 @@ class RouteTime extends Model
     {
         return $query->whereJsonContains('time_ids', $timeId);
     }
+
+    /**
+     * @param  Builder<RouteTime>  $query
+     * @return Builder<RouteTime>
+     */
+    public function scopeContainingTimes(Builder $query, int ...$timeIds): Builder
+    {
+        foreach ($timeIds as $timeId) {
+            $query->whereJsonContains('time_ids', $timeId);
+        }
+
+        return $query;
+    }
 }

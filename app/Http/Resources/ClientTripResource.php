@@ -22,6 +22,7 @@ class ClientTripResource extends JsonResource
         app()->setLocale($locale);
 
         return [
+            'trip_id' => $this->trip_id,
             'reservation_id' => $this->id,
             'date' => $this->date,
             'route' => $this->when(

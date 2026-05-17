@@ -140,6 +140,34 @@ class TicketController extends Controller
         }
     }
 
+    // add message to ticket
+    public function addMessage(Request $request, int $id)
+    {
+        try {
+            $request->validate([
+                'message' => ['required', 'string', 'max:5000'],
+            ]);
+            $ticket = Ticket::find($id);
+            if ($ticket === null || $ticket->client_id !== $request->user()->id) {
+                throw ValidationException::withMessages([
+                    'message' => [__('api.tickets.not_found')],
+                ]);
+            }
+            $ticket = $this->ticketService->replyAsClient($ticket, $request->input('message'));
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.tickets.client_reply_saved'),
+                'data' => new ClientTicketResource($ticket),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.tickets.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function update(Request $request, Ticket $ticket)
     {
         try {

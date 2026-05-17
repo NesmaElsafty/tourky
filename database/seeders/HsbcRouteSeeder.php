@@ -13,11 +13,10 @@ use Illuminate\Support\Facades\File;
 
 class HsbcRouteSeeder extends Seeder
 {
-    /**
-     * Clock time at the **first** stop for each scheduled run (e.g. morning / afternoon arrival waves).
-     * Later stops use {@see ShuttleRouteScheduleService} (distance + average speed between consecutive coordinates).
-     */
     private const RUN_FIRST_STOP_TIMES = ['06:15', '14:30'];
+
+    /** Per-pickup price (EGP) for seeded B2B shuttle routes; null = not billed per point. */
+    private const POINT_PRICE = null;
 
     public function run(): void
     {
@@ -45,6 +44,9 @@ class HsbcRouteSeeder extends Seeder
         /** @var list<array{sheet: string, points: list<array<string, mixed>>}> $definitions */
         $definitions = json_decode(File::get($path), true, 512, JSON_THROW_ON_ERROR);
 
+        // set point price for each route
+        $pointPrices = [10, 20, 30, 40, 50];
+
         foreach ($definitions as $item) {
             $sheet = $item['sheet'];
             $points = $item['points'] ?? [];
@@ -71,6 +73,7 @@ class HsbcRouteSeeder extends Seeder
                     'end_lat' => $this->fmtCoord((float) $last['lat']),
                     'end_long' => $this->fmtCoord((float) $last['lon']),
                     'type' => 'b2b',
+                    'point_price' => $pointPrices[array_rand($pointPrices)],
                     'is_active' => true,
                 ]
             );
@@ -130,9 +133,6 @@ class HsbcRouteSeeder extends Seeder
         return $poi !== '' ? $poi : ($hood !== '' ? $hood : 'Stop');
     }
 
-    /**
-     * @param  array<string, mixed>  $p
-     */
     private function pointName(array $p): string
     {
         $poi = trim((string) ($p['poi_en'] ?? ''));

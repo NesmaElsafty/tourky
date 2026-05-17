@@ -68,12 +68,15 @@ class ReservationController extends Controller
             $data = $request->validate([
                 'time_id' => 'required|integer|exists:times,id',
                 'date' => 'required|date_format:Y-m-d|after_or_equal:today',
+                'drop_off_time_id' => 'required|integer|exists:times,id',
             ], [
                 'time_id.required' => __('api.reservations.validation_time_id'),
                 'time_id.exists' => __('api.reservations.validation_time_id'),
                 'date.required' => __('api.reservations.validation_date_past'),
                 'date.date_format' => __('api.reservations.validation_date_past'),
                 'date.after_or_equal' => __('api.reservations.validation_date_past'),
+                'drop_off_time_id.required' => __('api.reservations.validation_drop_off_time_id'),
+                'drop_off_time_id.exists' => __('api.reservations.validation_drop_off_time_id'),
             ]);
 
             $user = $request->user();
