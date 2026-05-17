@@ -105,7 +105,7 @@ class RouteController extends Controller
     {
         try {
             $route = Route::find($id);
-            if($route === null) {
+            if ($route === null) {
                 return response()->json([
                     'status' => 'error',
                     'message' => __('api.routes.not_found'),
@@ -185,7 +185,7 @@ class RouteController extends Controller
             }
             if ($data['type'] === 'b2b' && empty($data['company_id'])) {
                 throw ValidationException::withMessages([
-                    'company_id' => [__('validation.required', ['attribute' => 'company id'])],
+                    'company_id' => [__('api.routes.validation_company_required')],
                 ]);
             }
             $route = $this->routeService->createRoute($data);
@@ -216,7 +216,7 @@ class RouteController extends Controller
                 ], 403);
             }
             $route = Route::find($id);
-            if($route === null) {
+            if ($route === null) {
                 return response()->json([
                     'status' => 'error',
                     'message' => __('api.routes.not_found'),
@@ -239,12 +239,12 @@ class RouteController extends Controller
             ]);
 
             $companyId = $route->company_id;
-            if(isset($data['company_id']) && $data['company_id'] !== null) {
+            if (isset($data['company_id']) && $data['company_id'] !== null) {
                 $company = User::find($data['company_id']);
-                if($company->role->name_en !== 'Company') {
+                if ($company->role->name_en !== 'Company') {
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'the selected company is not a company',
+                        'message' => __('api.routes.invalid_company'),
                     ], 400);
                 }
             }
@@ -270,7 +270,7 @@ class RouteController extends Controller
     {
         try {
             $route = Route::find($id);
-            if($route === null) {
+            if ($route === null) {
                 return response()->json([
                     'status' => 'error',
                     'message' => __('api.routes.not_found'),

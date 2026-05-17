@@ -59,6 +59,8 @@ return [
         'updated' => 'Role updated successfully.',
         'retrieved' => 'Role retrieved successfully.',
         'deleted' => 'Role deleted successfully.',
+        'not_found' => 'Role not found.',
+        'has_users' => 'This role cannot be deleted because it is assigned to users.',
         'server_error' => 'Something went wrong. Please try again later.',
     ],
 
@@ -72,10 +74,20 @@ return [
         'registration_failed' => 'Captain registration failed.',
         'logged_in' => 'Captain logged in successfully.',
         'login_failed' => 'Captain login failed.',
+        'profile_retrieved' => 'Captain profile retrieved successfully.',
         'profile_failed' => 'Captain profile failed.',
         'update_profile_failed' => 'Captain update profile failed.',
         'logged_out' => 'Captain logged out successfully.',
         'logout_failed' => 'Captain logout failed.',
+    ],
+
+    'captains' => [
+        'list_retrieved' => 'Captains retrieved successfully.',
+        'created' => 'Captain created successfully.',
+        'updated' => 'Captain updated successfully.',
+        'retrieved' => 'Captain retrieved successfully.',
+        'deleted' => 'Captain deleted successfully.',
+        'server_error' => 'Something went wrong. Please try again later.',
     ],
 
     'client' => [
@@ -97,6 +109,7 @@ return [
         'updated' => 'Car updated successfully.',
         'retrieved' => 'Car retrieved successfully.',
         'deleted' => 'Car deleted successfully.',
+        'not_found' => 'Car not found.',
         'server_error' => 'Something went wrong. Please try again later.',
         'type_labels' => [
             'sedan' => 'Sedan',
@@ -111,6 +124,9 @@ return [
         'retrieved' => 'Route retrieved successfully.',
         'deleted' => 'Route deleted successfully.',
         'not_found' => 'Route not found or unavailable.',
+        'points_retrieved' => 'Route pickup points retrieved successfully.',
+        'invalid_company' => 'The selected user is not a company account.',
+        'validation_company_required' => 'A company is required for B2B routes.',
         'server_error' => 'Something went wrong. Please try again later.',
         'type_labels' => [
             'b2b' => 'Company (B2B)',
@@ -144,6 +160,7 @@ return [
         'updated' => 'Route time updated successfully.',
         'retrieved' => 'Route time retrieved successfully.',
         'deleted' => 'Route time deleted successfully.',
+        'not_found' => 'Route time not found.',
         'server_error' => 'Something went wrong. Please try again later.',
         'time_ids_required' => 'At least one pickup time is required.',
         'time_ids_must_belong_to_route' => 'All pickup times must belong to the selected route.',
@@ -197,6 +214,8 @@ return [
         'retrieved' => 'User retrieved successfully.',
         'blocked' => 'User has been blocked successfully.',
         'restored' => 'User has been restored successfully.',
+        'not_found' => 'User not found.',
+        'companies_list_retrieved' => 'Companies retrieved successfully.',
         'not_in_blocklist' => 'User is not in the blocklist or is already active.',
         'server_error' => 'Something went wrong. Please try again later.',
         'cannot_delete_self' => 'You cannot block your own account.',
@@ -260,6 +279,7 @@ return [
         'validation_scope_invalid' => 'Scope must be upcoming or history.',
         'validation_date_past' => 'The date must be today or a future day.',
         'validation_time_id' => 'Please choose a valid pickup time.',
+        'validation_drop_off_time_id' => 'Please choose a valid drop-off time.',
         'validation_status_required' => 'Status is required.',
         'validation_status_in' => 'Status must be confirmed or cancelled.',
         'status_labels' => [
@@ -275,6 +295,7 @@ return [
         'created' => 'Trip created successfully.',
         'updated' => 'Trip updated successfully.',
         'deleted' => 'Trip deleted successfully.',
+        'not_found' => 'Trip not found.',
         'server_error' => 'Something went wrong while processing the trip.',
         'no_pending_for_group' => 'No pending reservations found for this date and time.',
         'insufficient_total_seats' => 'Total seats (:seats) are less than required reservations (:required).',
@@ -351,6 +372,7 @@ return [
         'client_list_retrieved' => 'Your tickets were retrieved successfully.',
         'client_retrieved' => 'Ticket retrieved successfully.',
         'client_created' => 'Ticket created successfully.',
+        'client_reply_saved' => 'Your reply was posted successfully.',
         'client_updated' => 'Ticket updated successfully.',
         'client_deleted' => 'Ticket deleted successfully.',
         'not_found' => 'Ticket not found.',
@@ -370,6 +392,13 @@ return [
             'solved' => 'Solved',
             'closed' => 'Closed',
         ],
+    ],
+
+    'tracking' => [
+        'config_missing' => 'Tracking service configuration is missing.',
+        'unavailable' => 'Tracking service is unavailable.',
+        'location_updated' => 'Location updated successfully.',
+        'trip_not_in_progress' => 'Location can only be updated while the trip is in progress.',
     ],
 
     'captain_trips' => [

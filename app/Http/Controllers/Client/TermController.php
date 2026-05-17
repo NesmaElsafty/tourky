@@ -17,7 +17,7 @@ class TermController extends Controller
             $request->validate([
                 'type' => 'required|in:terms_conditions,privacy_policy,FAQ',
             ]);
-            $terms = $this->termService->getActiveTermsForUserType('client', $request->type);
+            $terms = $this->termService->getActiveTermsForUserType('client', $request->type)->get();
 
             return response()->json([
                 'status' => 'success',

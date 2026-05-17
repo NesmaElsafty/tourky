@@ -41,7 +41,7 @@ class TrackingController extends Controller
         if ($trip->status !== 'in_progress') {
             return response()->json([
                 'status' => 'error',
-                'message' => __('api.captain_trips.must_start_before_close'),
+                'message' => __('api.tracking.trip_not_in_progress'),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -59,7 +59,7 @@ class TrackingController extends Controller
         if ($trackingServiceUrl === '' || $trackingSecret === '') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tracking service configuration is missing.',
+                'message' => __('api.tracking.config_missing'),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -76,13 +76,13 @@ class TrackingController extends Controller
         if (! $trackingResponse->successful()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tracking service unavailable.',
+                'message' => __('api.tracking.unavailable'),
             ], Response::HTTP_BAD_GATEWAY);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Location updated.',
+            'message' => __('api.tracking.location_updated'),
             'data' => [
                 'trip_id' => $trip->id,
                 'captain_id' => $user->id,

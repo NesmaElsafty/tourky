@@ -59,6 +59,8 @@ return [
         'updated' => 'تم تحديث الدور بنجاح.',
         'retrieved' => 'تم جلب الدور بنجاح.',
         'deleted' => 'تم حذف الدور بنجاح.',
+        'not_found' => 'الدور غير موجود.',
+        'has_users' => 'لا يمكن حذف هذا الدور لأنه مرتبط بمستخدمين.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
     ],
 
@@ -72,10 +74,20 @@ return [
         'registration_failed' => 'فشل تسجيل الكابتن.',
         'logged_in' => 'تم تسجيل دخول الكابتن بنجاح.',
         'login_failed' => 'فشل تسجيل دخول الكابتن.',
+        'profile_retrieved' => 'تم جلب ملف الكابتن بنجاح.',
         'profile_failed' => 'فشل جلب ملف الكابتن.',
         'update_profile_failed' => 'فشل تحديث ملف الكابتن.',
         'logged_out' => 'تم تسجيل خروج الكابتن بنجاح.',
         'logout_failed' => 'فشل تسجيل خروج الكابتن.',
+    ],
+
+    'captains' => [
+        'list_retrieved' => 'تم جلب الكباتن بنجاح.',
+        'created' => 'تم إنشاء الكابتن بنجاح.',
+        'updated' => 'تم تحديث الكابتن بنجاح.',
+        'retrieved' => 'تم جلب الكابتن بنجاح.',
+        'deleted' => 'تم حذف الكابتن بنجاح.',
+        'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
     ],
 
     'client' => [
@@ -97,6 +109,7 @@ return [
         'updated' => 'تم تحديث السيارة بنجاح.',
         'retrieved' => 'تم جلب السيارة بنجاح.',
         'deleted' => 'تم حذف السيارة بنجاح.',
+        'not_found' => 'السيارة غير موجودة.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
         'type_labels' => [
             'sedan' => 'سيدان',
@@ -111,6 +124,9 @@ return [
         'retrieved' => 'تم جلب المسار بنجاح.',
         'deleted' => 'تم حذف المسار بنجاح.',
         'not_found' => 'المسار غير موجود أو غير متاح.',
+        'points_retrieved' => 'تم جلب نقاط الالتقاط للمسار بنجاح.',
+        'invalid_company' => 'المستخدم المحدد ليس حساب شركة.',
+        'validation_company_required' => 'الشركة مطلوبة لمسارات B2B.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
         'type_labels' => [
             'b2b' => 'شركة (B2B)',
@@ -139,11 +155,12 @@ return [
     ],
 
     'route_times' => [
-        'list_retrieved' => 'تم جلب route_times بنجاح.',
-        'created' => 'تم إنشاء route_time بنجاح.',
-        'updated' => 'تم تحديث route_time بنجاح.',
-        'retrieved' => 'تم جلب route_time بنجاح.',
-        'deleted' => 'تم حذف route_time بنجاح.',
+        'list_retrieved' => 'تم جلب جداول المسار بنجاح.',
+        'created' => 'تم إنشاء جدول المسار بنجاح.',
+        'updated' => 'تم تحديث جدول المسار بنجاح.',
+        'retrieved' => 'تم جلب جدول المسار بنجاح.',
+        'deleted' => 'تم حذف جدول المسار بنجاح.',
+        'not_found' => 'جدول المسار غير موجود.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
         'time_ids_required' => 'لازم تبعت وقت التقاط واحد على الأقل.',
         'time_ids_must_belong_to_route' => 'كل أوقات الالتقاط لازم تكون تابعة لنفس المسار المختار.',
@@ -197,6 +214,8 @@ return [
         'retrieved' => 'تم جلب المستخدم بنجاح.',
         'blocked' => 'تم حظر المستخدم بنجاح.',
         'restored' => 'تم استعادة المستخدم بنجاح.',
+        'not_found' => 'المستخدم غير موجود.',
+        'companies_list_retrieved' => 'تم جلب الشركات بنجاح.',
         'not_in_blocklist' => 'المستخدم غير موجود في قائمة الحظر أو أنه نشط بالفعل.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
         'cannot_delete_self' => 'لا يمكنك حظر حسابك الخاص.',
@@ -260,6 +279,7 @@ return [
         'validation_scope_invalid' => 'نوع القائمة غير صالح. استخدم upcoming أو history.',
         'validation_date_past' => 'يجب أن يكون التاريخ اليوم أو يوماً لاحقاً.',
         'validation_time_id' => 'يرجى اختيار وقت التقاط صالح.',
+        'validation_drop_off_time_id' => 'يرجى اختيار وقت نزول صالح.',
         'validation_status_required' => 'حقل الحالة مطلوب.',
         'validation_status_in' => 'يجب أن تكون الحالة مؤكدة أو ملغاة.',
         'status_labels' => [
@@ -275,6 +295,7 @@ return [
         'created' => 'تم إنشاء الرحلة بنجاح.',
         'updated' => 'تم تحديث الرحلة بنجاح.',
         'deleted' => 'تم حذف الرحلة بنجاح.',
+        'not_found' => 'الرحلة غير موجودة.',
         'server_error' => 'حدث خطأ أثناء معالجة الرحلة.',
         'no_pending_for_group' => 'لا توجد حجوزات معلقة لهذا التاريخ والوقت.',
         'insufficient_total_seats' => 'إجمالي المقاعد (:seats) أقل من عدد الحجوزات المطلوبة (:required).',
@@ -290,9 +311,9 @@ return [
         'validation_date_date' => 'يجب أن يكون التاريخ صالحًا.',
         'validation_time_id_required' => 'حقل وقت الانطلاق مطلوب.',
         'validation_time_id_exists' => 'وقت الانطلاق المحدد غير موجود.',
-        'validation_route_time_id_required' => 'حقل route_time_id مطلوب.',
-        'validation_route_time_id_exists' => 'قيمة route_time_id المحددة غير موجودة.',
-        'invalid_route_time_times' => 'قيمة route_time_id المحددة لا تحتوي على أوقات التقاط صالحة.',
+        'validation_route_time_id_required' => 'جدول المسار مطلوب.',
+        'validation_route_time_id_exists' => 'جدول المسار المحدد غير موجود.',
+        'invalid_route_time_times' => 'جدول المسار المحدد لا يحتوي على أوقات التقاط صالحة.',
         'validation_trips_required' => 'بيانات الرحلات مطلوبة.',
         'validation_trips_array' => 'بيانات الرحلات يجب أن تكون مصفوفة.',
         'validation_trips_min' => 'يجب إدخال رحلة واحدة على الأقل.',
@@ -351,6 +372,7 @@ return [
         'client_list_retrieved' => 'تم جلب تذاكرك بنجاح.',
         'client_retrieved' => 'تم جلب التذكرة بنجاح.',
         'client_created' => 'تم إنشاء التذكرة بنجاح.',
+        'client_reply_saved' => 'تم إرسال ردك بنجاح.',
         'client_updated' => 'تم تحديث التذكرة بنجاح.',
         'client_deleted' => 'تم حذف التذكرة بنجاح.',
         'not_found' => 'التذكرة غير موجودة.',
@@ -370,6 +392,13 @@ return [
             'solved' => 'تم الحل',
             'closed' => 'مغلقة',
         ],
+    ],
+
+    'tracking' => [
+        'config_missing' => 'إعدادات خدمة التتبع غير مكتملة.',
+        'unavailable' => 'خدمة التتبع غير متاحة حالياً.',
+        'location_updated' => 'تم تحديث الموقع بنجاح.',
+        'trip_not_in_progress' => 'يمكن تحديث الموقع فقط أثناء تنفيذ الرحلة.',
     ],
 
     'captain_trips' => [

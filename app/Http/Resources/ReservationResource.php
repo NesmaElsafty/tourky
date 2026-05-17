@@ -21,6 +21,7 @@ class ReservationResource extends JsonResource
             'status_label' => $status !== null ? __('api.reservations.status_labels.'.$status) : null,
             'date' => $this->date,
             'time_id' => $this->time_id,
+            'price' => $this->price,
             'route_time_id' => $this->route_time_id,
             'route' => $this->when(
                 $this->relationLoaded('route') && $this->route !== null,

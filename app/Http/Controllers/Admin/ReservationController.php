@@ -161,6 +161,11 @@ class ReservationController extends Controller
             $data = $request->validate([
                 'time_id' => 'required|integer|exists:times,id',
                 'drop_off_time_id' => 'required|integer|exists:times,id',
+            ], [
+                'time_id.required' => __('api.reservations.validation_time_id'),
+                'time_id.exists' => __('api.reservations.validation_time_id'),
+                'drop_off_time_id.required' => __('api.reservations.validation_drop_off_time_id'),
+                'drop_off_time_id.exists' => __('api.reservations.validation_drop_off_time_id'),
             ]);
 
             $price = $this->reservationService->calculatePriceForReservation($data['time_id'], $data['drop_off_time_id']);

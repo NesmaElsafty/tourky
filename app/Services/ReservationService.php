@@ -137,6 +137,7 @@ class ReservationService
 
         $timeId = (int) $data['time_id'];
         $date = $data['date'];
+        $dropOffTimeId = (int) $data['drop_off_time_id'];
 
         $time = Time::query()->with(['point.route'])->find($timeId);
 
@@ -202,6 +203,8 @@ class ReservationService
             'route_time_id' => $routeTimeId,
             'date' => $date,
             'status' => 'pending',
+            'price' => $data['price'],
+            'drop_off_time_id' => $dropOffTimeId,
         ]);
     }
 
