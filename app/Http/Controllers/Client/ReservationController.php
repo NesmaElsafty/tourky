@@ -89,10 +89,11 @@ class ReservationController extends Controller
 
             $reservation = $this->reservationService->createReservationForClient($user, [
                 'time_id' => (int) $data['time_id'],
+                'drop_off_time_id' => (int) $data['drop_off_time_id'],
                 'date' => $data['date'],
             ]);
 
-            $reservation->load(['route', 'point', 'time']);
+            $reservation->load(['route', 'point', 'time', 'dropOffTime']);
 
             return response()->json([
                 'status' => 'success',

@@ -125,7 +125,7 @@ class ReservationService
     }
 
     /**
-     * @param  array{time_id: int, date: string}  $data
+     * @param  array{time_id: int, drop_off_time_id: int, date: string}  $data
      */
     public function createReservationForClient(User $client, array $data): Reservation
     {
@@ -190,9 +190,12 @@ class ReservationService
             ]);
         }
 
+        $price = $this->calculatePriceForReservation($timeId, $dropOffTimeId);
+
         $routeTimeId = $this->resolveRouteTimeIdForReservation(
             (int) $time->point->route_id,
-            (int) $time->id,
+            $timeId,
+            $dropOffTimeId,
         );
 
         return Reservation::query()->create([
@@ -203,7 +206,7 @@ class ReservationService
             'route_time_id' => $routeTimeId,
             'date' => $date,
             'status' => 'pending',
-            'price' => $data['price'],
+            'price' => $price,
             'drop_off_time_id' => $dropOffTimeId,
         ]);
     }
@@ -215,7 +218,7 @@ class ReservationService
     public function getClientReservationsPaginated(User $client, string $scope, int $perPage = 10): LengthAwarePaginator
     {
         $query = $this->clientReservationBaseQuery($client)
-            ->with(['route', 'point', 'time']);
+            ->with(['route', 'point', 'time', 'dropOffTime']);
 
         if ($scope === 'upcoming') {
             $this->applyUpcomingScope($query);
@@ -342,6 +345,24 @@ class ReservationService
     /**
      * @param  Builder<Reservation>  $query
      */
+    private function applyUpcomingScope(Builder $query): void
+    {
+        $today = now()->toDateString();
+        $nowTime = now()->format('H:i');
+
+        $query->whereIn('reservations.status', ['pending', 'confirmed'])
+            ->where(function (Builder $q) use ($today, $nowTime): void {
+                $q->where('reservations.date', '>', $today)
+                    ->orWhere(function (Builder $q2) use ($today, $nowTime): void {
+                        $q2->where('reservations.date', '=', $today)
+                            ->where('times.pickup_time', '>=', $nowTime);
+                    });
+            });
+    }
+
+    /**
+     * @param  Builder<Reservation>  $query
+     */
     private function applyHistoryScope(Builder $query): void
     {
         $today = now()->toDateString();
@@ -373,11 +394,11 @@ class ReservationService
         return $scheduled->greaterThanOrEqualTo(now());
     }
 
-    private function resolveRouteTimeIdForReservation(int $routeId, int $timeId): int
+    private function resolveRouteTimeIdForReservation(int $routeId, int $pickupTimeId, int $dropOffTimeId): int
     {
         $existing = RouteTime::query()
             ->where('route_id', $routeId)
-            ->containingTime($timeId)
+            ->containingTimes($pickupTimeId, $dropOffTimeId)
             ->first();
 
         if ($existing !== null) {
@@ -385,7 +406,7 @@ class ReservationService
         }
 
         throw ValidationException::withMessages([
-            'time_id' => [__('api.reservations.route_time_not_configured')],
+            'drop_off_time_id' => [__('api.reservations.route_time_pair_not_configured')],
         ]);
     }
 }

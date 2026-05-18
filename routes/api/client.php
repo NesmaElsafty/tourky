@@ -21,7 +21,7 @@ Route::get('routes', [RouteController::class, 'index']);
 Route::get('routes/{routeId}/points', [RouteController::class, 'getPoints']);
 Route::get('terms', [ClientTermController::class, 'index']);
 Route::get('getRouteTimes/{routeId}', [RouteController::class, 'getRouteTimes']);
-
+Route::get('getRouteTimesByTimeId/{timeId}', [RouteController::class, 'getRouteTimesByTimeId']);
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->group(function (): void {
     Route::get('profile', [ClientAuthController::class, 'profile']);

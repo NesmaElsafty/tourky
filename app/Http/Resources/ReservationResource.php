@@ -21,6 +21,7 @@ class ReservationResource extends JsonResource
             'status_label' => $status !== null ? __('api.reservations.status_labels.'.$status) : null,
             'date' => $this->date,
             'time_id' => $this->time_id,
+            'drop_off_time_id' => $this->drop_off_time_id,
             'price' => $this->price,
             'route_time_id' => $this->route_time_id,
             'route' => $this->when(
@@ -47,6 +48,10 @@ class ReservationResource extends JsonResource
             'time' => $this->when(
                 $this->relationLoaded('time') && $this->time !== null,
                 new TimeResource($this->time),
+            ),
+            'drop_off_time' => $this->when(
+                $this->relationLoaded('dropOffTime') && $this->dropOffTime !== null,
+                new TimeResource($this->dropOffTime),
             ),
             'user' => $this->when(
                 $this->relationLoaded('user') && $this->user !== null,

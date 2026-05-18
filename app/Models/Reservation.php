@@ -48,6 +48,14 @@ class Reservation extends Model
     }
 
     /**
+     * @return BelongsTo<Time, $this>
+     */
+    public function dropOffTime(): BelongsTo
+    {
+        return $this->belongsTo(Time::class, 'drop_off_time_id');
+    }
+
+    /**
      * @return BelongsTo<Trip, $this>
      */
     public function trip(): BelongsTo

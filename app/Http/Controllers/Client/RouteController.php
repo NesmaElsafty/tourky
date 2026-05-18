@@ -8,6 +8,7 @@ use App\Http\Resources\RouteResource;
 use App\Http\Resources\RouteTimeResource;
 use App\Models\Route;
 use App\Models\RouteTime;
+use App\Models\Time;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -90,6 +91,7 @@ class RouteController extends Controller
                 ], 404);
             }
             $routeTimes = RouteTime::where('route_id', $routeId)->get();
+
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.routes.times_retrieved'),
@@ -102,5 +104,94 @@ class RouteController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    // get route times by time id (drop-off options after the selected pickup time)
+    public function getRouteTimesByTimeId(Request $request, int $timeId)
+    {
+        try {
+            $pickupTime = Time::query()->find($timeId);
+            if ($pickupTime === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.reservations.invalid_time'),
+                ], 404);
+            }
+
+            $referencePickupTime = $this->normalizePickupTime((string) $pickupTime->pickup_time);
+
+            $routeTimes = RouteTime::query()
+                ->containingTime($timeId)
+                ->get()
+                ->map(function (RouteTime $routeTime) use ($referencePickupTime): RouteTime {
+                    $routeTime->setAttribute(
+                        'time_ids',
+                        $this->filterTimeIdsWithPickupAfter($routeTime->time_ids ?? [], $referencePickupTime),
+                    );
+
+                    return $routeTime;
+                })
+                ->filter(static fn (RouteTime $routeTime): bool => $routeTime->time_ids !== [])
+                ->values();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.routes.times_retrieved'),
+                'data' => RouteTimeResource::collection($routeTimes),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.routes.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * @param  list<int|string>  $timeIds
+     * @return list<int>
+     */
+    private function filterTimeIdsWithPickupAfter(array $timeIds, string $referencePickupTime): array
+    {
+        $orderedIds = collect($timeIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->values();
+
+        if ($orderedIds->isEmpty()) {
+            return [];
+        }
+
+        $timesById = Time::query()
+            ->whereIn('id', $orderedIds->all())
+            ->get()
+            ->keyBy('id');
+
+        return $orderedIds
+            ->filter(function (int $id) use ($timesById, $referencePickupTime): bool {
+                $time = $timesById->get($id);
+                if ($time === null) {
+                    return false;
+                }
+
+                return $this->normalizePickupTime((string) $time->pickup_time) > $referencePickupTime;
+            })
+            ->values()
+            ->all();
+    }
+
+    private function normalizePickupTime(string $pickupTime): string
+    {
+        $pickupTime = trim($pickupTime);
+        if ($pickupTime === '') {
+            return '00:00';
+        }
+
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', $pickupTime, $matches)) {
+            return sprintf('%02d:%02d', (int) $matches[1], (int) $matches[2]);
+        }
+
+        return $pickupTime;
     }
 }

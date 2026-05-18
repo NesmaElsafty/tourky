@@ -125,6 +125,7 @@ return [
         'deleted' => 'Route deleted successfully.',
         'not_found' => 'Route not found or unavailable.',
         'points_retrieved' => 'Route pickup points retrieved successfully.',
+        'times_retrieved' => 'Route schedules retrieved successfully.',
         'invalid_company' => 'The selected user is not a company account.',
         'validation_company_required' => 'A company is required for B2B routes.',
         'server_error' => 'Something went wrong. Please try again later.',

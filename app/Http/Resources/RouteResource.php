@@ -12,9 +12,7 @@ class RouteResource extends JsonResource
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
 
-        $pointsCount = $this->relationLoaded('points')
-            ? $this->points->count()
-            : (int) ($this->points_count ?? 0);
+        $pointsCount = count($this->points);
 
         return [
             'id' => $this->id,

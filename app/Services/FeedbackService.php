@@ -40,6 +40,12 @@ class FeedbackService
             ]);
         }
 
+        if ($this->feedbackAlreadyExists($client, $captainId)) {
+            throw ValidationException::withMessages([
+                'captain_id' => [__('api.feedbacks.feedback_already_exists')],
+            ]);
+        }
+
         return Feedback::query()->create([
             'client_id' => $client->id,
             'captain_id' => $captainId,
@@ -56,6 +62,15 @@ class FeedbackService
             ->whereHas('tripCar', function (Builder $q) use ($captainId): void {
                 $q->where('captain_id', $captainId);
             })
+            ->exists();
+    }
+
+    public function feedbackAlreadyExists(User $client, int $captainId, int $reservationId): bool
+    {
+        return Feedback::query()
+            ->where('client_id', $client->id)
+            ->where('captain_id', $captainId)
+            ->where(column: 'created_at', operator: '>=', value: now()->subDays(30))
             ->exists();
     }
 }
