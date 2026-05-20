@@ -79,6 +79,8 @@ return [
         'update_profile_failed' => 'فشل تحديث ملف الكابتن.',
         'logged_out' => 'تم تسجيل خروج الكابتن بنجاح.',
         'logout_failed' => 'فشل تسجيل خروج الكابتن.',
+        'is_online' => 'أنت متاح الآن (أونلاين).',
+        'is_offline' => 'أنت غير متاح الآن (أوفلاين).',
     ],
 
     'captains' => [
@@ -405,6 +407,8 @@ return [
     'captain_trips' => [
         'notification_title_new' => 'عندك رحله جديده',
         'list_retrieved' => 'تم جلب رحلاتك المسندة بنجاح.',
+        'next_today_retrieved' => 'تم جلب رحلتك القادمة بنجاح.',
+        'next_today_none' => 'لا توجد رحلات قادمة مسندة إليك.',
         'detail_retrieved' => 'تم جلب تفاصيل الرحلة بنجاح.',
         'started' => 'تم بدء الرحلة.',
         'arrival_confirmed' => 'تم تأكيد وصول الراكب لنقطة الالتقاط.',

@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Captain;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CaptainResource;
 use App\Services\AuthService;
+use App\Services\CaptainService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $authService) {}
+    public function __construct(private readonly AuthService $authService, private readonly CaptainService $captainService) {}
 
     public function login(Request $request): JsonResponse
     {
@@ -72,5 +73,24 @@ class AuthController extends Controller
                 'error' => $e->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+    }
+
+    public function isOnlineToggle(Request $request)
+    {
+        $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg'],
+        ]);
+        $user = auth()->user();
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $user->addMediaFromRequest('image')
+                ->toMediaCollection('image');
+        }
+        $captain = $this->captainService->isOnlineToggle($user->id);
+        return response()->json([
+            'message' => $captain->is_online ? __('api.captain.is_online') : __('api.captain.is_offline'),
+            'data' => new CaptainResource($captain),
+        ]);
     }
 }

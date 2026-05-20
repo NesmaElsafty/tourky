@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Point;
 use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -39,6 +40,13 @@ class CaptainTripDetailResource extends JsonResource
                 if (! $reservation->relationLoaded('user') || $reservation->user === null) {
                     continue;
                 }
+                $pickupPoint = $reservation->relationLoaded('point') ? $reservation->point : null;
+                $dropOffPoint = $reservation->relationLoaded('dropOffTime')
+                    && $reservation->dropOffTime !== null
+                    && $reservation->dropOffTime->relationLoaded('point')
+                    ? $reservation->dropOffTime->point
+                    : null;
+
                 $clients[] = [
                     'reservation_id' => $reservation->id,
                     'picked_up_at' => $reservation->picked_up_at,
@@ -46,6 +54,8 @@ class CaptainTripDetailResource extends JsonResource
                     'is_arrived' => $reservation->picked_up_at !== null,
                     'dropped_off_at' => $reservation->dropped_off_at,
                     'has_left_vehicle' => $reservation->dropped_off_at !== null,
+                    'pickup_point' => $this->formatPoint($pickupPoint, $locale),
+                    'drop_off_point' => $this->formatPoint($dropOffPoint, $locale),
                     'client' => [
                         'id' => $reservation->user->id,
                         'name' => $reservation->user->name,
@@ -57,6 +67,7 @@ class CaptainTripDetailResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'route_time_id' => $this->route_time_id,
             'date' => $this->date,
             'status' => $this->status,
             'route' => $route !== null ? [
@@ -93,6 +104,24 @@ class CaptainTripDetailResource extends JsonResource
                 'trip_id' => $captain->trip_id,
             ] : null,
             'clients' => $clients,
+        ];
+    }
+
+    /**
+     * @return array{name: string, lat: mixed, long: mixed}|null
+     */
+    private function formatPoint(?Point $point, string $locale): ?array
+    {
+        if ($point === null) {
+            return null;
+        }
+
+        return [
+            'name' => $locale === 'ar'
+                ? ($point->name_ar ?? $point->name_en ?? '')
+                : ($point->name_en ?? $point->name_ar ?? ''),
+            'lat' => $point->lat,
+            'long' => $point->long,
         ];
     }
 

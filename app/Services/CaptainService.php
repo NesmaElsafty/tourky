@@ -24,9 +24,14 @@ class CaptainService
         return $this->getAllCaptains()->findOrFail($id);
     }
 
-    /**
-     * @param  array{name: string, phone: string, password: string}  $data
-     */
+    public function isOnlineToggle(int $id): User
+    {
+        $captain = $this->getCaptainById($id);
+        $captain->is_online = !$captain->is_online;
+        $captain->save();
+        return $captain;
+    }
+
     public function createCaptain(array $data): User
     {
         return User::query()->create([

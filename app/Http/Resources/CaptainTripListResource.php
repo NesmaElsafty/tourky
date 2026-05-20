@@ -30,6 +30,7 @@ class CaptainTripListResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'route_time_id' => $this->route_time_id,
             'date' => $this->date,
             'status' => $this->status,
             'route' => $route !== null ? [

@@ -16,6 +16,7 @@ class CaptainResource extends JsonResource
 
         $rating = app(CaptainRatingService::class)->aggregateForCaptainId((int) $this->id);
 
+        $image = $this->getMedia('image')->first()?->getUrl();
         $data = [
             'id' => $this->id,
             'name' => $this->name,
@@ -31,9 +32,10 @@ class CaptainResource extends JsonResource
             'status' => $this->when($this->type === 'captain', $this->status),
             'has_trip' => $this->when($this->type === 'captain', $this->has_trip),
             'trip_id' => $this->when($this->type === 'captain', $this->trip_id),
+            'is_online' => $this->when($this->type === 'captain', $this->is_online),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-
+            'image' => $this->getMedia('image')->first()?->getUrl(),
         ];
 
         if ($this->resource->offsetExists('captain_feedback_entries')) {

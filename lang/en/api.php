@@ -79,6 +79,8 @@ return [
         'update_profile_failed' => 'Captain update profile failed.',
         'logged_out' => 'Captain logged out successfully.',
         'logout_failed' => 'Captain logout failed.',
+        'is_online' => 'You are now online.',
+        'is_offline' => 'You are now offline.',
     ],
 
     'captains' => [
@@ -405,6 +407,8 @@ return [
     'captain_trips' => [
         'notification_title_new' => 'You have a new trip',
         'list_retrieved' => 'Your assigned trips retrieved successfully.',
+        'next_today_retrieved' => 'Your next trip retrieved successfully.',
+        'next_today_none' => 'You have no upcoming trips assigned.',
         'detail_retrieved' => 'Trip details retrieved successfully.',
         'started' => 'Trip marked as started.',
         'arrival_confirmed' => 'Passenger arrival at pickup confirmed.',

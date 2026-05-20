@@ -6,14 +6,17 @@ use App\Models\Car;
 use App\Models\Reservation;
 use App\Models\RouteTime;
 use App\Models\Time;
+use App\Models\Trip;
 use App\Models\User;
 use App\Services\TripService;
+use Database\Seeders\Concerns\ResolvesReservationDropOff;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Throwable;
 
 class TripSeeder extends Seeder
 {
+    use ResolvesReservationDropOff;
     /**
      * Pending bookings per (date, time) needed so admin-style trip creation (2+ vehicles) can run.
      */
@@ -65,19 +68,17 @@ class TripSeeder extends Seeder
             $time = $times->random();
             $date = now()->addDays($groupIndex + 3)->toDateString();
             $reservationsCount = fake()->numberBetween(16, 36);
-            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+            $routeTimeId = $this->resolveRouteTimeIdForPickup((int) $time->point->route_id, (int) $time->id);
 
             for ($i = 0; $i < $reservationsCount; $i++) {
-                Reservation::query()->create([
-                    'user_id' => $clients->random()->id,
-                    'route_id' => $time->point->route_id,
-                    'point_id' => $time->point_id,
-                    'time_id' => $time->id,
-                    'route_time_id' => $routeTimeId,
-                    'date' => $date,
-                    'status' => 'pending',
-                    'trip_id' => null,
-                ]);
+                Reservation::query()->create($this->reservationSeedAttributes(
+                    (int) $clients->random()->id,
+                    (int) $time->point->route_id,
+                    (int) $time->point_id,
+                    (int) $time->id,
+                    $routeTimeId,
+                    $date,
+                ));
             }
         }
 
@@ -89,21 +90,19 @@ class TripSeeder extends Seeder
             if ($time->point === null) {
                 continue;
             }
-            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+            $routeTimeId = $this->resolveRouteTimeIdForPickup((int) $time->point->route_id, (int) $time->id);
             $date = now()->addDays(fake()->numberBetween(45, 200))->toDateString();
             $poolSize = fake()->numberBetween(4, 12);
 
             for ($i = 0; $i < $poolSize; $i++) {
-                Reservation::query()->create([
-                    'user_id' => $clients->random()->id,
-                    'route_id' => $time->point->route_id,
-                    'point_id' => $time->point_id,
-                    'time_id' => $time->id,
-                    'route_time_id' => $routeTimeId,
-                    'date' => $date,
-                    'status' => 'pending',
-                    'trip_id' => null,
-                ]);
+                Reservation::query()->create($this->reservationSeedAttributes(
+                    (int) $clients->random()->id,
+                    (int) $time->point->route_id,
+                    (int) $time->point_id,
+                    (int) $time->id,
+                    $routeTimeId,
+                    $date,
+                ));
             }
         }
 
@@ -176,6 +175,9 @@ class TripSeeder extends Seeder
                 // Skip groups that fail validation (e.g. race with other seed steps).
             }
         }
+
+        $this->backfillTripsMissingRouteTimeId();
+        $this->backfillReservationsMissingDropOffTimeId();
     }
 
     /**
@@ -235,7 +237,7 @@ class TripSeeder extends Seeder
                 );
                 $tripService->createTripForReservationGroup(
                     $date,
-                    $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id),
+                    $this->resolveRouteTimeIdForPickup((int) $time->point->route_id, (int) $time->id),
                     $carsData
                 );
             } catch (Throwable) {
@@ -250,7 +252,7 @@ class TripSeeder extends Seeder
         if ($time->point === null) {
             return;
         }
-        $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+        $routeTimeId = $this->resolveRouteTimeIdForPickup((int) $time->point->route_id, (int) $time->id);
 
         $picked = $clients->shuffle()->unique('id')->take(self::CLIENT_DEMO_PENDING_COUNT);
         if ($picked->count() < self::CLIENT_DEMO_PENDING_COUNT) {
@@ -258,36 +260,37 @@ class TripSeeder extends Seeder
         }
 
         foreach ($picked as $client) {
-            Reservation::query()->create([
-                'user_id' => $client->id,
-                'route_id' => $time->point->route_id,
-                'point_id' => $time->point_id,
-                'time_id' => $time->id,
-                'route_time_id' => $routeTimeId,
-                'date' => $date,
-                'status' => 'pending',
-                'trip_id' => null,
-            ]);
+            Reservation::query()->create($this->reservationSeedAttributes(
+                (int) $client->id,
+                (int) $time->point->route_id,
+                (int) $time->point_id,
+                (int) $time->id,
+                $routeTimeId,
+                $date,
+            ));
         }
     }
 
-    private function resolveOrCreateRouteTimeId(int $routeId, int $timeId): int
+    private function backfillTripsMissingRouteTimeId(): void
     {
-        $routeTime = RouteTime::query()
-            ->where('route_id', $routeId)
-            ->whereJsonContains('time_ids', $timeId)
-            ->first();
+        Trip::query()
+            ->whereNull('route_time_id')
+            ->with(['time.point'])
+            ->orderBy('id')
+            ->chunkById(100, function ($trips): void {
+                foreach ($trips as $trip) {
+                    if ($trip->time_id === null || $trip->time?->point === null) {
+                        continue;
+                    }
 
-        if ($routeTime !== null) {
-            return (int) $routeTime->id;
-        }
+                    $routeTimeId = $this->resolveRouteTimeIdForPickup(
+                        (int) $trip->time->point->route_id,
+                        (int) $trip->time_id,
+                    );
 
-        $created = RouteTime::query()->create([
-            'route_id' => $routeId,
-            'time_ids' => [$timeId],
-        ]);
-
-        return (int) $created->id;
+                    $trip->update(['route_time_id' => $routeTimeId]);
+                }
+            });
     }
 
     private function carsWithSeats()

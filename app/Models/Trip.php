@@ -22,6 +22,14 @@ class Trip extends Model
     }
 
     /**
+     * @return BelongsTo<RouteTime, $this>
+     */
+    public function routeTime(): BelongsTo
+    {
+        return $this->belongsTo(RouteTime::class);
+    }
+
+    /**
      * @return HasMany<TripCar, $this>
      */
     public function tripCars(): HasMany

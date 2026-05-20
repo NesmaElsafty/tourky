@@ -29,6 +29,7 @@ class TripResource extends JsonResource
         return [
             'id' => $this->id,
             'time_id' => $this->time?->id,
+            'route_time_id' => $this->route_time_id,
             'pickup_time' => $this->time?->pickup_time,
             'date' => $this->date,
             'status' => $this->status,

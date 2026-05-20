@@ -27,6 +27,7 @@ class TripService
                 'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
                 'time',
+                'routeTime:id,route_id,time_ids',
                 'reservations.user:id,name,phone',
             ])
             ->orderByDesc('id')
@@ -40,6 +41,7 @@ class TripService
                 'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
                 'time',
+                'routeTime:id,route_id,time_ids',
                 'reservations.user:id,name,phone',
             ])
             ->findOrFail($id);
@@ -152,9 +154,10 @@ class TripService
 
         $this->assertCarsAndCaptainsFreeForDateAndPickupSlot($date, $primaryTimeId, $carsData);
 
-        return DB::transaction(function () use ($carsData, $carsById, $pendingReservations, $date, $primaryTimeId): Trip {
+        return DB::transaction(function () use ($carsData, $carsById, $pendingReservations, $date, $primaryTimeId, $routeTimeId): Trip {
             $trip = Trip::query()->create([
                 'time_id' => $primaryTimeId,
+                'route_time_id' => $routeTimeId,
                 'date' => $date,
                 'status' => (string) ($carsData[0]['status'] ?? 'planned'),
             ]);
@@ -222,6 +225,7 @@ class TripService
                     'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                     'tripCars.car',
                     'time',
+                    'routeTime:id,route_id,time_ids',
                     'reservations.user:id,name,phone',
                 ])
                 ->firstOrFail();
@@ -242,6 +246,7 @@ class TripService
             'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
             'tripCars.car',
             'time',
+            'routeTime:id,route_id,time_ids',
             'reservations.user:id,name,phone',
         ]) ?? $trip;
     }

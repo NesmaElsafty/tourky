@@ -60,6 +60,7 @@ class TripController extends Controller
                 'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
                 'time',
+                'routeTime:id,route_id,time_ids',
                 'reservations.user:id,name,phone',
             ]);
 

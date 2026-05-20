@@ -20,8 +20,10 @@ class TripController extends Controller
     {
         try {
             $request->validate([
+                'scope' => ['sometimes', 'string', 'in:upcoming,history,today'],
                 'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             ], [
+                'scope.in' => __('api.trips.client_validation_scope_invalid'),
                 'per_page.integer' => __('api.trips.validation_per_page_integer'),
                 'per_page.min' => __('api.trips.validation_per_page_min'),
                 'per_page.max' => __('api.trips.validation_per_page_max'),
@@ -35,14 +37,35 @@ class TripController extends Controller
                 ], 401);
             }
 
+            $scope = $request->filled('scope')
+                ? $request->string('scope')->toString()
+                : 'history';
+
+            if ($scope === 'today') {
+                $trip = $this->captainTripService->getNextTripTodayForCaptain($user);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => $trip !== null
+                        ? __('api.captain_trips.next_today_retrieved')
+                        : __('api.captain_trips.next_today_none'),
+                    'data' => $trip !== null ? new CaptainTripListResource($trip) : null,
+                ]);
+            }
+
             $paginator = $this->captainTripService->getTripsForCaptain(
                 $user,
                 (int) ($request->input('per_page', 10)),
+                $scope,
             );
+
+            $message = $scope === 'upcoming'
+                ? __('api.trips.client_upcoming_retrieved')
+                : __('api.trips.client_history_retrieved');
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.captain_trips.list_retrieved'),
+                'message' => $message,
                 'data' => CaptainTripListResource::collection($paginator),
                 'pagination' => PaginationHelper::paginate($paginator),
             ]);

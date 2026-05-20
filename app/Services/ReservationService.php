@@ -114,9 +114,6 @@ class ReservationService
             ?? $reservation;
     }
 
-    /**
-     * @param  array{time_id: int, drop_off_time_id: int, date: string}  $data
-     */
     public function createReservationForClient(User $client, array $data): Reservation
     {
         if ($client->type !== 'client') {
@@ -201,10 +198,6 @@ class ReservationService
         ]);
     }
 
-    /**
-     * @param  'upcoming'|'history'  $scope
-     * @return LengthAwarePaginator<int, Reservation>
-     */
     public function getClientReservationsPaginated(User $client, string $scope, int $perPage = 10): LengthAwarePaginator
     {
         $query = $this->clientReservationBaseQuery($client)
@@ -245,9 +238,6 @@ class ReservationService
         $reservation->delete();
     }
 
-    /**
-     * @return Builder<Reservation>
-     */
     private function clientReservationBaseQuery(User $client)
     {
         $query = Reservation::query();
@@ -334,9 +324,6 @@ class ReservationService
         return round((float) $pointPrice * $pointCount, 2);
     }
 
-    /**
-     * @param  Builder<Reservation>  $query
-     */
     private function applyUpcomingScope(Builder $query): void
     {
         $today = now()->toDateString();
@@ -352,9 +339,6 @@ class ReservationService
             });
     }
 
-    /**
-     * @param  Builder<Reservation>  $query
-     */
     private function applyHistoryScope(Builder $query): void
     {
         $today = now()->toDateString();
