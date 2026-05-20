@@ -71,7 +71,8 @@ class ReservationSeeder extends Seeder
             if ($time->point === null) {
                 continue;
             }
-            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+            $routeTime = $this->resolveOrCreateRouteTime((int) $time->point->route_id, (int) $time->id);
+            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $time->id);
 
             foreach ($futureDates as $date) {
                 foreach ($clients->shuffle()->take($take) as $client) {
@@ -81,7 +82,8 @@ class ReservationSeeder extends Seeder
                             'user_id' => $client->id,
                             'date' => $date,
                             'status' => 'pending',
-                            'route_time_id' => $routeTimeId,
+                            'route_time_id' => $routeTime->id,
+                            'drop_off_time_id' => $dropOffTimeId,
                         ]);
                 }
             }
@@ -95,7 +97,8 @@ class ReservationSeeder extends Seeder
             if ($time->point === null) {
                 continue;
             }
-            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+            $routeTime = $this->resolveOrCreateRouteTime((int) $time->point->route_id, (int) $time->id);
+            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $time->id);
 
             foreach ($pastDates as $date) {
                 foreach ($clients->shuffle()->take($pastTake) as $client) {
@@ -105,7 +108,8 @@ class ReservationSeeder extends Seeder
                             'user_id' => $client->id,
                             'date' => $date,
                             'status' => fake()->randomElement(['pending', 'confirmed', 'cancelled']),
-                            'route_time_id' => $routeTimeId,
+                            'route_time_id' => $routeTime->id,
+                            'drop_off_time_id' => $dropOffTimeId,
                         ]);
                 }
             }
@@ -117,7 +121,8 @@ class ReservationSeeder extends Seeder
             if ($time->point === null) {
                 continue;
             }
-            $routeTimeId = $this->resolveOrCreateRouteTimeId((int) $time->point->route_id, (int) $time->id);
+            $routeTime = $this->resolveOrCreateRouteTime((int) $time->point->route_id, (int) $time->id);
+            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $time->id);
             $date = now()->addDays(fake()->numberBetween(1, 120))->toDateString();
 
             Reservation::factory()
@@ -126,7 +131,8 @@ class ReservationSeeder extends Seeder
                     'user_id' => $clients->random()->id,
                     'date' => $date,
                     'status' => 'pending',
-                    'route_time_id' => $routeTimeId,
+                    'route_time_id' => $routeTime->id,
+                    'drop_off_time_id' => $dropOffTimeId,
                 ]);
         }
     }
@@ -157,7 +163,7 @@ class ReservationSeeder extends Seeder
         return array_values(array_unique($dates));
     }
 
-    private function resolveOrCreateRouteTimeId(int $routeId, int $timeId): int
+    private function resolveOrCreateRouteTime(int $routeId, int $timeId): RouteTime
     {
         $routeTime = RouteTime::query()
             ->where('route_id', $routeId)
@@ -165,14 +171,35 @@ class ReservationSeeder extends Seeder
             ->first();
 
         if ($routeTime !== null) {
-            return (int) $routeTime->id;
+            return $routeTime;
         }
 
-        $created = RouteTime::query()->create([
+        return RouteTime::query()->create([
             'route_id' => $routeId,
             'time_ids' => [$timeId],
         ]);
+    }
 
-        return (int) $created->id;
+    /**
+     * Pick a drop-off time from the same route schedule row, after the pickup in time_ids order.
+     */
+    private function resolveDropOffTimeId(RouteTime $routeTime, int $pickupTimeId): ?int
+    {
+        $timeIds = collect($routeTime->time_ids ?? [])
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->values();
+
+        $pickupIndex = $timeIds->search($pickupTimeId, strict: true);
+        if ($pickupIndex === false) {
+            return null;
+        }
+
+        $laterIds = $timeIds->slice($pickupIndex + 1);
+        if ($laterIds->isEmpty()) {
+            return null;
+        }
+
+        return (int) $laterIds->random();
     }
 }

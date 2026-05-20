@@ -179,6 +179,7 @@ class RouteController extends Controller
                 'type' => ['required', Rule::in(['b2b', 'b2c'])],
                 'company_id' => ['nullable', 'integer', 'exists:users,id'],
                 'is_active' => 'sometimes|boolean',
+                'point_price' => 'nullable|numeric|min:0',
             ]);
             if ($data['type'] === 'b2c') {
                 $data['company_id'] = null;
@@ -236,6 +237,7 @@ class RouteController extends Controller
                 'type' => ['nullable', Rule::in(['b2b', 'b2c'])],
                 'company_id' => ['nullable', 'integer', 'exists:users,id', 'required_if:type,b2b'],
                 'is_active' => 'nullable|boolean',
+                'point_price' => 'nullable|numeric|min:0',
             ]);
 
             $companyId = $route->company_id;

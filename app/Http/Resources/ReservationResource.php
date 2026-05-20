@@ -49,10 +49,7 @@ class ReservationResource extends JsonResource
                 $this->relationLoaded('time') && $this->time !== null,
                 new TimeResource($this->time),
             ),
-            'drop_off_time' => $this->when(
-                $this->relationLoaded('dropOffTime') && $this->dropOffTime !== null,
-                new TimeResource($this->dropOffTime),
-            ),
+            'drop_off_time' => $this->dropOffTime ? new TimeResource($this->dropOffTime) : null,
             'user' => $this->when(
                 $this->relationLoaded('user') && $this->user !== null,
                 fn () => [

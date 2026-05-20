@@ -46,6 +46,7 @@ class RouteResource extends JsonResource
             'is_active' => (bool) $this->is_active,
 
             'points_count' => $pointsCount,
+            'point_price' => $this->point_price,
             'points' => PointResource::collection($this->whenLoaded('points')),
             'language' => $locale,
             'created_at' => $this->created_at,

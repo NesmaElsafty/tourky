@@ -63,7 +63,7 @@ class RouteService
         $route->type = $data['type'] ?? $route->type;
         $route->company_id = $data['company_id'] ?? $route->company_id;
         $route->is_active = $data['is_active'] ?? $route->is_active;
-
+        $route->point_price = $data['point_price'] ?? $route->point_price;
         $route->save();
 
         return $route;

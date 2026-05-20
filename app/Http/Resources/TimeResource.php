@@ -17,17 +17,16 @@ class TimeResource extends JsonResource
             'pickup_time' => $this->pickup_time,
             'is_active' => (bool) $this->is_active,
             'point_id' => $this->point_id,
-            'point' => $this->when(
-                $this->relationLoaded('point'),
-                fn () => [
+            'point' => [
                     'id' => $this->point->id,
                     'name' => $locale === 'ar'
                         ? ($this->point->name_ar ?? $this->point->name_en)
                         : ($this->point->name_en ?? $this->point->name_ar),
                     'name_en' => $this->point->name_en,
                     'name_ar' => $this->point->name_ar,
-                ]
-            ),
+                    'lat' => $this->point->lat,
+                    'long' => $this->point->long,
+            ],
             'language' => $locale,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

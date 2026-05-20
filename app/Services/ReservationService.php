@@ -23,11 +23,6 @@ class ReservationService
             ->paginate($perPage);
     }
 
-    /**
-     * Pending reservations grouped by `date`, then by `route_time_id`.
-     *
-     * @return Collection<string, Collection<string, Collection<int, Reservation>>>
-     */
     public function getPendingReservationsGroupedByDateAndRouteTime(): Collection
     {
         $reservations = Reservation::query()
@@ -50,11 +45,6 @@ class ReservationService
             ->sortKeys();
     }
 
-    /**
-     * Pending reservation groups summarized by `date + route_time_id`.
-     *
-     * @return PaginationLengthAwarePaginator<int, array<string, mixed>>
-     */
     public function getPendingReservationGroupSummariesPaginated(int $perPage = 10): PaginationLengthAwarePaginator
     {
         $perPage = max(1, min(100, $perPage));
@@ -258,12 +248,14 @@ class ReservationService
     /**
      * @return Builder<Reservation>
      */
-    private function clientReservationBaseQuery(User $client): Builder
+    private function clientReservationBaseQuery(User $client)
     {
-        return Reservation::query()
-            ->where('reservations.user_id', $client->id)
-            ->join('times', 'times.id', '=', 'reservations.time_id')
-            ->select('reservations.*');
+        $query = Reservation::query();
+        $query->where('reservations.user_id', $client->id);
+        $query->join('times', 'times.id', '=', 'reservations.time_id');
+        $query->select('reservations.*');
+
+        return $query;
     }
 
     public function calculatePriceForReservation(int $timeId, int $dropOffTimeId): float
