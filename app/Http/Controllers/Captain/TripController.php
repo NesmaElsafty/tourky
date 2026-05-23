@@ -42,14 +42,12 @@ class TripController extends Controller
                 : 'history';
 
             if ($scope === 'today') {
-                $trip = $this->captainTripService->getNextTripTodayForCaptain($user);
+                $trips = $this->captainTripService->getTodayTripsForCaptain($user);
 
                 return response()->json([
                     'status' => 'success',
-                    'message' => $trip !== null
-                        ? __('api.captain_trips.next_today_retrieved')
-                        : __('api.captain_trips.next_today_none'),
-                    'data' => $trip !== null ? new CaptainTripListResource($trip) : null,
+                    'message' => __('api.captain_trips.today_retrieved'),
+                    'data' => CaptainTripListResource::collection($trips),
                 ]);
             }
 

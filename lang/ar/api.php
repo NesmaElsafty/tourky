@@ -416,6 +416,7 @@ return [
     'captain_trips' => [
         'notification_title_new' => 'عندك رحله جديده',
         'list_retrieved' => 'تم جلب رحلاتك المسندة بنجاح.',
+        'today_retrieved' => 'تم جلب رحلات اليوم القادمة بنجاح.',
         'next_today_retrieved' => 'تم جلب رحلتك القادمة بنجاح.',
         'next_today_none' => 'لا توجد رحلات قادمة مسندة إليك.',
         'detail_retrieved' => 'تم جلب تفاصيل الرحلة بنجاح.',

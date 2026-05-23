@@ -8,7 +8,7 @@ use App\Models\TripCar;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator as Paginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
 class CaptainTripService
@@ -19,11 +19,7 @@ class CaptainTripService
      */
     public function getTripsForCaptain(User $captain, int $perPage = 10, string $scope = 'history'): LengthAwarePaginator
     {
-        if ($scope === 'today') {
-            return $this->paginateSingleTrip($this->getNextTripTodayForCaptain($captain), $perPage);
-        }
-
-        if (! in_array($scope, ['upcoming', 'history'], true)) {
+        if (! in_array($scope, ['upcoming', 'history', 'today'], true)) {
             $scope = 'history';
         }
 
@@ -31,6 +27,7 @@ class CaptainTripService
 
         match ($scope) {
             'upcoming' => $this->applyUpcomingScope($query),
+            'today' => $this->applyTodayScope($query),
             default => $this->applyHistoryScope($query),
         };
 
@@ -44,17 +41,18 @@ class CaptainTripService
     }
 
     /**
-     * Captain's next assigned trip from now onward (today or a future date).
+     * Upcoming trips assigned to this captain today (pickup time still in the future).
+     *
+     * @return Collection<int, Trip>
      */
-    public function getNextTripTodayForCaptain(User $captain): ?Trip
+    public function getTodayTripsForCaptain(User $captain): Collection
     {
         $query = $this->captainTripsBaseQuery($captain);
-        $this->applyNextTripScope($query);
+        $this->applyTodayScope($query);
 
         return $query
-            ->orderBy('trips.date')
             ->orderBy('times.pickup_time')
-            ->first();
+            ->get();
     }
 
     /**
@@ -78,6 +76,21 @@ class CaptainTripService
                     $q->whereHas('tripCar', static fn ($q2) => $q2->where('captain_id', $captain->id));
                 },
             ]);
+    }
+
+    /**
+     * Today's trips with pickup still ahead of now (planned or in progress).
+     *
+     * @param  Builder<Trip>  $query
+     */
+    private function applyTodayScope(Builder $query): void
+    {
+        $today = now()->toDateString();
+        $nowTime = now()->format('H:i');
+
+        $query->where('trips.date', $today)
+            ->whereIn('trips.status', ['planned', 'in_progress'])
+            ->where('times.pickup_time', '>', $nowTime);
     }
 
     /**
@@ -106,22 +119,6 @@ class CaptainTripService
     private function applyUpcomingScope(Builder $query): void
     {
         $this->applyNextTripScope($query);
-    }
-
-    /**
-     * @return LengthAwarePaginator<int, Trip>
-     */
-    private function paginateSingleTrip(?Trip $trip, int $perPage): LengthAwarePaginator
-    {
-        $items = $trip !== null ? collect([$trip]) : collect();
-
-        return new Paginator(
-            $items,
-            $items->count(),
-            max(1, $perPage),
-            1,
-            ['path' => request()->url(), 'query' => request()->query()],
-        );
     }
 
     /**

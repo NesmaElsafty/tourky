@@ -416,6 +416,7 @@ return [
     'captain_trips' => [
         'notification_title_new' => 'You have a new trip',
         'list_retrieved' => 'Your assigned trips retrieved successfully.',
+        'today_retrieved' => 'Today\'s upcoming trips retrieved successfully.',
         'next_today_retrieved' => 'Your next trip retrieved successfully.',
         'next_today_none' => 'You have no upcoming trips assigned.',
         'detail_retrieved' => 'Trip details retrieved successfully.',
