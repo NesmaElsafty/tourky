@@ -3,7 +3,7 @@
 set -euo pipefail
 
 APP_DIR="/var/www/tourky"
-DOMAIN_API="${DOMAIN_API:-api.tourkygroup.com}"
+DOMAIN_API="${DOMAIN_API:-backend.tourkygroup.com}"
 GIT_REPO="${GIT_REPO:-https://github.com/NesmaElsafty/tourky.git}"
 GIT_BRANCH="${GIT_BRANCH:-dev}"
 APP_NAME="${APP_NAME:-Tourky}"

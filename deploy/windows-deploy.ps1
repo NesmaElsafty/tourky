@@ -9,7 +9,7 @@ param(
     [string]$SshUser = "root",
     [Parameter(Mandatory = $true)]
     [string]$SshPassword,
-    [string]$DomainApi = "api.tourkygroup.com",
+    [string]$DomainApi = "backend.tourkygroup.com",
     [string]$MailPassword = "",
     [string]$GitBranch = "dev"
 )

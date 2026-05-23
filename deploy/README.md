@@ -6,7 +6,7 @@ Hostinger firewall or your network may block SSH from some IPs. Open **VPS → S
 
 ## Quick deploy from Windows
 
-1. DNS: `api` A record → `89.62.118.54`
+1. DNS: `backend` A record → `89.62.118.54`
 2. Push latest code to GitHub (`dev` branch)
 3. PowerShell:
 
@@ -35,6 +35,6 @@ cat /root/tourky-deploy-credentials.txt
 curl -sL https://raw.githubusercontent.com/NesmaElsafty/tourky/dev/deploy/vps-install.sh -o /root/vps-install.sh
 # Or upload deploy/vps-install.sh via SFTP
 chmod +x /root/vps-install.sh
-export DOMAIN_API=api.tourkygroup.com
+export DOMAIN_API=backend.tourkygroup.com
 bash /root/vps-install.sh
 ```
