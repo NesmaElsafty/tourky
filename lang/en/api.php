@@ -92,6 +92,15 @@ return [
         'server_error' => 'Something went wrong. Please try again later.',
     ],
 
+    'captain_documents' => [
+        'criminal_record' => 'Criminal record (Fesh)',
+        'medical_analysis' => 'Medical analysis',
+        'driving_license_front' => 'Driving license (front)',
+        'driving_license_back' => 'Driving license (back)',
+        'national_id_front' => 'National ID card (front)',
+        'national_id_back' => 'National ID card (back)',
+    ],
+
     'client' => [
         'registered' => 'Client registered successfully.',
         'logged_in' => 'Client logged in successfully.',

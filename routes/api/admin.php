@@ -129,7 +129,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::post('users/{id}/restore', [AdminUserController::class, 'restore'])->whereNumber('id');
     Route::get('users', [AdminUserController::class, 'index']);
     Route::post('users', [AdminUserController::class, 'store']);
-    Route::get('users/{id}', [AdminUserController::class, 'show'])->whereNumber('id');
+    Route::get('users/{id}', [AdminUserController::class, 'show']);
     Route::put('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
     Route::patch('users/{id}', [AdminUserController::class, 'update'])->whereNumber('id');
     Route::delete('users/{id}', [AdminUserController::class, 'destroy'])->whereNumber('id');

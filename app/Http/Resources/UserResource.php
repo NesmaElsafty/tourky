@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\CaptainDocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -51,9 +52,22 @@ class UserResource extends JsonResource
             'status' => $this->when($this->type === 'captain', $this->status),
             'has_trip' => $this->when($this->type === 'captain', $this->has_trip),
             'trip_id' => $this->when($this->type === 'captain', $this->trip_id),
+            'license_expiry_date' => $this->when(
+                $this->type === 'captain',
+                fn () => $this->license_expiry_date?->format('Y-m-d'),
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'display_locale' => $locale,
+            'image' => $this->when(
+                $this->type === 'captain',
+                fn () => $this->getMedia('image')->first()?->getUrl(),
+            ),
+            'documents' => $this->when(
+                $this->type === 'captain',
+                fn () => app(CaptainDocumentService::class)->toResourceArray($this->resource, $locale),
+            ),
+            'car' => $this->when($this->relationLoaded('car'), fn () => new CarResource($this->car)),
         ];
     }
 

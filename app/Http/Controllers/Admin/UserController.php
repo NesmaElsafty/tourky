@@ -6,8 +6,10 @@ use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\CaptainDocumentService;
 use App\Services\CaptainRatingService;
 use App\Services\UserService;
+use App\Support\CaptainDocumentCollections;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +21,7 @@ class UserController extends Controller
     public function __construct(
         private UserService $userService,
         private CaptainRatingService $captainRatingService,
+        private CaptainDocumentService $captainDocumentService,
     ) {}
 
     public function index(Request $request)
@@ -126,7 +129,7 @@ class UserController extends Controller
                 fn ($query) => $query->where('type', $request->input('type')),
             );
 
-            $data = $request->validate([
+            $data = $request->validate(array_merge([
                 'name' => 'required|string|max:255',
                 'phone' => ['required', 'string', 'max:50', $phoneRule],
                 'email' => ['nullable', 'string', 'email', 'max:255', $emailRule],
@@ -139,7 +142,11 @@ class UserController extends Controller
                     'integer',
                     'exists:roles,id',
                 ],
-            ], $this->storeValidationMessages());
+                'image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            ], $request->input('type') === 'captain' ? array_merge(
+                CaptainDocumentCollections::validationRules(),
+                ['license_expiry_date' => ['nullable', 'date']],
+            ) : []), $this->storeValidationMessages());
 
             $actor = $request->user();
             $denied = $this->ensureManagePermissionForUserType($actor, $data['type'], creating: true);
@@ -162,7 +169,16 @@ class UserController extends Controller
                 $payload['company_id'] = $actor->id;
             }
 
+            if ($payload['type'] === 'captain') {
+                $payload['license_expiry_date'] = $data['license_expiry_date'] ?? null;
+            }
+
             $user = $this->userService->createUser($payload);
+
+            if ($user->type === 'captain') {
+                $this->captainDocumentService->syncFromRequest($user, $request);
+                $user = $user->fresh(['role']);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -196,7 +212,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.users.retrieved'),
-                'data' => new UserResource($user),
+                'data' => new UserResource($user->load('car')),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -230,14 +246,18 @@ class UserController extends Controller
                 fn ($query) => $query->where('type', $user->type),
             )->ignore($user->id);
 
-            $data = $request->validate([
+            $data = $request->validate(array_merge([
                 'name' => 'sometimes|required|string|max:255',
                 'phone' => ['sometimes', 'required', 'string', 'max:50', $phoneRule],
                 'email' => ['nullable', 'string', 'email', 'max:255', $emailRule],
                 'password' => 'sometimes|nullable|string|min:6|confirmed',
                 'language' => ['sometimes', 'required', Rule::in(['en', 'ar'])],
                 'role_id' => ['sometimes', 'nullable', 'integer', 'exists:roles,id'],
-            ], $this->updateValidationMessages());
+                'image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            ], $user->type === 'captain' ? array_merge(
+                CaptainDocumentCollections::validationRules(),
+                ['license_expiry_date' => ['sometimes', 'nullable', 'date']],
+            ) : []), $this->updateValidationMessages());
 
             $update = [];
             foreach (['name', 'phone', 'email', 'language'] as $field) {
@@ -254,8 +274,17 @@ class UserController extends Controller
             if ($user->type === 'admin' && array_key_exists('role_id', $data) && $data['role_id'] !== null) {
                 $update['role_id'] = (int) $data['role_id'];
             }
+            if ($user->type === 'captain' && array_key_exists('license_expiry_date', $data)) {
+                $update['license_expiry_date'] = $data['license_expiry_date'];
+            }
 
             $user = $this->userService->updateUser($user, $update);
+
+            if ($user->type === 'captain') {
+                $this->captainDocumentService->syncFromRequest($user, $request);
+                $user = $user->fresh(['role']);
+            }
+
             $this->attachCaptainRatingProfile($user);
 
             return response()->json([

@@ -30,6 +30,7 @@ class CaptainUserSeeder extends Seeder
                 'trip_id' => null,
                 'lat' => 30.0444,
                 'long' => 31.2357,
+                'license_expiry_date' => now()->addYears(2)->toDateString(),
             ]
         );
 
@@ -49,6 +50,7 @@ class CaptainUserSeeder extends Seeder
                     'trip_id' => null,
                     'lat' => 30.0444,
                     'long' => 31.2357,
+                    'license_expiry_date' => now()->addYears(2)->addMonths($i)->toDateString(),
                 ]
             );
         }

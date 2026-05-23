@@ -56,6 +56,7 @@ class CaptainController extends Controller
                 'captain_report_entries',
                 $this->captainRatingService->reportEntriesForCaptain((int) $captain->id),
             );
+            $captain->load('car');
 
             return response()->json([
                 'status' => 'success',
@@ -78,6 +79,7 @@ class CaptainController extends Controller
                 'name' => 'required|string|max:255',
                 'phone' => 'required|string|max:255|unique:users,phone',
                 'password' => 'required|string|min:6|confirmed',
+                'license_expiry_date' => ['nullable', 'date'],
             ]);
             $captain = $this->captainService->createCaptain($data);
 

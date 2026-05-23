@@ -42,6 +42,7 @@ class CaptainService
             'language' => 'en',
             'role_id' => null,
             'email' => null,
+            'license_expiry_date' => $data['license_expiry_date'] ?? null,
         ]);
     }
 
@@ -60,6 +61,7 @@ class CaptainService
                 )->ignore($captain->id),
             ],
             'password' => 'sometimes|nullable|string|min:6|confirmed',
+            'license_expiry_date' => ['sometimes', 'nullable', 'date'],
         ]);
         if (isset($data['name'])) {
             $captain->name = $data['name'];
@@ -69,6 +71,9 @@ class CaptainService
         }
         if (! empty($data['password'])) {
             $captain->password = $data['password'];
+        }
+        if (array_key_exists('license_expiry_date', $data)) {
+            $captain->license_expiry_date = $data['license_expiry_date'];
         }
         $captain->save();
 

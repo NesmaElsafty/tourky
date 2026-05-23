@@ -48,7 +48,7 @@ class CarController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.cars.retrieved'),
-                'data' => new CarResource($car),
+                'data' => new CarResource($car->load('captain')),
             ]);
         } catch (\Exception $e) {
             return response()->json([

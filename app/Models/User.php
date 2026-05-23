@@ -7,10 +7,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Support\CaptainDocumentCollections;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -95,21 +97,11 @@ class User extends Authenticatable implements HasMedia
         return false;
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -117,6 +109,7 @@ class User extends Authenticatable implements HasMedia
             'has_trip' => 'boolean',
             'lat' => 'decimal:8',
             'long' => 'decimal:8',
+            'license_expiry_date' => 'date',
         ];
     }
 
@@ -126,7 +119,22 @@ class User extends Authenticatable implements HasMedia
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 
-        $this->addMediaCollection('documents');
+        $this->addMediaCollection('image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+
+        $documentMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'application/pdf',
+        ];
+
+        foreach (CaptainDocumentCollections::keys() as $collection) {
+            $this->addMediaCollection($collection)
+                ->singleFile()
+                ->acceptsMimeTypes($documentMimeTypes);
+        }
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -150,5 +158,15 @@ class User extends Authenticatable implements HasMedia
             'vips' => extension_loaded('vips'),
             default => extension_loaded('gd'),
         };
+    }
+
+    /**
+     * Default vehicle assigned to this captain (nullable).
+     *
+     * @return HasOne<Car, $this>
+     */
+    public function car(): HasOne
+    {
+        return $this->hasOne(Car::class, 'captain_id');
     }
 }

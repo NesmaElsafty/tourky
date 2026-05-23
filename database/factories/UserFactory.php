@@ -48,6 +48,7 @@ class UserFactory extends Factory
             'status' => 'available',
             'has_trip' => false,
             'trip_id' => null,
+            'license_expiry_date' => fake()->dateTimeBetween('+1 year', '+5 years')->format('Y-m-d'),
         ]);
     }
 }

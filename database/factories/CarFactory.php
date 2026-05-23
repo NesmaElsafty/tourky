@@ -31,6 +31,7 @@ class CarFactory extends Factory
                 'active', 'active', 'active', 'active',
                 'inactive', 'maintenance', 'in_use',
             ]),
+            'captain_id' => null,
         ];
     }
 

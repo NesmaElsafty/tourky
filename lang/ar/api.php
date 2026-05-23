@@ -92,6 +92,15 @@ return [
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
     ],
 
+    'captain_documents' => [
+        'criminal_record' => 'فيش',
+        'medical_analysis' => 'تحليل',
+        'driving_license_front' => 'رخصة قيادة (وش)',
+        'driving_license_back' => 'رخصة قيادة (ظهر)',
+        'national_id_front' => 'بطاقة رقم قومي (وش)',
+        'national_id_back' => 'بطاقة رقم قومي (ظهر)',
+    ],
+
     'client' => [
         'registered' => 'تم تسجيل العميل بنجاح.',
         'logged_in' => 'تم تسجيل دخول العميل بنجاح.',

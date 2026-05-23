@@ -27,6 +27,15 @@ class CarResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
+            'captain' => $this->captain ? [
+                'id' => $this->captain->id,
+                'name' => $this->captain->name,
+                'phone' => $this->captain->phone,
+                'lat' => $this->captain->lat,
+                'long' => $this->captain->long,
+                'status' => $this->captain->status,
+            ] : null,
         ];
     }
 

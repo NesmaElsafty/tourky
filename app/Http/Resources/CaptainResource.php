@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\CaptainDocumentService;
 use App\Services\CaptainRatingService;
 use App\Http\Resources\FeedbackResource;
 use Illuminate\Http\Request;
@@ -15,8 +16,8 @@ class CaptainResource extends JsonResource
         app()->setLocale($locale);
 
         $rating = app(CaptainRatingService::class)->aggregateForCaptainId((int) $this->id);
-
         $image = $this->getMedia('image')->first()?->getUrl();
+        $documents = app(CaptainDocumentService::class)->toResourceArray($this->resource, $locale);
         $data = [
             'id' => $this->id,
             'name' => $this->name,
@@ -33,9 +34,15 @@ class CaptainResource extends JsonResource
             'has_trip' => $this->when($this->type === 'captain', $this->has_trip),
             'trip_id' => $this->when($this->type === 'captain', $this->trip_id),
             'is_online' => $this->when($this->type === 'captain', $this->is_online),
+            'license_expiry_date' => $this->when(
+                $this->type === 'captain',
+                fn () => $this->license_expiry_date?->format('Y-m-d'),
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'image' => $this->getMedia('image')->first()?->getUrl(),
+            'image' => $image ?? null,
+            'documents' => $this->when($this->type === 'captain', $documents),
+            'car' => $this->when($this->relationLoaded('car'), fn () => new CarResource($this->car)),
         ];
 
         if ($this->resource->offsetExists('captain_feedback_entries')) {
