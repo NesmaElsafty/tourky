@@ -41,6 +41,15 @@ class CaptainTripListResource extends JsonResource
                 $this->relationLoaded('time') && $this->time !== null,
                 fn () => $this->time->pickup_time
             ),
+            'start_point' => $this->when(
+                $this->relationLoaded('time') && $this->time !== null,
+                fn () => [
+                    'id' => $this->time->point->id,
+                    'name' => $locale === 'ar' ? ($this->time->point->name_ar ?? $this->time->point->name_en) : ($this->time->point->name_en ?? $this->time->point->name_ar),
+                    'lat' => $this->time->point->lat,
+                    'long' => $this->time->point->long,
+                ]
+            ),
             'car' => $car !== null ? [
                 'id' => $car->id,
                 'name' => $car->name,

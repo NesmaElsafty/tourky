@@ -109,6 +109,8 @@ class TripController extends Controller
         }
     }
 
+    
+
     public function start(Request $request, Trip $trip)
     {
         try {

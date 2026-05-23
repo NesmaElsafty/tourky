@@ -156,25 +156,24 @@ class CaptainTripService
             ]);
         }
 
+        $routeTimeId = $trip->route_time_id;
+
         return Trip::query()
             ->whereKey($trip->id)
             ->with([
-                'time:id,pickup_time,point_id',
-                'time.point.route:id,name_en,name_ar',
-                'time.point:id,name_en,name_ar,lat,long,route_id',
+                'time:id,pickup_time',
+                'routeTime:id,route_id,time_ids',
+                'routeTime.route:id,name_en,name_ar,start_point_en,start_point_ar,start_lat,start_long',
                 'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
                 'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car:id,name,type,number_of_seats,plate_numbers,plate_letters,color',
-            ])
-            ->with([
-                'reservations' => static function ($q) use ($tripCars): void {
+                'reservations' => static function ($q) use ($tripCars, $routeTimeId): void {
                     $q->whereIn('trip_car_id', $tripCars->all())
-                        ->with([
-                            'user:id,name,phone',
-                            'point:id,name_en,name_ar,lat,long',
-                            'dropOffTime:id,point_id',
-                            'dropOffTime.point:id,name_en,name_ar,lat,long',
-                        ])
+                        ->when(
+                            $routeTimeId !== null,
+                            static fn ($q2) => $q2->where('route_time_id', $routeTimeId),
+                        )
+                        ->with(['user:id,name,phone'])
                         ->orderBy('id');
                 },
             ])
