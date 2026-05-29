@@ -5,7 +5,7 @@
 # Optional: -MailPassword 'smtp-password' -DomainApi 'api.tourkygroup.com'
 
 param(
-    [string]$VpsIp = "89.62.118.54",
+    [string]$VpsIp = "69.62.118.54",
     [string]$SshUser = "root",
     [Parameter(Mandatory = $true)]
     [string]$SshPassword,

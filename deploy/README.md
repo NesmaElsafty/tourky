@@ -6,7 +6,7 @@ Hostinger firewall or your network may block SSH from some IPs. Open **VPS → S
 
 ## Quick deploy from Windows
 
-1. DNS: `backend` A record → `89.62.118.54`
+1. DNS: `backend` A record → `69.62.118.54` (check VPS Overview — not 89)
 2. Push latest code to GitHub (`dev` branch)
 3. PowerShell:
 
