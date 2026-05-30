@@ -1,0 +1,536 @@
+{
+	"info": {
+		"_postman_id": "c4e8f2a1-contact-us-admin-001",
+		"name": "Tourky — Admin contact us",
+		"description": "Tests admin contact-us API (`ContactUsController`).\n\n**Setup**\n1. Set `baseUrl` (default `http://localhost:8000/api`).\n2. Run migrations + seeders: `ContactUsSeeder`, `SocialMediaSeeder`, `InstapayDataSeeder` (or full `php artisan db:seed`).\n3. Run **Login (admin)** — demo `01000000001` / `123456`; token is saved to `token`.\n4. Run **List all contact info** to capture `contactUsId`, `socialMediaId`, and `instapayDataId` from seeded data.\n\n**Routes**\n- `GET /admin/contact-us` and `GET /admin/contact-us/{id}?type=…` — public (no auth).\n- `POST|PUT|PATCH|DELETE /admin/contact-us` — require admin Bearer token.\n\n**Query param `type`** (show / update / destroy): `contact_us` | `social_media` | `instapay_data`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8000/api" },
+		{ "key": "token", "value": "" },
+		{ "key": "contactUsId", "value": "1" },
+		{ "key": "socialMediaId", "value": "1" },
+		{ "key": "instapayDataId", "value": "1" },
+		{ "key": "newSocialMediaId", "value": "" }
+	],
+	"item": [
+		{
+			"name": "Setup",
+			"item": [
+				{
+					"name": "Login (admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('Has bearer token', function () { pm.expect(j.token).to.be.a('string').that.is.not.empty; });",
+									"if (j.token) { pm.collectionVariables.set('token', j.token); }"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"01000000001\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": "{{baseUrl}}/admin/login",
+						"auth": { "type": "noauth" }
+					}
+				}
+			]
+		},
+		{
+			"name": "Public — read",
+			"item": [
+				{
+					"name": "List all contact info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('has grouped data', function () {",
+									"  pm.expect(j.data).to.have.keys('contact_us', 'social_media', 'instapay_data');",
+									"});",
+									"const cu = (j.data.contact_us || [])[0];",
+									"const sm = (j.data.social_media || []).find(function (r) { return r.name === 'facebook'; }) || (j.data.social_media || [])[0];",
+									"const ip = (j.data.instapay_data || []).find(function (r) { return r.type === 'wallet'; }) || (j.data.instapay_data || [])[0];",
+									"if (cu && cu.id) { pm.collectionVariables.set('contactUsId', String(cu.id)); }",
+									"if (sm && sm.id) { pm.collectionVariables.set('socialMediaId', String(sm.id)); }",
+									"if (ip && ip.id) { pm.collectionVariables.set('instapayDataId', String(ip.id)); }"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": "{{baseUrl}}/admin/contact-us",
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "Show contact_us",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('has email and phone', function () {",
+									"  pm.expect(j.data).to.have.keys('id', 'email', 'phone');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{contactUsId}}?type=contact_us",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{contactUsId}}"],
+							"query": [{ "key": "type", "value": "contact_us" }]
+						},
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "Show social_media",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('has name and url', function () {",
+									"  pm.expect(j.data).to.have.keys('id', 'name', 'url', 'is_active');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{socialMediaId}}?type=social_media",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{socialMediaId}}"],
+							"query": [{ "key": "type", "value": "social_media" }]
+						},
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "Show instapay_data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('has number and type', function () {",
+									"  pm.expect(j.data).to.have.keys('id', 'number', 'type');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{instapayDataId}}?type=instapay_data",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{instapayDataId}}"],
+							"query": [{ "key": "type", "value": "instapay_data" }]
+						},
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "Show — not found (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 404', function () { pm.response.to.have.status(404); });",
+									"const j = pm.response.json();",
+									"pm.test('status error', function () { pm.expect(j.status).to.eql('error'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/999999?type=contact_us",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "999999"],
+							"query": [{ "key": "type", "value": "contact_us" }]
+						},
+						"auth": { "type": "noauth" }
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin — write",
+			"item": [
+				{
+					"name": "Store — contact_us",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"if (j.data && j.data.id) {",
+									"  pm.collectionVariables.set('contactUsId', String(j.data.id));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"contact_us\",\n  \"email\": \"support@tourkygroup.com\",\n  \"phone\": \"01012345678\"\n}"
+						},
+						"url": "{{baseUrl}}/admin/contact-us",
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Store — social_media",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"if (j.data && j.data.id) {",
+									"  pm.collectionVariables.set('newSocialMediaId', String(j.data.id));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"social_media\",\n  \"name\": \"tiktok\",\n  \"url\": \"https://tiktok.com/@tourkygroup\",\n  \"is_active\": true\n}"
+						},
+						"url": "{{baseUrl}}/admin/contact-us",
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Store — instapay_data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"if (j.data && j.data.id) {",
+									"  pm.collectionVariables.set('instapayDataId', String(j.data.id));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"instapay_data\",\n  \"number\": \"01098765432\",\n  \"account_type\": \"wallet\",\n  \"is_active\": true\n}"
+						},
+						"url": "{{baseUrl}}/admin/contact-us",
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Store — unauthorized (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 401', function () { pm.response.to.have.status(401); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"contact_us\",\n  \"email\": \"test@example.com\",\n  \"phone\": \"01000000000\"\n}"
+						},
+						"url": "{{baseUrl}}/admin/contact-us",
+						"auth": { "type": "noauth" }
+					}
+				},
+				{
+					"name": "Update contact_us (PATCH)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('contact updated', function () {",
+									"  pm.expect(j.data.email).to.eql('info@tourkygroup.com');",
+									"  pm.expect(j.data.phone).to.eql('01011112222');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"info@tourkygroup.com\",\n  \"phone\": \"01011112222\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{contactUsId}}?type=contact_us",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{contactUsId}}"],
+							"query": [{ "key": "type", "value": "contact_us" }]
+						},
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Update social_media (PUT)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('social media updated', function () {",
+									"  pm.expect(j.data.url).to.include('facebook.com');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"https://facebook.com/tourkygroup-updated\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{socialMediaId}}?type=social_media",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{socialMediaId}}"],
+							"query": [{ "key": "type", "value": "social_media" }]
+						},
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Update instapay_data (PATCH)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });",
+									"pm.test('instapay updated', function () {",
+									"  pm.expect(j.data.type).to.be.oneOf(['wallet', 'bank_account']);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"number\": \"01000000000\",\n  \"account_type\": \"wallet\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{instapayDataId}}?type=instapay_data",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{instapayDataId}}"],
+							"query": [{ "key": "type", "value": "instapay_data" }]
+						},
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Delete social_media (new record)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const id = pm.collectionVariables.get('newSocialMediaId');",
+									"if (!id) {",
+									"  console.warn('Run Store — social_media first to set newSocialMediaId');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+									"const j = pm.response.json();",
+									"pm.test('status success', function () { pm.expect(j.status).to.eql('success'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/{{newSocialMediaId}}?type=social_media",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "{{newSocialMediaId}}"],
+							"query": [{ "key": "type", "value": "social_media" }]
+						},
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				},
+				{
+					"name": "Delete — not found (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HTTP 404', function () { pm.response.to.have.status(404); });",
+									"const j = pm.response.json();",
+									"pm.test('status error', function () { pm.expect(j.status).to.eql('error'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/contact-us/999999?type=social_media",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "contact-us", "999999"],
+							"query": [{ "key": "type", "value": "social_media" }]
+						},
+						"auth": {
+							"type": "bearer",
+							"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+						}
+					}
+				}
+			]
+		}
+	]
+}

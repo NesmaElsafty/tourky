@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
 use App\Http\Controllers\Admin\TripController as AdminTripController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ContactUsController as AdminContactUsController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,9 @@ Route::get('notifications/{notification}', [AdminNotificationController::class, 
 
 // calculate price for reservation
 Route::post('calculatePrice', [AdminReservationController::class, 'calculatePrice']);
+
+Route::get('contact-us', [AdminContactUsController::class, 'index']);
+Route::get('contact-us/{id}', [AdminContactUsController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->group(function (): void {
     Route::get('dashboard', [AdminDashboardController::class, 'index']);
@@ -136,4 +140,9 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('permissions', [AdminRoleController::class, 'getPermissions']);
     Route::get('companies', [AdminUserController::class, 'companiesList']);
+
+    Route::post('contact-us', [AdminContactUsController::class, 'store']);
+    Route::put('contact-us/{id}', [AdminContactUsController::class, 'update'])->whereNumber('id');
+    Route::patch('contact-us/{id}', [AdminContactUsController::class, 'update'])->whereNumber('id');
+    Route::delete('contact-us/{id}', [AdminContactUsController::class, 'destroy'])->whereNumber('id');
 });

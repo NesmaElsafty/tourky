@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
             TicketSeeder::class,
             FeedbackSeeder::class,
             TermSeeder::class,
+            ContactUsSeeder::class,
+            SocialMediaSeeder::class,
+            InstapayDataSeeder::class,
             NotificationSeeder::class,
             FiredNotificationSeeder::class,
         ]);

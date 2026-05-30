@@ -193,6 +193,16 @@ return [
         ],
     ],
 
+    'contact_us' => [
+        'list_retrieved' => 'Contact information retrieved successfully.',
+        'created' => 'Contact information created successfully.',
+        'updated' => 'Contact information updated successfully.',
+        'retrieved' => 'Contact information retrieved successfully.',
+        'deleted' => 'Contact information deleted successfully.',
+        'not_found' => 'Contact information not found.',
+        'server_error' => 'Something went wrong. Please try again later.',
+    ],
+
     'notifications' => [
         'list_retrieved' => 'Notifications retrieved successfully.',
         'created' => 'Notification created successfully.',
