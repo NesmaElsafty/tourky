@@ -4,11 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Car;
 use App\Models\Reservation;
-use App\Models\RouteTime;
 use App\Models\Time;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\TripService;
+use App\Support\OperationalWeek;
 use Database\Seeders\Concerns\ResolvesReservationDropOff;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -17,6 +17,7 @@ use Throwable;
 class TripSeeder extends Seeder
 {
     use ResolvesReservationDropOff;
+
     /**
      * Pending bookings per (date, time) needed so admin-style trip creation (2+ vehicles) can run.
      */
@@ -55,6 +56,14 @@ class TripSeeder extends Seeder
         }
 
         $this->seedClientPortalTripsForTodayAndHistory(
+            $tripService,
+            $cars,
+            $captainIds,
+            $clients,
+            $times,
+        );
+
+        $this->seedTripsForCurrentOperationalWeek(
             $tripService,
             $cars,
             $captainIds,
@@ -242,6 +251,83 @@ class TripSeeder extends Seeder
                 );
             } catch (Throwable) {
                 // Ignore if duplicates or validation fails so the rest of the seeder still runs.
+            }
+        }
+    }
+
+    /**
+     * One assigned trip per Sun–Thu day in the current operational week (captain `scope=week`).
+     * Past weekdays in that window are marked completed; today through Thursday stay planned.
+     */
+    private function seedTripsForCurrentOperationalWeek(
+        TripService $tripService,
+        Collection $cars,
+        Collection $captainIds,
+        Collection $clients,
+        Collection $times,
+    ): void {
+        if ($clients->count() < self::CLIENT_DEMO_PENDING_COUNT || $times->count() < 3) {
+            return;
+        }
+
+        $carsBySeats = $cars->sortByDesc(fn (Car $car): int => (int) $car->number_of_seats)->values();
+        $carA = $carsBySeats->get(0);
+        $carB = $carsBySeats->get(1);
+        if ($carA === null || $carB === null) {
+            return;
+        }
+
+        if ((int) $carA->number_of_seats + (int) $carB->number_of_seats < self::CLIENT_DEMO_PENDING_COUNT) {
+            return;
+        }
+
+        $captainA = (int) $captainIds->get(0);
+        $captainB = (int) $captainIds->get(1);
+
+        $carsData = [
+            ['captain_id' => $captainA, 'car_id' => (int) $carA->id, 'status' => 'planned'],
+            ['captain_id' => $captainB, 'car_id' => (int) $carB->id, 'status' => 'planned'],
+        ];
+
+        $bounds = OperationalWeek::bounds();
+        $today = now()->startOfDay();
+        $timeIndex = 2;
+
+        for ($date = $bounds['start']->copy(); $date->lte($bounds['end']); $date->addDay()) {
+            $dateString = $date->toDateString();
+            $time = $times->get($timeIndex % $times->count());
+            $timeIndex++;
+
+            if ($time === null) {
+                continue;
+            }
+
+            $time->loadMissing('point');
+            if ($time->point === null) {
+                continue;
+            }
+
+            $routeTimeId = $this->resolveRouteTimeIdForPickup(
+                (int) $time->point->route_id,
+                (int) $time->id,
+            );
+
+            if (Trip::query()
+                ->where('date', $dateString)
+                ->where('route_time_id', $routeTimeId)
+                ->exists()) {
+                continue;
+            }
+
+            try {
+                $this->createPendingGroupForDateAndTime($dateString, $time, $clients);
+                $trip = $tripService->createTripForReservationGroup($dateString, $routeTimeId, $carsData);
+
+                if ($date->lt($today)) {
+                    $trip->update(['status' => 'completed']);
+                }
+            } catch (Throwable) {
+                // Skip duplicates or validation failures.
             }
         }
     }
