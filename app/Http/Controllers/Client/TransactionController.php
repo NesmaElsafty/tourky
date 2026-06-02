@@ -54,7 +54,7 @@ class TransactionController extends Controller
             $transaction = $this->transactionService->createForClient($user, $request->validated());
 
             if ($request->hasFile('image')) {
-                $transaction->addMediaFromRequest('image')->toMediaCollection('proof_image');
+                $transaction->addMediaFromRequest('image')->toMediaCollection('image');
             }
 
             $transaction->load('client:id,name,phone,email,type,balance');
