@@ -8,6 +8,7 @@ use App\Http\Requests\Client\ReservationIndexRequest;
 use App\Http\Requests\Client\StoreReservationRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
+use App\Models\User;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -64,6 +65,11 @@ class ReservationController extends Controller
                 'drop_off_time_id' => (int) $data['drop_off_time_id'],
                 'date' => $data['date'],
             ]);
+
+            $price = $this->reservationService->calculatePriceForReservation($data['time_id'], $data['drop_off_time_id']);
+            $client = User::find($user->id);
+            $client->balance -= $price;
+            $client->save();
 
             $reservation->load(['route', 'point', 'time', 'dropOffTime']);
 
