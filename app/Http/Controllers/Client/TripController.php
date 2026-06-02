@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Client;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\RateCaptainRequest;
+use App\Http\Requests\Client\TripIndexRequest;
 use App\Http\Resources\ClientTripResource;
 use App\Models\Reservation;
 use App\Services\CaptainRatingService;
 use App\Services\ClientTripService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator as PaginationLengthAwarePaginator;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TripController extends Controller
@@ -19,23 +22,11 @@ class TripController extends Controller
         private CaptainRatingService $captainRatingService,
     ) {}
 
-    public function index(Request $request)
+    public function index(TripIndexRequest $request)
     {
         try {
-            $request->validate([
-                'scope' => ['sometimes', Rule::in(['upcoming', 'history', 'today'])],
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ], [
-                'scope.in' => __('api.trips.client_validation_scope_invalid'),
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $scope = $request->filled('scope')
                 ? $request->string('scope')->toString()
@@ -61,7 +52,9 @@ class TripController extends Controller
                 $message = __('api.trips.client_history_retrieved');
             }
 
-            $this->captainRatingService->primeForReservations($paginator->getCollection());
+            if ($paginator instanceof PaginationLengthAwarePaginator) {
+                $this->captainRatingService->primeForReservations(collect($paginator->items()));
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -83,25 +76,13 @@ class TripController extends Controller
     public function show(Request $request, Reservation $reservation)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $trip = $this->clientTripService->getTripDetailForClient($user, $reservation);
 
-            if ($trip !== null && $trip->tripCar?->captain_id !== null) {
+            if ($trip->tripCar?->captain_id !== null) {
                 $this->captainRatingService->aggregateForCaptainId((int) $trip->tripCar->captain_id);
-            }
-
-            if ($trip === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.reservations.not_found'),
-                ], 404);
             }
 
             return response()->json([
@@ -110,6 +91,9 @@ class TripController extends Controller
                 'data' => new ClientTripResource($trip),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),
@@ -118,27 +102,11 @@ class TripController extends Controller
         }
     }
 
-    public function rateCaptain(Request $request, Reservation $reservation)
+    public function rateCaptain(RateCaptainRequest $request, Reservation $reservation)
     {
         try {
-            $request->validate([
-                'rating' => ['required', 'integer', 'min:1', 'max:5'],
-                'feedback' => ['nullable', 'string', 'max:2000'],
-            ], [
-                'rating.required' => __('api.trips.captain_rating_validation_required'),
-                'rating.integer' => __('api.trips.captain_rating_validation_integer'),
-                'rating.min' => __('api.trips.captain_rating_validation_min'),
-                'rating.max' => __('api.trips.captain_rating_validation_max'),
-                'feedback.max' => __('api.trips.captain_feedback_validation_max'),
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $rating = (int) $request->input('rating');
             $feedbackRaw = $request->input('feedback');
@@ -148,15 +116,8 @@ class TripController extends Controller
 
             $trip = $this->clientTripService->submitCaptainRating($user, $reservation, $rating, $feedback);
 
-            if ($trip !== null && $trip->tripCar?->captain_id !== null) {
+            if ($trip->tripCar?->captain_id !== null) {
                 $this->captainRatingService->invalidateCaptain((int) $trip->tripCar->captain_id);
-            }
-
-            if ($trip === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.reservations.not_found'),
-                ], 404);
             }
 
             return response()->json([
@@ -167,6 +128,9 @@ class TripController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),

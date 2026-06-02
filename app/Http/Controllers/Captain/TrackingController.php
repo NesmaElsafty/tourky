@@ -3,28 +3,20 @@
 namespace App\Http\Controllers\Captain;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Captain\TrackingLocationRequest;
 use App\Models\Trip;
 use App\Models\TripCar;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrackingController extends Controller
 {
-    public function updateLocation(Request $request, Trip $trip)
+    public function updateLocation(TrackingLocationRequest $request, Trip $trip)
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
-        if ($user === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => __('api.auth.unauthorized'),
-            ], Response::HTTP_UNAUTHORIZED);
-        }
 
-        $validated = $request->validate([
-            'lat' => ['required', 'numeric', 'between:-90,90'],
-            'long' => ['required', 'numeric', 'between:-180,180'],
-        ]);
+        $validated = $request->validated();
 
         $isAssigned = TripCar::query()
             ->where('trip_id', $trip->id)

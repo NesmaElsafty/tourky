@@ -4,24 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTermRequest;
+use App\Http\Requests\Admin\TermIndexRequest;
+use App\Http\Requests\Admin\UpdateTermRequest;
 use App\Http\Resources\TermResource;
 use App\Models\Term;
 use App\Services\TermService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TermController extends Controller
 {
     public function __construct(private TermService $termService) {}
 
-    public function index(Request $request)
+    public function index(TermIndexRequest $request)
     { 
         try {
-            $request->validate([
-                'type' => 'required|in:terms_conditions,privacy_policy,FAQ',
-                'user_type' => 'required|in:client,captain'
-            ]);
             $terms = $this->termService->getAllTermsForUserType($request->user_type, $request->type)->paginate(10);
             $pagination = PaginationHelper::paginate($terms);
 
@@ -32,6 +31,9 @@ class TermController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.terms.server_error'),
@@ -56,6 +58,9 @@ class TermController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.terms.server_error'),
@@ -67,13 +72,7 @@ class TermController extends Controller
     public function show($id)
     {
         try {
-            $term = Term::find($id);
-            if($term === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.terms.not_found'),
-                ], 404);
-            }
+            $term = Term::query()->findOrFail($id);
 
             return response()->json([
                 'status' => 'success',
@@ -81,6 +80,9 @@ class TermController extends Controller
                 'data' => new TermResource($term),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.terms.server_error'),
@@ -89,18 +91,10 @@ class TermController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreTermRequest $request)
     {
         try {
-            $data = $request->validate([
-                'name_en' => 'required|string|max:255',
-                'name_ar' => 'required|string|max:255',
-                'description_en' => 'nullable|string|max:255',
-                'description_ar' => 'nullable|string|max:255',
-                'is_active' => 'sometimes|boolean',
-                'type' => ['required', Rule::in(Term::TYPES)],
-                'user_type' => ['required', Rule::in(Term::USER_TYPES)],
-            ]);
+            $data = $request->validated();
             $term = $this->termService->createTerm($data);
 
             return response()->json([
@@ -111,6 +105,9 @@ class TermController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.terms.server_error'),
@@ -119,25 +116,11 @@ class TermController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateTermRequest $request, $id)
     {
         try {
-            $data = $request->validate([
-                'name_en' => 'sometimes|required|string|max:255',
-                'name_ar' => 'sometimes|required|string|max:255',
-                'description_en' => 'nullable|string|max:255',
-                'description_ar' => 'nullable|string|max:255',
-                'is_active' => 'sometimes|boolean',
-                'type' => ['sometimes', 'required', Rule::in(Term::TYPES)],
-                'user_type' => ['sometimes', 'required', Rule::in(Term::USER_TYPES)],
-            ]);
-            $term = Term::find($id);
-            if($term === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.terms.not_found'),
-                ], 404);
-            }
+            $data = $request->validated();
+            $term = Term::query()->findOrFail($id);
             $term = $this->termService->updateTerm($term, $data);
 
             return response()->json([
@@ -159,13 +142,7 @@ class TermController extends Controller
     public function destroy($id)
     {
         try {
-            $term = Term::find($id);
-            if($term === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.terms.not_found'),
-                ], 404);
-            }
+            $term = Term::query()->findOrFail($id);
             $this->termService->deleteTerm($term);
 
             return response()->json([

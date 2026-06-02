@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
@@ -12,16 +13,16 @@ use Illuminate\Validation\ValidationException;
 class ClientTripService
 {
     /**
-     * Single assigned trip (by reservation id) for the client, or null if not found / not assigned.
+     * Single assigned trip (by reservation id) for the client.
      */
-    public function getTripDetailForClient(User $client, Reservation $reservation): ?Reservation
+    public function getTripDetailForClient(User $client, Reservation $reservation): Reservation
     {
         if ($reservation->user_id !== $client->id) {
-            return null;
+            $this->throwReservationNotFound((int) $reservation->id);
         }
 
         if ($reservation->trip_id === null || $reservation->trip_car_id === null) {
-            return null;
+            $this->throwReservationNotFound((int) $reservation->id);
         }
 
         return $reservation->loadMissing($this->assignedTripEagerLoads());
@@ -30,16 +31,15 @@ class ClientTripService
     /**
      * Client rates the captain after drop-off (one submission per reservation).
      *
-     * @return Reservation|null Null if reservation is not this client's assigned trip
      */
-    public function submitCaptainRating(User $client, Reservation $reservation, int $rating, ?string $feedback): ?Reservation
+    public function submitCaptainRating(User $client, Reservation $reservation, int $rating, ?string $feedback): Reservation
     {
         if ($reservation->user_id !== $client->id) {
-            return null;
+            $this->throwReservationNotFound((int) $reservation->id);
         }
 
         if ($reservation->trip_id === null || $reservation->trip_car_id === null) {
-            return null;
+            $this->throwReservationNotFound((int) $reservation->id);
         }
 
         if ($reservation->dropped_off_at === null) {
@@ -60,6 +60,14 @@ class ClientTripService
         ]);
 
         return $reservation->loadMissing($this->assignedTripEagerLoads());
+    }
+
+    private function throwReservationNotFound(int $reservationId): never
+    {
+        $exception = new ModelNotFoundException();
+        $exception->setModel(Reservation::class, [$reservationId]);
+
+        throw $exception;
     }
 
     /**

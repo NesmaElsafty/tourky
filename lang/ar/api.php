@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'general' => [
+        'not_found' => 'العنصر غير موجود.',
+    ],
+
     'auth' => [
         'wrong_credentials' => 'بيانات الدخول غير صحيحة.',
         'unauthorized' => 'غير مصرح.',
@@ -81,6 +85,8 @@ return [
         'logout_failed' => 'فشل تسجيل خروج الكابتن.',
         'is_online' => 'أنت متاح الآن (أونلاين).',
         'is_offline' => 'أنت غير متاح الآن (أوفلاين).',
+        'balance_updated' => 'تم تحديث رصيد الكابتن بنجاح.',
+        'balance_update_failed' => 'فشل تحديث رصيد الكابتن.',
     ],
 
     'captains' => [
@@ -308,6 +314,43 @@ return [
             'pending' => 'قيد الانتظار',
             'confirmed' => 'مؤكد',
             'cancelled' => 'ملغى',
+        ],
+    ],
+
+    'transactions' => [
+        'client_list_retrieved' => 'تم جلب معاملاتك بنجاح.',
+        'admin_list_retrieved' => 'تم جلب المعاملات بنجاح.',
+        'not_found' => 'المعاملة غير موجودة.',
+        'created' => 'تم إنشاء المعاملة وهي في انتظار المراجعة.',
+        'admin_created' => 'تم إنشاء المعاملة بنجاح.',
+        'status_changed' => 'تم تحديث حالة المعاملة بنجاح.',
+        'pending_only_status_change' => 'يمكن قبول أو رفض المعاملات المعلقة فقط.',
+        'server_error' => 'حدث خطأ أثناء معالجة المعاملة.',
+        'validation_client_required' => 'العميل مطلوب.',
+        'validation_client_invalid' => 'العميل المحدد غير صالح.',
+        'validation_amount_required' => 'المبلغ مطلوب.',
+        'validation_amount_numeric' => 'المبلغ يجب أن يكون رقمًا.',
+        'validation_amount_gt' => 'المبلغ يجب أن يكون أكبر من 0.',
+        'validation_method_required' => 'طريقة المعاملة مطلوبة.',
+        'validation_method_client_invalid' => 'طريقة المعاملة لازم تكون تحويل بنكي أو محفظة.',
+        'validation_method_invalid' => 'طريقة المعاملة غير صالحة.',
+        'validation_status_required' => 'حالة المعاملة مطلوبة.',
+        'validation_status_invalid' => 'حالة المعاملة لازم تكون pending أو accepted أو rejected.',
+        'validation_status_change_invalid' => 'الحالة لازم تكون accepted أو rejected.',
+        'validation_type_invalid' => 'نوع المعاملة غير صالح.',
+        'validation_image_required' => 'صورة الإثبات مطلوبة.',
+        'validation_image_mimes' => 'صيغة الصورة لازم تكون jpeg أو png أو jpg أو webp.',
+        'validation_image_max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجا.',
+        'status_labels' => [
+            'pending' => 'معلقة',
+            'accepted' => 'مقبولة',
+            'rejected' => 'مرفوضة',
+        ],
+        'method_labels' => [
+            'cash' => 'كاش',
+            'bank_transfer' => 'تحويل بنكي',
+            'wallet' => 'محفظة',
+            'online_payment' => 'دفع أونلاين',
         ],
     ],
 

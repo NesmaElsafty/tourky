@@ -47,7 +47,7 @@ class TicketService
         return $query->paginate($perPage);
     }
 
-    public function findForAdmin(int $id): ?Ticket
+    public function findForAdmin(int $id): Ticket
     {
         return Ticket::query()
             ->whereKey($id)
@@ -65,7 +65,7 @@ class TicketService
                     $q->whereHas('user', static fn (Builder $uq) => $uq->where('type', 'admin'));
                 },
             ])
-            ->first();
+            ->firstOrFail();
     }
 
     public function replyAsAdmin(User $admin, Ticket $ticket, string $message): Ticket
@@ -158,7 +158,7 @@ class TicketService
             ->paginate($perPage);
     }
 
-    public function findForClient(User $client, int $id): ?Ticket
+    public function findForClient(User $client, int $id): Ticket
     {
         return Ticket::query()
             ->where('client_id', $client->id)
@@ -174,7 +174,7 @@ class TicketService
                     $q->whereHas('user', static fn (Builder $uq) => $uq->where('type', 'admin'));
                 },
             ])
-            ->first();
+            ->firstOrFail();
     }
 
     /**

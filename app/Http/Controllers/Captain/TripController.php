@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Captain;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Captain\TripIndexRequest;
 use App\Http\Resources\CaptainTripDetailResource;
 use App\Http\Resources\CaptainTripListResource;
 use App\Models\Reservation;
@@ -16,26 +17,11 @@ class TripController extends Controller
 {
     public function __construct(private CaptainTripService $captainTripService) {}
 
-    public function index(Request $request)
+    public function index(TripIndexRequest $request)
     {
         try {
-            $request->validate([
-                'scope' => ['sometimes', 'string', 'in:upcoming,history,today'],
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ], [
-                'scope.in' => __('api.trips.client_validation_scope_invalid'),
-                'per_page.integer' => __('api.trips.validation_per_page_integer'),
-                'per_page.min' => __('api.trips.validation_per_page_min'),
-                'per_page.max' => __('api.trips.validation_per_page_max'),
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $scope = $request->filled('scope')
                 ? $request->string('scope')->toString()
@@ -81,13 +67,8 @@ class TripController extends Controller
     public function show(Request $request, Trip $trip)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $trip = $this->captainTripService->getTripForCaptain($user, $trip);
 
@@ -112,13 +93,8 @@ class TripController extends Controller
     public function start(Request $request, Trip $trip)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $updated = $this->captainTripService->startTripForCaptain($user, $trip);
 
@@ -143,13 +119,8 @@ class TripController extends Controller
     public function confirmPickup(Request $request, Trip $trip, Reservation $reservation)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $updated = $this->captainTripService->confirmClientPickup($user, $trip, $reservation);
 
@@ -181,13 +152,8 @@ class TripController extends Controller
     public function confirmDropoff(Request $request, Trip $trip, Reservation $reservation)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $updated = $this->captainTripService->confirmClientDropoff($user, $trip, $reservation);
 
@@ -219,13 +185,8 @@ class TripController extends Controller
     public function close(Request $request, Trip $trip)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $updated = $this->captainTripService->closeTripForCaptain($user, $trip);
 

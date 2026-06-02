@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\RouteTimeController as AdminRouteTimeController;
 use App\Http\Controllers\Admin\TermController as AdminTermController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\TripController as AdminTripController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ContactUsController as AdminContactUsController;
@@ -145,4 +146,15 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::put('contact-us/{id}', [AdminContactUsController::class, 'update'])->whereNumber('id');
     Route::patch('contact-us/{id}', [AdminContactUsController::class, 'update'])->whereNumber('id');
     Route::delete('contact-us/{id}', [AdminContactUsController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('transactions', [AdminTransactionController::class, 'index']);
+    Route::get('transactions/{transaction}', [AdminTransactionController::class, 'show'])->whereNumber('transaction');
+    Route::post('transactions', [AdminTransactionController::class, 'store']);
+    Route::put('transactions/{transaction}/status', [AdminTransactionController::class, 'updateStatus'])->whereNumber('transaction');
+    Route::get('transactions/client/{clientId}', [AdminTransactionController::class, 'getTransactionByClientId'])->whereNumber('clientId');
+    
+    
+    Route::get('clients/phone/{phone}', [AdminUserController::class, 'getClientByPhoneNumber'])->where('phone', '[0-9]+');
+    Route::get('captains/phone/{phone}', [AdminCaptainController::class, 'getCaptainByPhoneNumber'])->where('phone', '[0-9]+');
+    Route::post('captains/{id}/updateBalance', [AdminCaptainController::class, 'updateBalance'])->whereNumber('id');
 });

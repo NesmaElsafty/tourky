@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Client;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\AddTicketMessageRequest;
+use App\Http\Requests\Client\StoreTicketRequest;
+use App\Http\Requests\Client\TicketIndexRequest;
+use App\Http\Requests\Client\UpdateTicketRequest;
 use App\Http\Resources\ClientTicketResource;
 use App\Models\Ticket;
 use App\Services\TicketService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TicketController extends Controller
@@ -17,20 +21,11 @@ class TicketController extends Controller
         private TicketService $ticketService,
     ) {}
 
-    public function index(Request $request)
+    public function index(TicketIndexRequest $request)
     {
         try {
-            $request->validate([
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $perPage = (int) $request->input('per_page', 15);
             $paginator = $this->ticketService->paginateForClient($user, $perPage);
@@ -55,21 +50,10 @@ class TicketController extends Controller
     public function show(Request $request, Ticket $ticket)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $model = $this->ticketService->findForClient($user, (int) $ticket->id);
-            if ($model === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.tickets.not_found'),
-                ], 404);
-            }
 
             return response()->json([
                 'status' => 'success',
@@ -77,6 +61,9 @@ class TicketController extends Controller
                 'data' => new ClientTicketResource($model),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.tickets.server_error'),
@@ -85,26 +72,13 @@ class TicketController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreTicketRequest $request)
     {
         try {
-            $data = $request->validate([
-                'title' => ['required', 'string', 'max:255'],
-                'description' => ['required', 'string', 'min:1', 'max:10000'],
-                'captain_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('type', 'captain')],
-                'trip_id' => ['nullable', 'integer', 'exists:trips,id'],
-            ], [
-                'title.required' => __('api.tickets.validation_title_required'),
-                'description.required' => __('api.tickets.validation_description_required'),
-            ]);
+            $data = $request->validated();
 
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             if (isset($data['captain_id'])) {
                 $data['captain_id'] = (int) $data['captain_id'];
@@ -141,14 +115,12 @@ class TicketController extends Controller
     }
 
     // add message to ticket
-    public function addMessage(Request $request, int $id)
+    public function addMessage(AddTicketMessageRequest $request, Ticket $ticket)
     {
         try {
-            $request->validate([
-                'message' => ['required', 'string', 'max:5000'],
-            ]);
-            $ticket = Ticket::find($id);
-            if ($ticket === null || $ticket->client_id !== $request->user()->id) {
+            /** @var \App\Models\User $user */
+            $user = $request->user();
+            if ($ticket->client_id !== $user->id) {
                 throw ValidationException::withMessages([
                     'message' => [__('api.tickets.not_found')],
                 ]);
@@ -160,6 +132,9 @@ class TicketController extends Controller
                 'data' => new ClientTicketResource($ticket),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.tickets.server_error'),
@@ -168,15 +143,10 @@ class TicketController extends Controller
         }
     }
 
-    public function update(Request $request, Ticket $ticket)
+    public function update(UpdateTicketRequest $request, Ticket $ticket)
     {
         try {
-            $data = $request->validate([
-                'title' => ['sometimes', 'string', 'max:255'],
-                'description' => ['sometimes', 'string', 'min:1', 'max:10000'],
-                'captain_id' => ['sometimes', 'nullable', 'integer', Rule::exists('users', 'id')->where('type', 'captain')],
-                'trip_id' => ['sometimes', 'nullable', 'integer', 'exists:trips,id'],
-            ]);
+            $data = $request->validated();
 
             if (! $request->hasAny(['title', 'description', 'captain_id', 'trip_id'])) {
                 throw ValidationException::withMessages([
@@ -184,21 +154,10 @@ class TicketController extends Controller
                 ]);
             }
 
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $model = $this->ticketService->findForClient($user, (int) $ticket->id);
-            if ($model === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.tickets.not_found'),
-                ], 404);
-            }
 
             if (isset($data['description']) && is_string($data['description'])) {
                 $data['description'] = mb_substr(trim($data['description']), 0, 10000);
@@ -214,6 +173,9 @@ class TicketController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.tickets.server_error'),
@@ -225,21 +187,10 @@ class TicketController extends Controller
     public function destroy(Request $request, Ticket $ticket)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $model = $this->ticketService->findForClient($user, (int) $ticket->id);
-            if ($model === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.tickets.not_found'),
-                ], 404);
-            }
 
             $this->ticketService->deleteForClient($user, $model);
 
@@ -250,6 +201,9 @@ class TicketController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.tickets.server_error'),

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DashboardIndexRequest;
 use App\Services\AdminDashboardService;
-use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class DashboardController extends Controller
@@ -13,12 +13,10 @@ class DashboardController extends Controller
         private AdminDashboardService $dashboardService,
     ) {}
 
-    public function index(Request $request)
+    public function index(DashboardIndexRequest $request)
     {
         try {
-            $data = $request->validate([
-                'chart_date' => ['nullable', 'date'],
-            ]);
+            $data = $request->validated();
 
             $payload = $this->dashboardService->getOverview($data['chart_date'] ?? null);
 

@@ -96,6 +96,7 @@ class ContactUsService
                 return false;
             }
         }
+        
         if ($type == 'instapay_data') {
             $instapayData = InstapayData::find($id);
             if ($instapayData) {

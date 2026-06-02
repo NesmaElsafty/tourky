@@ -52,6 +52,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(Feedback::class, 'client_id');
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'client_id');
+    }
+
     public function currentCaptainTrip(): BelongsTo
     {
         return $this->belongsTo(Trip::class, 'trip_id');
@@ -106,6 +111,7 @@ class User extends Authenticatable implements HasMedia
     {
         return [
             'password' => 'hashed',
+            'balance' => 'decimal:2',
             'has_trip' => 'boolean',
             'lat' => 'decimal:8',
             'long' => 'decimal:8',

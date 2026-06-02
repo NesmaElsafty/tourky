@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'general' => [
+        'not_found' => 'Resource not found.',
+    ],
+
     'auth' => [
         'wrong_credentials' => 'Wrong credentials.',
         'unauthorized' => 'Unauthorized.',
@@ -81,6 +85,8 @@ return [
         'logout_failed' => 'Captain logout failed.',
         'is_online' => 'You are now online.',
         'is_offline' => 'You are now offline.',
+        'balance_updated' => 'Captain balance updated successfully.',
+        'balance_update_failed' => 'Failed to update captain balance.',
     ],
 
     'captains' => [
@@ -308,6 +314,43 @@ return [
             'pending' => 'Pending',
             'confirmed' => 'Confirmed',
             'cancelled' => 'Cancelled',
+        ],
+    ],
+
+    'transactions' => [
+        'client_list_retrieved' => 'Your transactions were retrieved successfully.',
+        'admin_list_retrieved' => 'Transactions retrieved successfully.',
+        'not_found' => 'Transaction not found.',
+        'created' => 'Transaction created and pending review.',
+        'admin_created' => 'Transaction created successfully.',
+        'status_changed' => 'Transaction status updated successfully.',
+        'pending_only_status_change' => 'Only pending transactions can be accepted or rejected.',
+        'server_error' => 'Something went wrong while processing the transaction.',
+        'validation_client_required' => 'Client is required.',
+        'validation_client_invalid' => 'Selected client is invalid.',
+        'validation_amount_required' => 'Amount is required.',
+        'validation_amount_numeric' => 'Amount must be a number.',
+        'validation_amount_gt' => 'Amount must be greater than 0.',
+        'validation_method_required' => 'Transaction method is required.',
+        'validation_method_client_invalid' => 'Method must be bank transfer or wallet.',
+        'validation_method_invalid' => 'Transaction method is invalid.',
+        'validation_status_required' => 'Transaction status is required.',
+        'validation_status_invalid' => 'Status must be pending, accepted, or rejected.',
+        'validation_status_change_invalid' => 'Status must be accepted or rejected.',
+        'validation_type_invalid' => 'Transaction type is invalid.',
+        'validation_image_required' => 'Proof image is required.',
+        'validation_image_mimes' => 'Image must be jpeg, png, jpg, or webp.',
+        'validation_image_max' => 'Image size must not exceed 5 MB.',
+        'status_labels' => [
+            'pending' => 'Pending',
+            'accepted' => 'Accepted',
+            'rejected' => 'Rejected',
+        ],
+        'method_labels' => [
+            'cash' => 'Cash',
+            'bank_transfer' => 'Bank transfer',
+            'wallet' => 'Wallet',
+            'online_payment' => 'Online payment',
         ],
     ],
 

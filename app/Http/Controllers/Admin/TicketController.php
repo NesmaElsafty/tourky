@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\TicketReplyRequest;
+use App\Http\Requests\Admin\TicketStatusUpdateRequest;
 use App\Http\Resources\AdminTicketResource;
 use App\Models\Ticket;
 use App\Services\TicketService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TicketController extends Controller
@@ -43,12 +45,6 @@ class TicketController extends Controller
     {
         try {
             $model = $this->ticketService->findForAdmin((int) $ticket->id);
-            if ($model === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.tickets.not_found'),
-                ], 404);
-            }
 
             return response()->json([
                 'status' => 'success',
@@ -56,6 +52,9 @@ class TicketController extends Controller
                 'data' => new AdminTicketResource($model),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.tickets.server_error'),
@@ -64,23 +63,11 @@ class TicketController extends Controller
         }
     }
 
-    public function reply(Request $request, Ticket $ticket)
+    public function reply(TicketReplyRequest $request, Ticket $ticket)
     {
         try {
-            $request->validate([
-                'message' => ['required', 'string', 'min:1', 'max:5000'],
-            ], [
-                'message.required' => __('api.tickets.validation_message_required'),
-                'message.max' => __('api.tickets.validation_message_max'),
-            ]);
-
+            /** @var \App\Models\User $admin */
             $admin = $request->user();
-            if ($admin === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $messageRaw = $request->input('message');
             $message = is_string($messageRaw) ? trim($messageRaw) : '';
@@ -108,15 +95,10 @@ class TicketController extends Controller
         }
     }
 
-    public function updateStatus(Request $request, Ticket $ticket)
+    public function updateStatus(TicketStatusUpdateRequest $request, Ticket $ticket)
     {
         try {
-            $data = $request->validate([
-                'status' => ['required', Rule::in(Ticket::STATUSES)],
-            ], [
-                'status.required' => __('api.tickets.validation_status_required'),
-                'status.in' => __('api.tickets.validation_status_in'),
-            ]);
+            $data = $request->validated();
 
             $updated = $this->ticketService->updateStatusForAdmin($ticket, $data['status']);
 

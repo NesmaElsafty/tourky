@@ -24,6 +24,11 @@ class CaptainService
         return $this->getAllCaptains()->findOrFail($id);
     }
 
+    public function getCaptainByPhoneNumber($phone): User
+    {
+        return User::query()->where('phone', $phone)->where('type', 'captain')->first();
+    }
+
     public function isOnlineToggle(int $id): User
     {
         $captain = $this->getCaptainById($id);
@@ -60,6 +65,11 @@ class CaptainService
                     fn ($query) => $query->where('type', 'captain'),
                 )->ignore($captain->id),
             ],
+            'balance' => [
+                'sometimes',
+                'required',
+                'numeric',
+            ],
             'password' => 'sometimes|nullable|string|min:6|confirmed',
             'license_expiry_date' => ['sometimes', 'nullable', 'date'],
         ]);
@@ -75,9 +85,12 @@ class CaptainService
         if (array_key_exists('license_expiry_date', $data)) {
             $captain->license_expiry_date = $data['license_expiry_date'];
         }
+        if (array_key_exists('balance', $data)) {
+            $captain->balance = $data['balance'];
+        }
         $captain->save();
 
-        return $captain->fresh();
+        return $captain;
     }
 
     public function deleteCaptain(int $id): void

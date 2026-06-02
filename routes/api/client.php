@@ -8,6 +8,7 @@ use App\Http\Controllers\Client\ReservationController as ClientReservationContro
 use App\Http\Controllers\Client\RouteController;
 use App\Http\Controllers\Client\TermController as ClientTermController;
 use App\Http\Controllers\Client\TicketController as ClientTicketController;
+use App\Http\Controllers\Client\TransactionController as ClientTransactionController;
 use App\Http\Controllers\Client\TripController as ClientTripController;
 use App\Http\Middleware\EnsureUserIsClient;
 use Illuminate\Support\Facades\Route;
@@ -52,4 +53,7 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
     Route::put('tickets/{ticket}', [ClientTicketController::class, 'update'])->whereNumber('ticket');
     Route::patch('tickets/{ticket}', [ClientTicketController::class, 'update'])->whereNumber('ticket');
     Route::delete('tickets/{ticket}', [ClientTicketController::class, 'destroy'])->whereNumber('ticket');
+
+    Route::get('transactions', [ClientTransactionController::class, 'index']);
+    Route::post('transactions', [ClientTransactionController::class, 'store']);
 });

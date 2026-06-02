@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PointIndexRequest;
+use App\Http\Requests\Admin\StorePointRequest;
+use App\Http\Requests\Admin\UpdatePointRequest;
 use App\Http\Resources\PointResource;
 use App\Models\Point;
 use App\Models\Route;
-use App\Models\Time;
 use App\Services\PointService;
 use App\Services\TimeService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -17,12 +20,9 @@ class PointController extends Controller
 {
     public function __construct(private PointService $pointService, private TimeService $timeService) {}
 
-    public function index(Request $request)
+    public function index(PointIndexRequest $request)
     {
         try {
-            $request->validate([
-                'route_id' => 'required|exists:routes,id',
-            ]);
             $points = $this->pointService->getPointsPaginated($request->route_id);
             $pagination = PaginationHelper::paginate($points);
 
@@ -33,6 +33,9 @@ class PointController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.points.server_error'),
@@ -44,13 +47,7 @@ class PointController extends Controller
     public function show(Request $request,$id)
     {
         try {
-            $point = Point::find($id);
-            if($point === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.points.not_found'),
-                ], 404);
-            }
+            $point = Point::query()->findOrFail($id);
             $point->loadMissing([
                 'route:id,name_en,name_ar,is_active',
                 'times' => fn ($query) => $query->where('is_active', true)->orderBy('pickup_time'),
@@ -69,6 +66,9 @@ class PointController extends Controller
                 'data' => new PointResource($point),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.points.server_error'),
@@ -77,19 +77,10 @@ class PointController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StorePointRequest $request)
     {
         try {
-            $data = $request->validate([
-                'name_en' => 'required|string|max:255',
-                'name_ar' => 'required|string|max:255',
-                'lat' => 'nullable|string|max:255',
-                'long' => 'nullable|string|max:255',
-                'route_id' => 'required|exists:routes,id',
-                'times' => 'required|array',
-                'times.*.pickup_time' => 'required|string|max:255',
-                'times.*.is_active' => 'required|boolean',
-            ]);
+            $data = $request->validated();
             $times = $data['times'];
             unset($data['times']);
             $point = $this->pointService->createPoint($data);
@@ -105,6 +96,9 @@ class PointController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.points.server_error'),
@@ -113,23 +107,11 @@ class PointController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdatePointRequest $request, $id)
     {
         try {
-            $point = Point::find($id);
-            if($point === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.points.not_found'),
-                ], 404);
-            }
-            $data = $request->validate([
-                'name_en' => 'sometimes|required|string|max:255',
-                'name_ar' => 'sometimes|required|string|max:255',
-                'lat' => 'nullable|string|max:255',
-                'long' => 'nullable|string|max:255',
-                'route_id' => 'sometimes|required|exists:routes,id',
-            ]);
+            $point = Point::query()->findOrFail($id);
+            $data = $request->validated();
             $point = $this->pointService->updatePoint($point->id, $data);
 
             return response()->json([
@@ -140,6 +122,9 @@ class PointController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.points.server_error'),
@@ -151,13 +136,7 @@ class PointController extends Controller
     public function destroy($id)
     {
         try {
-            $point = Point::find($id);
-            if($point === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.points.not_found'),
-                ], 404);
-            }
+            $point = Point::query()->findOrFail($id);
             $point->delete();
 
             return response()->json([
@@ -177,13 +156,7 @@ class PointController extends Controller
     public function getPointsByRouteId($routeId)
     {
         try {
-            $route = Route::find($routeId);
-            if($route === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.routes.not_found'),
-                ], 404);
-            }
+            $route = Route::query()->findOrFail($routeId);
             $points = $route->points()->with('times')->get();
             return response()->json([
                 'status' => 'success',

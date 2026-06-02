@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ContactUsTypeRequest;
 use App\Services\ContactUsService;
-use Illuminate\Http\Request;
 
 class ContactUsController extends Controller
 {
@@ -31,12 +31,9 @@ class ContactUsController extends Controller
         }
     }
 
-    public function show(Request $request, $id)
+    public function show(ContactUsTypeRequest $request, $id)
     {
         try {
-            $request->validate([
-                'type' => 'required|string|in:contact_us,social_media,instapay_data',
-            ]);
             $contactUs = $this->contactUsService->getContactUsById($request->type, $id);
             if ($contactUs === false) {
                 return response()->json([
@@ -65,12 +62,9 @@ class ContactUsController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(ContactUsTypeRequest $request)
     {
         try {
-            $request->validate([
-                'type' => 'required|string|in:contact_us,social_media,instapay_data',
-            ]);
             $data = $this->contactUsService->createContactUs($request->all(), $request->type);
 
             return response()->json([
@@ -87,13 +81,9 @@ class ContactUsController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(ContactUsTypeRequest $request, $id)
     {
         try {
-            $request->validate([
-                'type' => 'required|string|in:contact_us,social_media,instapay_data',
-            ]);
-
             $data = $this->contactUsService->updateContactUs($request->all(), $request->type, $id);
             if ($data === false) {
                 return response()->json([
@@ -115,12 +105,9 @@ class ContactUsController extends Controller
         }
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy(ContactUsTypeRequest $request, $id)
     {
         try {
-            $request->validate([
-                'type' => 'required|string|in:contact_us,social_media,instapay_data',
-            ]);
             $data = $this->contactUsService->destroyContactUs($request->type, $id);
             if ($data) {
                 return response()->json([

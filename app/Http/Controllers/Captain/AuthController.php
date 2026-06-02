@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Captain;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Captain\CaptainOnlineToggleRequest;
 use App\Http\Resources\CaptainResource;
 use App\Services\AuthService;
 use App\Services\CaptainService;
@@ -14,12 +16,9 @@ class AuthController extends Controller
 {
     public function __construct(private readonly AuthService $authService, private readonly CaptainService $captainService) {}
 
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $credentials = $request->validate([
-            'phone' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ]);
+        $credentials = $request->validated();
 
         $result = $this->authService->login($credentials, 'captain');
 
@@ -75,11 +74,8 @@ class AuthController extends Controller
         }
     }
 
-    public function isOnlineToggle(Request $request)
+    public function isOnlineToggle(CaptainOnlineToggleRequest $request)
     {
-        $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg'],
-        ]);
         $user = auth()->user();
 
         if ($request->hasFile('image')) {
@@ -92,5 +88,29 @@ class AuthController extends Controller
             'message' => $captain->is_online ? __('api.captain.is_online') : __('api.captain.is_offline'),
             'data' => new CaptainResource($captain),
         ]);
+    }
+
+    // captain update balance
+    public function updateBalance(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'amount' => 'required|numeric',
+            ]);
+            $user = auth()->user();
+            $user->balance += $data['amount'];
+            $user->save();
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.captain.balance_updated'),
+                'data' => new CaptainResource($user),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.captain.balance_update_failed'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

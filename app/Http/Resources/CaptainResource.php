@@ -34,6 +34,7 @@ class CaptainResource extends JsonResource
             'has_trip' => $this->when($this->type === 'captain', $this->has_trip),
             'trip_id' => $this->when($this->type === 'captain', $this->trip_id),
             'is_online' => $this->when($this->type === 'captain', $this->is_online),
+            'balance' => $this->balance,
             'license_expiry_date' => $this->when(
                 $this->type === 'captain',
                 fn () => $this->license_expiry_date?->format('Y-m-d'),

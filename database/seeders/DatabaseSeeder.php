@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             CaptainUserSeeder::class,
             ClientUserSeeder::class,
+            TransactionSeeder::class,
             CarSeeder::class,
             HsbcRouteSeeder::class,
             ReservationSeeder::class,

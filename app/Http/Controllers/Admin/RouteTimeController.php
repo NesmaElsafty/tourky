@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RouteTimeIndexRequest;
+use App\Http\Requests\Admin\StoreRouteTimeRequest;
+use App\Http\Requests\Admin\UpdateRouteTimeRequest;
 use App\Http\Resources\RouteTimeResource;
 use App\Models\RouteTime;
 use App\Services\RouteTimeService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -14,13 +18,9 @@ class RouteTimeController extends Controller
 {
     public function __construct(private RouteTimeService $routeTimeService) {}
 
-    public function index(Request $request)
+    public function index(RouteTimeIndexRequest $request)
     {
         try {
-            $request->validate([
-                'per_page' => 'sometimes|integer|min:1|max:100',
-            ]);
-
             $routeTimes = $this->routeTimeService->getRouteTimesPaginated((int) ($request->per_page ?? 10));
             $pagination = PaginationHelper::paginate($routeTimes);
 
@@ -33,6 +33,9 @@ class RouteTimeController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.route_times.server_error'),
@@ -44,13 +47,7 @@ class RouteTimeController extends Controller
     public function show($id)
     {
         try {
-            $routeTime = RouteTime::find($id);
-            if($routeTime === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.route_times.not_found'),
-                ], 404);
-            }
+            $routeTime = RouteTime::query()->findOrFail($id);
 
             return response()->json([
                 'status' => 'success',
@@ -58,6 +55,9 @@ class RouteTimeController extends Controller
                 'data' => new RouteTimeResource($routeTime),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.route_times.server_error'),
@@ -66,14 +66,10 @@ class RouteTimeController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreRouteTimeRequest $request)
     {
         try {
-            $data = $request->validate([
-                'route_id' => 'required|integer|exists:routes,id',
-                'time_ids' => 'required|array|min:1',
-                'time_ids.*' => 'required|integer|exists:times,id',
-            ]);
+            $data = $request->validated();
 
             $routeTime = $this->routeTimeService->createRouteTime($data);
 
@@ -85,6 +81,9 @@ class RouteTimeController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.route_times.server_error'),
@@ -93,21 +92,11 @@ class RouteTimeController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRouteTimeRequest $request, $id)
     {
         try {
-            $routeTime = RouteTime::find($id);
-            if($routeTime === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.route_times.not_found'),
-                ], 404);
-            }
-            $data = $request->validate([
-                'route_id' => 'sometimes|required|integer|exists:routes,id',
-                'time_ids' => 'sometimes|required|array|min:1',
-                'time_ids.*' => 'required_with:time_ids|integer|exists:times,id',
-            ]);
+            $routeTime = RouteTime::query()->findOrFail($id);
+            $data = $request->validated();
 
             $routeTime = $this->routeTimeService->updateRouteTime($routeTime, $data);
 
@@ -130,13 +119,7 @@ class RouteTimeController extends Controller
     public function destroy($id)
     {
         try {
-            $routeTime = RouteTime::find($id);
-            if($routeTime === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.route_times.not_found'),
-                ], 404);
-            }
+            $routeTime = RouteTime::query()->findOrFail($id);
             $routeTime->delete();
 
             return response()->json([

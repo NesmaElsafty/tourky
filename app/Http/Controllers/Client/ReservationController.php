@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Client;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\ReservationIndexRequest;
+use App\Http\Requests\Client\StoreReservationRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Services\ReservationService;
@@ -14,24 +16,11 @@ class ReservationController extends Controller
 {
     public function __construct(private ReservationService $reservationService) {}
 
-    public function index(Request $request)
+    public function index(ReservationIndexRequest $request)
     {
         try {
-            $request->validate([
-                'scope' => 'required|in:upcoming,history',
-                'per_page' => 'sometimes|integer|min:1|max:100',
-            ], [
-                'scope.required' => __('api.reservations.validation_scope_required'),
-                'scope.in' => __('api.reservations.validation_scope_invalid'),
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $reservations = $this->reservationService->getClientReservationsPaginated(
                 $user,
@@ -62,30 +51,13 @@ class ReservationController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreReservationRequest $request)
     {
         try {
-            $data = $request->validate([
-                'time_id' => 'required|integer|exists:times,id',
-                'date' => 'required|date_format:Y-m-d|after_or_equal:today',
-                'drop_off_time_id' => 'required|integer|exists:times,id',
-            ], [
-                'time_id.required' => __('api.reservations.validation_time_id'),
-                'time_id.exists' => __('api.reservations.validation_time_id'),
-                'date.required' => __('api.reservations.validation_date_past'),
-                'date.date_format' => __('api.reservations.validation_date_past'),
-                'date.after_or_equal' => __('api.reservations.validation_date_past'),
-                'drop_off_time_id.required' => __('api.reservations.validation_drop_off_time_id'),
-                'drop_off_time_id.exists' => __('api.reservations.validation_drop_off_time_id'),
-            ]);
+            $data = $request->validated();
 
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $reservation = $this->reservationService->createReservationForClient($user, [
                 'time_id' => (int) $data['time_id'],

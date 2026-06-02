@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\NotificationIndexRequest;
 use App\Http\Resources\FiredNotificationResource;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -13,24 +14,11 @@ class NotificationController extends Controller
 {
     public function __construct(private NotificationService $notificationService) {}
 
-    public function index(Request $request)
+    public function index(NotificationIndexRequest $request)
     {
         try {
-            $request->validate([
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ], [
-                'per_page.integer' => __('api.notifications.validation_per_page_integer'),
-                'per_page.min' => __('api.notifications.validation_per_page_min'),
-                'per_page.max' => __('api.notifications.validation_per_page_max'),
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $deliveries = $this->notificationService->getFiredNotificationDeliveriesForUserPaginated(
                 $user,
@@ -60,13 +48,8 @@ class NotificationController extends Controller
     public function markAsRead(Request $request, int $deliveryId)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $updated = $this->notificationService->markDeliveryAsReadForUser($user, $deliveryId);
             if (! $updated) {
@@ -95,13 +78,8 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $markedCount = $this->notificationService->markAllDeliveriesAsReadForUser($user);
 

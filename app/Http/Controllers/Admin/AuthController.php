@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RegisterAdminRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ResetPasswordWithTokenRequest;
+use App\Http\Requests\Auth\VerifyForgotPasswordOtpRequest;
 use App\Http\Resources\AdminResource;
 use App\Services\AuthService;
 use App\Services\PasswordResetOtpService;
@@ -16,13 +21,9 @@ class AuthController extends Controller
         private readonly PasswordResetOtpService $passwordResetOtpService,
     ) {}
 
-    public function register(Request $request)
+    public function register(RegisterAdminRequest $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users,phone,NULL,id,type,admin'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-        ]);
+        $data = $request->validated();
 
         $result = $this->authService->register($data, 'admin');
 
@@ -35,14 +36,11 @@ class AuthController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         $this->applyLocale($request);
 
-        $credentials = $request->validate([
-            'phone' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ]);
+        $credentials = $request->validated();
 
         $result = $this->authService->login($credentials, 'admin');
 
@@ -98,12 +96,9 @@ class AuthController extends Controller
         ]);
     }
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
         $this->applyLocale($request);
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
 
         $this->passwordResetOtpService->sendOtp($request->string('email')->toString(), 'admin');
 
@@ -112,13 +107,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyForgotPasswordOtp(Request $request)
+    public function verifyForgotPasswordOtp(VerifyForgotPasswordOtpRequest $request)
     {
         $this->applyLocale($request);
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'otp' => ['required', 'string', 'regex:/^[0-9]{4,8}$/'],
-        ]);
+        $data = $request->validated();
 
         $result = $this->passwordResetOtpService->verifyOtp($data['email'], 'admin', $data['otp']);
 
@@ -138,13 +130,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function resetPasswordWithToken(Request $request)
+    public function resetPasswordWithToken(ResetPasswordWithTokenRequest $request)
     {
         $this->applyLocale($request);
-        $data = $request->validate([
-            'reset_token' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-        ]);
+        $data = $request->validated();
 
         if (! $this->passwordResetOtpService->resetPassword($data['reset_token'], $data['password'])) {
             return response()->json([

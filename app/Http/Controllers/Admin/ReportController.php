@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReportReplyRequest;
 use App\Http\Resources\AdminReportResource;
 use App\Models\CaptainReport;
 use App\Services\ReportService;
@@ -62,23 +63,12 @@ class ReportController extends Controller
         }
     }
 
-    public function reply(Request $request, CaptainReport $report)
+    public function reply(ReportReplyRequest $request, CaptainReport $report)
     {
         try {
-            $data = $request->validate([
-                'admin_reply' => ['required', 'string', 'min:1', 'max:5000'],
-            ], [
-                'admin_reply.required' => __('api.reports.validation_reply_required'),
-                'admin_reply.max' => __('api.reports.validation_reply_max'),
-            ]);
-
+            $data = $request->validated();
+            /** @var \App\Models\User $admin */
             $admin = $request->user();
-            if ($admin === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $reply = mb_substr(trim($data['admin_reply']), 0, 5000);
 

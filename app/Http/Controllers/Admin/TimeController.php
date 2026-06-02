@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTimeRequest;
+use App\Http\Requests\Admin\UpdateTimeRequest;
 use App\Http\Resources\TimeResource;
 use App\Models\Time;
 use App\Services\TimeService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -30,6 +33,9 @@ class TimeController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.times.server_error'),
@@ -54,6 +60,9 @@ class TimeController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.times.server_error'),
@@ -65,13 +74,7 @@ class TimeController extends Controller
     public function show($id)
     {
         try {
-            $time = Time::find($id);
-            if(!$time) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.times.not_found'),
-                ], 404);
-            }
+            $time = Time::query()->findOrFail($id);
             $time->loadMissing([
                 'point:id,name_en,name_ar,route_id',
                 'point.route:id,is_active',
@@ -91,14 +94,10 @@ class TimeController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreTimeRequest $request)
     {
         try {
-            $data = $request->validate([
-                'point_id' => 'required|exists:points,id',
-                'pickup_time' => 'required|string|max:255',
-                'is_active' => 'sometimes|boolean',
-            ]);
+            $data = $request->validated();
             $time = $this->timeService->createTime($data);
             $time->load('point:id,name_en,name_ar,route_id');
 
@@ -118,13 +117,10 @@ class TimeController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateTimeRequest $request, $id)
     {
         try {
-            $data = $request->validate([
-                'pickup_time' => 'required|string|max:255',
-                'is_active' => 'required|boolean',
-            ]);
+            $data = $request->validated();
             $time = $this->timeService->updateTime($id, $data);
 
             return response()->json([
@@ -146,13 +142,7 @@ class TimeController extends Controller
     public function destroy($id)
     {
         try {
-            $time = Time::find($id);
-            if(!$time) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.times.not_found'),
-                ], 404);
-            }
+            $time = Time::query()->findOrFail($id);
             $time->delete();
 
             return response()->json([

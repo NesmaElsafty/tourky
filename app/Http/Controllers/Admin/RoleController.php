@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreRoleRequest;
+use App\Http\Requests\Admin\UpdateRoleRequest;
 use App\Http\Resources\RoleResource;
 use App\Services\RoleService;
 use App\Models\Role;
-use Illuminate\Http\Request;
 use App\Models\Permission;
 use App\Http\Resources\PermissionResource;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class RoleController extends Controller
 {
@@ -41,22 +43,14 @@ class RoleController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
         try {
-            $request->validate([
-                'name_en' => 'required|string|max:255',
-                'name_ar' => 'required|string|max:255',
-                'description_en' => 'required|string|max:255',
-                'description_ar' => 'required|string|max:255',
-                'permissions' => 'required|array',
-                'permissions.*' => 'required|exists:permissions,id',
-                'parent_id' => 'nullable|exists:roles,id',
-            ]);
-            $role = $this->roleService->createRole($request->all());
+            $data = $request->validated();
+            $role = $this->roleService->createRole($data);
 
-            if (isset($request->permissions)) {
-                $role->permissions()->attach($request->permissions);
+            if (isset($data['permissions'])) {
+                $role->permissions()->attach($data['permissions']);
             }
 
             return response()->json([
@@ -69,29 +63,15 @@ class RoleController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRoleRequest $request, $id)
     {
         try {
-            $request->validate([
-                'name_en' => 'nullable|string|max:255',
-                'name_ar' => 'nullable|string|max:255',
-                'description_en' => 'nullable|string|max:255',
-                'description_ar' => 'nullable|string|max:255',
-                'permissions' => 'nullable|array',
-                'permissions.*' => 'required|exists:permissions,id',
-                'parent_id' => 'nullable|exists:roles,id',
-            ]);
-            $role = Role::find($id);
-            if($role === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.roles.not_found'),
-                ], 404);
-            }
-            $role = $this->roleService->updateRole($request->all(), $role);
+            $data = $request->validated();
+            $role = Role::query()->findOrFail($id);
+            $role = $this->roleService->updateRole($data, $role);
 
-            if (isset($request->permissions)) {
-                $role->permissions()->sync($request->permissions);
+            if (isset($data['permissions'])) {
+                $role->permissions()->sync($data['permissions']);
             }
 
             return response()->json([
@@ -100,6 +80,9 @@ class RoleController extends Controller
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
@@ -115,6 +98,9 @@ class RoleController extends Controller
                 'data' => new RoleResource($role),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
@@ -123,13 +109,7 @@ class RoleController extends Controller
     {
         try {
             // detach all permissions from the role
-            $role = Role::find($id);
-            if($role === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.roles.not_found'),
-                ], 404);
-            }
+            $role = Role::query()->findOrFail($id);
             if($role->users()->count() > 0) {
                 return response()->json([
                     'status' => 'error',

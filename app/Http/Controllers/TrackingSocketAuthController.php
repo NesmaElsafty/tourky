@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Tracking\AuthorizeTripRequest;
 use App\Models\Reservation;
 use App\Models\TripCar;
 use Illuminate\Http\JsonResponse;
@@ -13,11 +14,8 @@ class TrackingSocketAuthController extends Controller
     /** Minimal identity for the tracking microservice (Sanctum bearer token). Captain/client only. */
     public function me(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
-
-        if ($user === null) {
-            return response()->json(['message' => __('api.auth.unauthorized')], Response::HTTP_UNAUTHORIZED);
-        }
 
         if (! in_array($user->type, ['captain', 'client'], true)) {
             return response()->json(['message' => __('api.auth.forbidden_permission')], Response::HTTP_FORBIDDEN);
@@ -32,17 +30,12 @@ class TrackingSocketAuthController extends Controller
     /**
      * Whether this user may subscribe to live updates for the given trip.
      */
-    public function authorizeTrip(Request $request): JsonResponse
+    public function authorizeTrip(AuthorizeTripRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'trip_id' => ['required', 'integer', 'exists:trips,id'],
-        ]);
+        $validated = $request->validated();
 
+        /** @var \App\Models\User $user */
         $user = $request->user();
-
-        if ($user === null) {
-            return response()->json(['message' => __('api.auth.unauthorized')], Response::HTTP_UNAUTHORIZED);
-        }
 
         $tripId = (int) $validated['trip_id'];
 

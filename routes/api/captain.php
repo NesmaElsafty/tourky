@@ -33,6 +33,6 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->
         ->whereNumber('trip')
         ->whereNumber('reservation');
     Route::post('trips/{trip}/close', [CaptainTripController::class, 'close'])->whereNumber('trip');
-
+    Route::post('updateBalance', [CaptainAuthController::class, 'updateBalance']);
     Route::post('onlineToggler', [CaptainAuthController::class, 'isOnlineToggle']);
 });

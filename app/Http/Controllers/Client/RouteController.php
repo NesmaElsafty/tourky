@@ -10,6 +10,7 @@ use App\Models\Route;
 use App\Models\RouteTime;
 use App\Models\Time;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class RouteController extends Controller
@@ -56,13 +57,7 @@ class RouteController extends Controller
     public function getPoints(Request $request, $routeId)
     {
         try {
-            $route = Route::find($routeId);
-            if ($route === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.routes.not_found'),
-                ], 404);
-            }
+            $route = Route::query()->findOrFail($routeId);
             $points = $route->points()->with('times')->get();
 
             return response()->json([
@@ -71,6 +66,9 @@ class RouteController extends Controller
                 'data' => PointResource::collection($points),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.routes.server_error'),
@@ -83,13 +81,7 @@ class RouteController extends Controller
     public function getRouteTimes(Request $request, int $routeId)
     {
         try {
-            $route = Route::find($routeId);
-            if ($route === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.routes.not_found'),
-                ], 404);
-            }
+            Route::query()->findOrFail($routeId);
             $routeTimes = RouteTime::where('route_id', $routeId)->get();
 
             return response()->json([
@@ -98,6 +90,9 @@ class RouteController extends Controller
                 'data' => RouteTimeResource::collection($routeTimes),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.routes.server_error'),

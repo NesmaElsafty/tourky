@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Client;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\ReportIndexRequest;
+use App\Http\Requests\Client\StoreReportRequest;
 use App\Http\Resources\ClientReportResource;
 use App\Http\Resources\ClientTripResource;
 use App\Models\CaptainReport;
 use App\Models\Reservation;
 use App\Services\ReportService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -18,20 +21,11 @@ class ReportController extends Controller
         private ReportService $reportService,
     ) {}
 
-    public function index(Request $request)
+    public function index(ReportIndexRequest $request)
     {
         try {
-            $request->validate([
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $perPage = (int) $request->input('per_page', 15);
             $paginator = $this->reportService->paginateReportsForClient($user, $perPage);
@@ -53,27 +47,11 @@ class ReportController extends Controller
         }
     }
 
-    public function store(Request $request, Reservation $reservation)
+    public function store(StoreReportRequest $request, Reservation $reservation)
     {
         try {
-            $request->validate([
-                'type' => ['required', 'in:trip,captain'],
-                'message' => ['required', 'string', 'min:10', 'max:5000'],
-            ], [
-                'type.required' => __('api.reports.validation_type_required'),
-                'type.in' => __('api.reports.validation_type_in'),
-                'message.required' => __('api.reports.validation_message_required'),
-                'message.min' => __('api.reports.validation_message_min'),
-                'message.max' => __('api.reports.validation_message_max'),
-            ]);
-
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $type = $request->string('type')->toString();
             $messageRaw = $request->input('message');
@@ -88,13 +66,6 @@ class ReportController extends Controller
 
             $trip = $this->reportService->submitClientReport($user, $reservation, $typeConst, mb_substr($message, 0, 5000));
 
-            if ($trip === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.reservations.not_found'),
-                ], 404);
-            }
-
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.reports.client_submitted'),
@@ -103,6 +74,9 @@ class ReportController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.reports.server_error'),

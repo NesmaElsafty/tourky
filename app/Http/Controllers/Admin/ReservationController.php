@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReservationGroupsRequest;
+use App\Http\Requests\Admin\ReservationPriceRequest;
+use App\Http\Requests\Admin\ReservationStatusUpdateRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Services\ReservationService;
@@ -72,15 +75,10 @@ class ReservationController extends Controller
         }
     }
 
-    public function updateStatus(Request $request, Reservation $reservation)
+    public function updateStatus(ReservationStatusUpdateRequest $request, Reservation $reservation)
     {
         try {
-            $data = $request->validate([
-                'status' => 'required|in:confirmed,cancelled',
-            ], [
-                'status.required' => __('api.reservations.validation_status_required'),
-                'status.in' => __('api.reservations.validation_status_in'),
-            ]);
+            $data = $request->validated();
             $reservation = $this->reservationService->updateReservationStatus(
                 $reservation,
                 $data['status'],
@@ -102,13 +100,9 @@ class ReservationController extends Controller
         }
     }
 
-    public function groups(Request $request)
+    public function groups(ReservationGroupsRequest $request)
     {
         try {
-            $request->validate([
-                'per_page' => 'sometimes|integer|min:1|max:100',
-            ]);
-
             $groups = $this->reservationService->getPendingReservationGroupSummariesPaginated(
                 (int) ($request->per_page ?? 10)
             );
@@ -155,18 +149,10 @@ class ReservationController extends Controller
         }
     }
 
-    public function calculatePrice(Request $request)
+    public function calculatePrice(ReservationPriceRequest $request)
     {
         try {
-            $data = $request->validate([
-                'time_id' => 'required|integer|exists:times,id',
-                'drop_off_time_id' => 'required|integer|exists:times,id',
-            ], [
-                'time_id.required' => __('api.reservations.validation_time_id'),
-                'time_id.exists' => __('api.reservations.validation_time_id'),
-                'drop_off_time_id.required' => __('api.reservations.validation_drop_off_time_id'),
-                'drop_off_time_id.exists' => __('api.reservations.validation_drop_off_time_id'),
-            ]);
+            $data = $request->validated();
 
             $price = $this->reservationService->calculatePriceForReservation($data['time_id'], $data['drop_off_time_id']);
 

@@ -4,26 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RouteIndexRequest;
+use App\Http\Requests\Admin\StoreRouteRequest;
+use App\Http\Requests\Admin\UpdateRouteRequest;
 use App\Http\Resources\RouteResource;
 use App\Models\Route;
 use App\Models\User;
 use App\Services\RouteService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class RouteController extends Controller
 {
     public function __construct(private RouteService $routeService) {}
 
-    public function index(Request $request)
+    public function index(RouteIndexRequest $request)
     {
         try {
-            $filters = $request->validate([
-                'per_page' => 'sometimes|integer|min:1|max:100',
-                'type' => ['sometimes', 'nullable', Rule::in(['b2b', 'b2c'])],
-                'company_id' => 'sometimes|nullable|integer|exists:users,id',
-            ]);
+            $filters = $request->validated();
 
             $serviceFilters = $this->routeFiltersForActor($request, array_filter(
                 [
@@ -47,6 +46,9 @@ class RouteController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.routes.server_error'),
@@ -55,7 +57,7 @@ class RouteController extends Controller
         }
     }
 
-    public function indexAll(Request $request)
+    public function indexAll(RouteIndexRequest $request)
     {
         try {
             if ($request->user()?->isCompanyOperator()) {
@@ -65,11 +67,7 @@ class RouteController extends Controller
                 ], 403);
             }
 
-            $filters = $request->validate([
-                'per_page' => 'sometimes|integer|min:1|max:100',
-                'type' => ['sometimes', 'nullable', Rule::in(['b2b', 'b2c'])],
-                'company_id' => 'sometimes|nullable|integer|exists:users,id',
-            ]);
+            $filters = $request->validated();
 
             $serviceFilters = $this->routeFiltersForActor($request, array_filter(
                 [
@@ -93,6 +91,9 @@ class RouteController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.routes.server_error'),
@@ -104,13 +105,7 @@ class RouteController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $route = Route::find($id);
-            if ($route === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.routes.not_found'),
-                ], 404);
-            }
+            $route = Route::query()->findOrFail($id);
             $actor = $request->user();
             if ($actor instanceof User && $actor->isCompanyOperator()) {
                 if ($route->type !== 'b2b' || (int) $route->company_id !== (int) $actor->id) {
@@ -147,6 +142,9 @@ class RouteController extends Controller
                 'data' => new RouteResource($route),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.routes.server_error'),
@@ -155,7 +153,7 @@ class RouteController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreRouteRequest $request)
     {
         try {
             if ($request->user()?->isCompanyOperator()) {
@@ -165,22 +163,7 @@ class RouteController extends Controller
                 ], 403);
             }
 
-            $data = $request->validate([
-                'name_en' => 'required|string|max:255',
-                'name_ar' => 'required|string|max:255',
-                'start_point_en' => 'nullable|string|max:255',
-                'start_point_ar' => 'nullable|string|max:255',
-                'start_lat' => 'nullable|string|max:255',
-                'start_long' => 'nullable|string|max:255',
-                'end_point_en' => 'nullable|string|max:255',
-                'end_point_ar' => 'nullable|string|max:255',
-                'end_lat' => 'nullable|string|max:255',
-                'end_long' => 'nullable|string|max:255',
-                'type' => ['required', Rule::in(['b2b', 'b2c'])],
-                'company_id' => ['nullable', 'integer', 'exists:users,id'],
-                'is_active' => 'sometimes|boolean',
-                'point_price' => 'nullable|numeric|min:0',
-            ]);
+            $data = $request->validated();
             if ($data['type'] === 'b2c') {
                 $data['company_id'] = null;
             }
@@ -207,7 +190,7 @@ class RouteController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRouteRequest $request, $id)
     {
         try {
             if ($request->user()?->isCompanyOperator()) {
@@ -216,33 +199,12 @@ class RouteController extends Controller
                     'message' => __('api.auth.forbidden_permission'),
                 ], 403);
             }
-            $route = Route::find($id);
-            if ($route === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.routes.not_found'),
-                ], 404);
-            }
-            $data = $request->validate([
-                'name_en' => 'sometimes|required|string|max:255',
-                'name_ar' => 'sometimes|required|string|max:255',
-                'start_point_en' => 'nullable|string|max:255',
-                'start_point_ar' => 'nullable|string|max:255',
-                'start_lat' => 'nullable|string|max:255',
-                'start_long' => 'nullable|string|max:255',
-                'end_point_en' => 'nullable|string|max:255',
-                'end_point_ar' => 'nullable|string|max:255',
-                'end_lat' => 'nullable|string|max:255',
-                'end_long' => 'nullable|string|max:255',
-                'type' => ['nullable', Rule::in(['b2b', 'b2c'])],
-                'company_id' => ['nullable', 'integer', 'exists:users,id', 'required_if:type,b2b'],
-                'is_active' => 'nullable|boolean',
-                'point_price' => 'nullable|numeric|min:0',
-            ]);
+            $route = Route::query()->findOrFail($id);
+            $data = $request->validated();
 
             $companyId = $route->company_id;
             if (isset($data['company_id']) && $data['company_id'] !== null) {
-                $company = User::find($data['company_id']);
+                $company = User::query()->findOrFail($data['company_id']);
                 if ($company->role->name_en !== 'Company') {
                     return response()->json([
                         'status' => 'error',
@@ -271,13 +233,7 @@ class RouteController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $route = Route::find($id);
-            if ($route === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.routes.not_found'),
-                ], 404);
-            }
+            $route = Route::query()->findOrFail($id);
             if ($request->user()?->isCompanyOperator()) {
                 return response()->json([
                     'status' => 'error',

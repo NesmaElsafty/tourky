@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCarRequest;
+use App\Http\Requests\Admin\UpdateCarRequest;
 use App\Http\Resources\CarResource;
 use App\Models\Car;
 use App\Services\CarService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +30,9 @@ class CarController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.cars.server_error'),
@@ -38,19 +44,16 @@ class CarController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $car = Car::find($id);
-            if($car === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.cars.not_found'),
-                ], 404);
-            }
+            $car = Car::query()->findOrFail($id);
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.cars.retrieved'),
                 'data' => new CarResource($car->load('captain')),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.cars.server_error'),
@@ -59,18 +62,10 @@ class CarController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreCarRequest $request)
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|max:255',
-                'number_of_seats' => 'required|string|max:255',
-                'type' => 'required|in:sedan,microbus',
-                'plate_numbers' => 'required|string|max:255',
-                'plate_letters' => 'required|string|max:255',
-                'color' => 'required|string|max:255',
-                'status' => 'required|in:active,inactive,maintenance,in_use',
-            ]);
+            $data = $request->validated();
             $car = $this->carService->createCar($data);
 
             return response()->json([
@@ -81,6 +76,9 @@ class CarController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.cars.server_error'),
@@ -89,25 +87,11 @@ class CarController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateCarRequest $request, $id)
     {
         try {
-            $data = $request->validate([
-                'name' => 'sometimes|required|string|max:255',
-                'number_of_seats' => 'nullable|string|max:255',
-                'type' => 'sometimes|required|in:sedan,microbus',
-                'plate_numbers' => 'nullable|string|max:255',
-                'plate_letters' => 'nullable|string|max:255',
-                'color' => 'nullable|string|max:255',
-                'status' => 'nullable|in:active,inactive,maintenance,in_use',
-            ]);
-            $car = Car::find($id);
-            if($car === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.cars.not_found'),
-                ], 404);
-            }
+            $data = $request->validated();
+            $car = Car::query()->findOrFail($id);
             $car = $this->carService->updateCar($car, $data);
 
             return response()->json([
@@ -129,13 +113,7 @@ class CarController extends Controller
     public function destroy($id)
     {
         try {
-            $car = Car::find($id);
-            if($car === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.cars.not_found'),
-                ], 404);
-            }
+            $car = Car::query()->findOrFail($id);
             $this->carService->deleteCar($car);
 
             return response()->json([

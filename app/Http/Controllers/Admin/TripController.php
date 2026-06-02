@@ -4,28 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTripRequest;
+use App\Http\Requests\Admin\TripIndexRequest;
+use App\Http\Requests\Admin\UpdateTripRequest;
 use App\Http\Resources\TripResource;
 use App\Models\Trip;
 use App\Services\TripService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TripController extends Controller
 {
     public function __construct(private TripService $tripService) {}
 
-    public function index(Request $request)
+    public function index(TripIndexRequest $request)
     {
         try {
-            $request->validate([
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ], [
-                'per_page.integer' => __('api.trips.validation_per_page_integer'),
-                'per_page.min' => __('api.trips.validation_per_page_min'),
-                'per_page.max' => __('api.trips.validation_per_page_max'),
-            ]);
-
             $trips = $this->tripService->getTripsPaginated((int) ($request->per_page ?? 10));
             $pagination = PaginationHelper::paginate($trips);
 
@@ -38,6 +33,9 @@ class TripController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),
@@ -49,13 +47,7 @@ class TripController extends Controller
     public function show($id)
     {
         try {
-            $trip = Trip::find($id);
-            if($trip === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.trips.not_found'),
-                ], 404);
-            }
+            $trip = Trip::query()->findOrFail($id);
             $trip->load([
                 'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
                 'tripCars.car',
@@ -70,6 +62,9 @@ class TripController extends Controller
                 'data' => new TripResource($trip),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),
@@ -78,28 +73,10 @@ class TripController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreTripRequest $request)
     {
         try {
-            $data = $request->validate([
-                'date' => ['required', 'date'],
-                'route_time_id' => ['required', 'integer', 'exists:route_times,id'],
-                'cars' => ['required', 'array', 'min:1'],
-                'cars.*.captain_id' => ['required', 'integer', 'distinct', 'exists:users,id'],
-                'cars.*.car_id' => ['required', 'integer', 'distinct', 'exists:cars,id'],
-                'cars.*.status' => ['sometimes', 'string', Rule::in(['planned', 'in_progress', 'completed', 'cancelled'])],
-            ],
-                [
-                    'date.required' => __('api.trips.validation_date_required'),
-                    'date.date' => __('api.trips.validation_date_date'),
-                    'route_time_id.required' => __('api.trips.validation_route_time_id_required'),
-                    'route_time_id.exists' => __('api.trips.validation_route_time_id_exists'),
-                    'cars.required' => __('api.trips.validation_cars_required'),
-                    'cars.array' => __('api.trips.validation_cars_array'),
-                    'cars.min' => __('api.trips.validation_cars_min'),
-                    'cars.*.captain_id.distinct' => __('api.trips.validation_captain_distinct'),
-                    'cars.*.car_id.distinct' => __('api.trips.validation_car_distinct'),
-                ]);
+            $data = $request->validated();
 
             $trip = $this->tripService->createTripForReservationGroup(
                 (string) $data['date'],
@@ -115,6 +92,9 @@ class TripController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),
@@ -123,22 +103,12 @@ class TripController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateTripRequest $request, $id)
     {
         try {
-            $data = $request->validate([
-                'time_id' => ['sometimes', 'required', 'integer', 'exists:times,id'],
-                'date' => ['sometimes', 'required', 'date'],
-                'status' => ['sometimes', 'required', 'string', Rule::in(['planned', 'in_progress', 'completed', 'cancelled'])],
-            ]);
+            $data = $request->validated();
 
-            $trip = Trip::find($id);
-            if($trip === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.trips.not_found'),
-                ], 404);
-            }
+            $trip = Trip::query()->findOrFail($id);
             $updated = $this->tripService->updateTrip($trip, $data);
 
             return response()->json([
@@ -160,13 +130,7 @@ class TripController extends Controller
     public function destroy($id)
     {
         try {
-            $trip = Trip::find($id);
-            if($trip === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.trips.not_found'),
-                ], 404);
-            }
+            $trip = Trip::query()->findOrFail($id);
             $trip->delete();
             return response()->json([
                 'status' => 'success',

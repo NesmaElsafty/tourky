@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Transaction;
+use App\Policies\TransactionPolicy;
 use App\Services\CaptainRatingService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +23,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(Transaction::class, TransactionPolicy::class);
     }
 }

@@ -34,6 +34,8 @@ class UserResource extends JsonResource
                     'name_ar' => $this->role->name_ar,
                 ],
             ),
+
+            'balance' => $this->balance,
             'role_id' => $this->when($this->type === 'admin', $this->role_id),
             'rating_average' => $this->when(
                 $this->type === 'captain' && $this->resource->offsetExists('captain_rating_average'),

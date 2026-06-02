@@ -3,20 +3,17 @@
 namespace App\Http\Controllers\Captain;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shared\TermTypeRequest;
 use App\Http\Resources\TermResource;
 use App\Services\TermService;
-use Illuminate\Http\Request;
 
 class TermController extends Controller
 {
     public function __construct(private TermService $termService) {}
 
-    public function index(Request $request)
+    public function index(TermTypeRequest $request)
     {
         try {
-            $request->validate([
-                'type' => 'required|in:terms_conditions,privacy_policy,FAQ',
-            ]);
             $terms = $this->termService->getActiveTermsForUserType('captain', $request->type)->get();
 
             return response()->json([

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCaptainRequest;
 use App\Http\Resources\CaptainResource;
 use App\Services\CaptainRatingService;
 use App\Services\CaptainService;
@@ -72,15 +73,30 @@ class CaptainController extends Controller
         }
     }
 
-    public function store(Request $request)
+    // get captain by phone number
+    public function getCaptainByPhoneNumber($phone)
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|max:255',
-                'phone' => 'required|string|max:255|unique:users,phone',
-                'password' => 'required|string|min:6|confirmed',
-                'license_expiry_date' => ['nullable', 'date'],
+            $captain = $this->captainService->getCaptainByPhoneNumber($phone);
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.captains.retrieved'),
+                'data' => new CaptainResource($captain),
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.captains.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function store(StoreCaptainRequest $request)
+    {
+        try {
+            $data = $request->validated();
             $captain = $this->captainService->createCaptain($data);
 
             return response()->json([

@@ -4,24 +4,26 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\FireNotificationRequest;
+use App\Http\Requests\Admin\FiredNotificationsByUserTypeRequest;
+use App\Http\Requests\Admin\NotificationIndexRequest;
+use App\Http\Requests\Admin\StoreNotificationRequest;
+use App\Http\Requests\Admin\UpdateNotificationRequest;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\UserWithFiredNotificationsResource;
 use App\Models\Notification;
 use App\Services\NotificationService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class NotificationController extends Controller
 {
     public function __construct(private NotificationService $notificationService) {}
 
-    public function index(Request $request)
+    public function index(NotificationIndexRequest $request)
     {
         try {
-            $request->validate([
-                'user_type' => ['nullable', Rule::in(Notification::USER_TYPES)],
-            ]);
             $notifications = $this->notificationService->getNotificationsPaginated(
                 (int) ($request->per_page ?? 10),
                 $request->input('user_type'),
@@ -35,6 +37,9 @@ class NotificationController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.notifications.server_error'),
@@ -59,6 +64,9 @@ class NotificationController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.notifications.server_error'),
@@ -70,19 +78,16 @@ class NotificationController extends Controller
     public function show($id)
     {
         try {
-            $notification = Notification::find($id);
-            if($notification === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.notifications.not_found'),
-                ], 404);
-            }
+            $notification = Notification::query()->findOrFail($id);
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.notifications.retrieved'),
                 'data' => new NotificationResource($notification),
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.notifications.server_error'),
@@ -91,16 +96,10 @@ class NotificationController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreNotificationRequest $request)
     {
         try {
-            $data = $request->validate([
-                'title_en' => 'required|string|max:255',
-                'title_ar' => 'required|string|max:255',
-                'description_en' => 'nullable|string',
-                'description_ar' => 'nullable|string',
-                'user_type' => ['required', Rule::in(Notification::USER_TYPES)],
-            ]);
+            $data = $request->validated();
             $notification = $this->notificationService->createNotification($data);
 
             return response()->json([
@@ -111,6 +110,9 @@ class NotificationController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.notifications.server_error'),
@@ -119,23 +121,11 @@ class NotificationController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateNotificationRequest $request, $id)
     {
         try {
-            $data = $request->validate([
-                'title_en' => 'sometimes|required|string|max:255',
-                'title_ar' => 'sometimes|required|string|max:255',
-                'description_en' => 'nullable|string',
-                'description_ar' => 'nullable|string',
-                'user_type' => ['sometimes', 'required', Rule::in(Notification::USER_TYPES)],
-            ]);
-            $notification = Notification::find($id);
-            if($notification === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.notifications.not_found'),
-                ], 404);
-            }
+            $data = $request->validated();
+            $notification = Notification::query()->findOrFail($id);
             $notification = $this->notificationService->updateNotification($notification, $data);
 
             return response()->json([
@@ -157,13 +147,7 @@ class NotificationController extends Controller
     public function destroy($id)
     {
         try {
-            $notification = Notification::find($id);
-            if($notification === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.notifications.not_found'),
-                ], 404);
-            }
+            $notification = Notification::query()->findOrFail($id);
             $this->notificationService->deleteNotification($notification);
 
             return response()->json([
@@ -179,26 +163,11 @@ class NotificationController extends Controller
         }
     }
 
-    public function fireNotification(Request $request, $id)
+    public function fireNotification(FireNotificationRequest $request, $id)
     {
         try {
-            $request->validate([
-                'user_ids' => ['sometimes', 'array'],
-                'user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
-            ], [
-                'user_ids.array' => __('api.notifications.validation_user_ids_array'),
-                'user_ids.*.integer' => __('api.notifications.validation_user_ids_integer'),
-                'user_ids.*.exists' => __('api.notifications.validation_user_ids_exists'),
-            ]);
-
             $onlyIds = $request->input('user_ids');
-            $notification = Notification::find($id);
-            if($notification === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.notifications.not_found'),
-                ], 404);
-            }
+            $notification = Notification::query()->findOrFail($id);
             $count = $this->notificationService->fireNotification(
                 $notification,
                 is_array($onlyIds) ? $onlyIds : null,
@@ -223,17 +192,9 @@ class NotificationController extends Controller
         }
     }
 
-    public function firedByUserType(Request $request)
+    public function firedByUserType(FiredNotificationsByUserTypeRequest $request)
     {
         try {
-            $request->validate([
-                'user_type' => ['required', Rule::in(Notification::USER_TYPES)],
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            ], [
-                'user_type.required' => __('api.notifications.validation_user_type_required'),
-                'user_type.in' => __('api.notifications.validation_user_type_invalid'),
-            ]);
-
             $users = $this->notificationService->getUsersWithFiredNotificationsPaginated(
                 $request->string('user_type')->toString(),
                 (int) ($request->per_page ?? 10),

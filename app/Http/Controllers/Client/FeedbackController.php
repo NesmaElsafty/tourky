@@ -3,35 +3,22 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\StoreFeedbackRequest;
 use App\Http\Resources\FeedbackResource;
 use App\Services\FeedbackService;
-use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class FeedbackController extends Controller
 {
     public function __construct(private readonly FeedbackService $feedbackService) {}
 
-    public function store(Request $request)
+    public function store(StoreFeedbackRequest $request)
     {
         try {
-            $data = $request->validate([
-                'captain_id' => ['required', 'integer', 'exists:users,id'],
-                'feedback' => ['required', 'string', 'min:3', 'max:5000'],
-                'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            ], [
-                'captain_id.required' => __('api.feedbacks.validation_captain_required'),
-                'feedback.required' => __('api.feedbacks.validation_feedback_required'),
-                'rating.required' => __('api.feedbacks.validation_rating_required'),
-            ]);
+            $data = $request->validated();
 
+            /** @var \App\Models\User $user */
             $user = $request->user();
-            if ($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $feedback = $this->feedbackService->createForClient($user, [
                 'captain_id' => (int) $data['captain_id'],

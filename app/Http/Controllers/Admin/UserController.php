@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Requests\Admin\UserIndexRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\CaptainDocumentService;
@@ -13,7 +16,6 @@ use App\Support\CaptainDocumentCollections;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\CompanyResource;
 class UserController extends Controller
@@ -24,10 +26,10 @@ class UserController extends Controller
         private CaptainDocumentService $captainDocumentService,
     ) {}
 
-    public function index(Request $request)
+    public function index(UserIndexRequest $request)
     {
         try {
-            $filters = $this->validateListFilters($request);
+            $filters = $request->validated();
 
             $actor = $request->user();
             $paginateFilters = [
@@ -62,6 +64,9 @@ class UserController extends Controller
                 'pagination' => $pagination,
             ]);
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.users.server_error'),
@@ -70,6 +75,30 @@ class UserController extends Controller
         }
     }
 
+    // get client by phone number and
+    public function getClientByPhoneNumber($phone)
+    {
+        try {
+            $client = User::where('phone', $phone)->where('type', 'client')->first();
+            if($client === null) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.users.client_not_found'),
+                ], 404);
+            }
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.users.client_retrieved'),
+                'data' => new UserResource($client),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.users.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
     public function blocklist(Request $request)
     {
         try {
@@ -87,6 +116,9 @@ class UserController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.users.server_error'),
@@ -119,34 +151,10 @@ class UserController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
         try {
-            $phoneRule = Rule::unique('users', 'phone')->where(
-                fn ($query) => $query->where('type', $request->input('type')),
-            );
-            $emailRule = Rule::unique('users', 'email')->where(
-                fn ($query) => $query->where('type', $request->input('type')),
-            );
-
-            $data = $request->validate(array_merge([
-                'name' => 'required|string|max:255',
-                'phone' => ['required', 'string', 'max:50', $phoneRule],
-                'email' => ['nullable', 'string', 'email', 'max:255', $emailRule],
-                'password' => 'required|string|min:6|confirmed',
-                'type' => ['required', Rule::in(['admin', 'captain', 'client'])],
-                'language' => ['required', Rule::in(['en', 'ar'])],
-                'role_id' => [
-                    Rule::requiredIf($request->input('type') === 'admin'),
-                    'nullable',
-                    'integer',
-                    'exists:roles,id',
-                ],
-                'image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
-            ], $request->input('type') === 'captain' ? array_merge(
-                CaptainDocumentCollections::validationRules(),
-                ['license_expiry_date' => ['nullable', 'date']],
-            ) : []), $this->storeValidationMessages());
+            $data = $request->validated();
 
             $actor = $request->user();
             $denied = $this->ensureManagePermissionForUserType($actor, $data['type'], creating: true);
@@ -223,7 +231,7 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateUserRequest $request, int $id)
     {
         try {
             $user = $this->userService->findActiveUserForAdmin($id);
@@ -238,26 +246,7 @@ class UserController extends Controller
                 return $deniedCompany;
             }
 
-            $phoneRule = Rule::unique('users', 'phone')->where(
-                fn ($query) => $query->where('type', $user->type),
-            )->ignore($user->id);
-
-            $emailRule = Rule::unique('users', 'email')->where(
-                fn ($query) => $query->where('type', $user->type),
-            )->ignore($user->id);
-
-            $data = $request->validate(array_merge([
-                'name' => 'sometimes|required|string|max:255',
-                'phone' => ['sometimes', 'required', 'string', 'max:50', $phoneRule],
-                'email' => ['nullable', 'string', 'email', 'max:255', $emailRule],
-                'password' => 'sometimes|nullable|string|min:6|confirmed',
-                'language' => ['sometimes', 'required', Rule::in(['en', 'ar'])],
-                'role_id' => ['sometimes', 'nullable', 'integer', 'exists:roles,id'],
-                'image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
-            ], $user->type === 'captain' ? array_merge(
-                CaptainDocumentCollections::validationRules(),
-                ['license_expiry_date' => ['sometimes', 'nullable', 'date']],
-            ) : []), $this->updateValidationMessages());
+            $data = $request->validated();
 
             $update = [];
             foreach (['name', 'phone', 'email', 'language'] as $field) {
@@ -276,6 +265,10 @@ class UserController extends Controller
             }
             if ($user->type === 'captain' && array_key_exists('license_expiry_date', $data)) {
                 $update['license_expiry_date'] = $data['license_expiry_date'];
+            }
+
+            if ($user->type === 'captain' && array_key_exists('balance', $data)) {
+                $update['balance'] = $data['balance'];
             }
 
             $user = $this->userService->updateUser($user, $update);
@@ -306,20 +299,9 @@ class UserController extends Controller
     public function destroy(Request $request, int $id)
     {
         try {
-            $user = User::find($id);
-            if($user === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.users.not_found'),
-                ], 404);
-            }
+            $user = User::query()->findOrFail($id);
+            /** @var \App\Models\User $actor */
             $actor = $request->user();
-            if ($actor === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.auth.unauthorized'),
-                ], 401);
-            }
 
             $denied = $this->ensureManagePermissionForUserType($actor, $user->type, creating: false);
             if ($denied !== null) {
@@ -350,13 +332,7 @@ class UserController extends Controller
     public function restore(Request $request, int $id)
     {
         try {
-            $trashed = User::onlyTrashed()->with(['role'])->find($id);
-            if ($trashed === null) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => __('api.users.not_in_blocklist'),
-                ], 404);
-            }
+            $trashed = User::onlyTrashed()->with(['role'])->findOrFail($id);
 
             $actor = $request->user();
             $denied = $this->ensureManagePermissionForUserType($actor, $trashed->type, creating: false);
@@ -375,11 +351,6 @@ class UserController extends Controller
                 'message' => __('api.users.restored'),
                 'data' => new UserResource($user),
             ]);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => __('api.users.not_in_blocklist'),
-            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -475,60 +446,6 @@ class UserController extends Controller
         }
 
         return null;
-    }
-
-    /**
-     * @return array{type: string, search?: string, language?: string, role_id?: int, created_from?: string, created_to?: string, per_page?: int}
-     */
-    private function validateListFilters(Request $request): array
-    {
-        return $request->validate([
-            'type' => ['required', Rule::in(['admin', 'captain', 'client'])],
-            'search' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'language' => ['sometimes', 'nullable', Rule::in(['en', 'ar'])],
-            'role_id' => ['sometimes', 'nullable', 'integer', 'exists:roles,id'],
-            'created_from' => ['sometimes', 'nullable', 'date'],
-            'created_to' => ['sometimes', 'nullable', 'date', 'after_or_equal:created_from'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ], [
-            'type.required' => __('api.users.validation_type_required'),
-            'type.in' => __('api.users.validation_type_invalid'),
-            'per_page.integer' => __('api.users.validation_per_page_integer'),
-            'per_page.min' => __('api.users.validation_per_page_min'),
-            'per_page.max' => __('api.users.validation_per_page_max'),
-            'created_to.after_or_equal' => __('api.users.validation_created_range'),
-        ]);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function storeValidationMessages(): array
-    {
-        return [
-            'name.required' => __('api.users.validation_name_required'),
-            'phone.required' => __('api.users.validation_phone_required'),
-            'phone.unique' => __('api.users.validation_phone_unique'),
-            'email.unique' => __('api.users.validation_email_unique'),
-            'password.required' => __('api.users.validation_password_required'),
-            'type.required' => __('api.users.validation_type_required'),
-            'type.in' => __('api.users.validation_type_invalid'),
-            'language.required' => __('api.users.validation_language_required'),
-            'role_id.required' => __('api.users.validation_role_required'),
-            'role_id.exists' => __('api.users.validation_role_invalid'),
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function updateValidationMessages(): array
-    {
-        return [
-            'phone.unique' => __('api.users.validation_phone_unique'),
-            'email.unique' => __('api.users.validation_email_unique'),
-            'role_id.exists' => __('api.users.validation_role_invalid'),
-        ];
     }
 
     /**
