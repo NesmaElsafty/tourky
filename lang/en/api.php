@@ -469,6 +469,11 @@ return [
     'captain_trips' => [
         'notification_title_new' => 'You have a new trip',
         'list_retrieved' => 'Your assigned trips retrieved successfully.',
+        'validation_scope_invalid' => 'Scope must be upcoming, week, history, or today.',
+        'validation_week_offset_integer' => 'Week offset must be an integer.',
+        'validation_week_offset_min' => 'Week offset must be at least 0.',
+        'validation_week_offset_max' => 'Week offset may not be greater than 52.',
+        'week_upcoming_retrieved' => 'Your upcoming trips for this week (Sunday–Thursday) retrieved successfully.',
         'today_retrieved' => 'Today\'s upcoming trips retrieved successfully.',
         'next_today_retrieved' => 'Your next trip retrieved successfully.',
         'next_today_none' => 'You have no upcoming trips assigned.',

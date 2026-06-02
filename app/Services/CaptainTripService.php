@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use App\Models\Trip;
 use App\Models\TripCar;
 use App\Models\User;
+use App\Support\OperationalWeek;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,12 +15,16 @@ use Illuminate\Validation\ValidationException;
 class CaptainTripService
 {
     /**
-     * @param  'today'|'upcoming'|'history'  $scope
+     * @param  'today'|'upcoming'|'week'|'history'  $scope
      * @return LengthAwarePaginator<int, Trip>
      */
-    public function getTripsForCaptain(User $captain, int $perPage = 10, string $scope = 'history'): LengthAwarePaginator
-    {
-        if (! in_array($scope, ['upcoming', 'history', 'today'], true)) {
+    public function getTripsForCaptain(
+        User $captain,
+        int $perPage = 10,
+        string $scope = 'history',
+        int $weekOffset = 0,
+    ): LengthAwarePaginator {
+        if (! in_array($scope, ['upcoming', 'week', 'history', 'today'], true)) {
             $scope = 'history';
         }
 
@@ -27,6 +32,7 @@ class CaptainTripService
 
         match ($scope) {
             'upcoming' => $this->applyUpcomingScope($query),
+            'week' => $this->applyWeekUpcomingScope($query, max(0, $weekOffset)),
             'today' => $this->applyTodayScope($query),
             default => $this->applyHistoryScope($query),
         };
@@ -119,6 +125,22 @@ class CaptainTripService
     private function applyUpcomingScope(Builder $query): void
     {
         $this->applyNextTripScope($query);
+    }
+
+    /**
+     * Upcoming trips within an operational week (Sun–Thu).
+     *
+     * @param  Builder<Trip>  $query
+     */
+    private function applyWeekUpcomingScope(Builder $query, int $weekOffset = 0): void
+    {
+        $this->applyNextTripScope($query);
+
+        $bounds = OperationalWeek::bounds(null, $weekOffset);
+        $query->whereBetween('trips.date', [
+            $bounds['start']->toDateString(),
+            $bounds['end']->toDateString(),
+        ]);
     }
 
     /**

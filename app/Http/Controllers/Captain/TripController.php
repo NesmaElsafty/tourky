@@ -9,7 +9,9 @@ use App\Http\Resources\CaptainTripDetailResource;
 use App\Http\Resources\CaptainTripListResource;
 use App\Models\Reservation;
 use App\Models\Trip;
+use App\Models\User;
 use App\Services\CaptainTripService;
+use App\Support\OperationalWeek;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +22,7 @@ class TripController extends Controller
     public function index(TripIndexRequest $request)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $scope = $request->filled('scope')
@@ -37,22 +39,33 @@ class TripController extends Controller
                 ]);
             }
 
+            $weekOffset = $scope === 'week' ? (int) $request->input('week_offset', 0) : 0;
+
             $paginator = $this->captainTripService->getTripsForCaptain(
                 $user,
                 (int) ($request->input('per_page', 10)),
                 $scope,
+                $weekOffset,
             );
 
-            $message = $scope === 'upcoming'
-                ? __('api.trips.client_upcoming_retrieved')
-                : __('api.trips.client_history_retrieved');
+            $message = match ($scope) {
+                'upcoming' => __('api.trips.client_upcoming_retrieved'),
+                'week' => __('api.captain_trips.week_upcoming_retrieved'),
+                default => __('api.trips.client_history_retrieved'),
+            };
 
-            return response()->json([
+            $payload = [
                 'status' => 'success',
                 'message' => $message,
                 'data' => CaptainTripListResource::collection($paginator),
                 'pagination' => PaginationHelper::paginate($paginator),
-            ]);
+            ];
+
+            if ($scope === 'week') {
+                $payload['week'] = OperationalWeek::meta($weekOffset);
+            }
+
+            return response()->json($payload);
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -67,7 +80,7 @@ class TripController extends Controller
     public function show(Request $request, Trip $trip)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $trip = $this->captainTripService->getTripForCaptain($user, $trip);
@@ -88,12 +101,10 @@ class TripController extends Controller
         }
     }
 
-    
-
     public function start(Request $request, Trip $trip)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $updated = $this->captainTripService->startTripForCaptain($user, $trip);
@@ -119,7 +130,7 @@ class TripController extends Controller
     public function confirmPickup(Request $request, Trip $trip, Reservation $reservation)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $updated = $this->captainTripService->confirmClientPickup($user, $trip, $reservation);
@@ -152,7 +163,7 @@ class TripController extends Controller
     public function confirmDropoff(Request $request, Trip $trip, Reservation $reservation)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $updated = $this->captainTripService->confirmClientDropoff($user, $trip, $reservation);
@@ -185,7 +196,7 @@ class TripController extends Controller
     public function close(Request $request, Trip $trip)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $updated = $this->captainTripService->closeTripForCaptain($user, $trip);

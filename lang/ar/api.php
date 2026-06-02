@@ -469,6 +469,11 @@ return [
     'captain_trips' => [
         'notification_title_new' => 'عندك رحله جديده',
         'list_retrieved' => 'تم جلب رحلاتك المسندة بنجاح.',
+        'validation_scope_invalid' => 'يجب أن تكون القيمة upcoming أو week أو history أو today.',
+        'validation_week_offset_integer' => 'رقم الأسبوع يجب أن يكون عددًا صحيحًا.',
+        'validation_week_offset_min' => 'رقم الأسبوع يجب أن يكون 0 على الأقل.',
+        'validation_week_offset_max' => 'رقم الأسبوع لا يمكن أن يتجاوز 52.',
+        'week_upcoming_retrieved' => 'تم جلب رحلاتك القادمة لهذا الأسبوع (الأحد–الخميس) بنجاح.',
         'today_retrieved' => 'تم جلب رحلات اليوم القادمة بنجاح.',
         'next_today_retrieved' => 'تم جلب رحلتك القادمة بنجاح.',
         'next_today_none' => 'لا توجد رحلات قادمة مسندة إليك.',
