@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tourky — تجربة تتبع مباشر</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --border: #2d3a4f;
+      --captain: #3b82f6;
+      --client: #22c55e;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { margin: 0; font-size: 1.15rem; font-weight: 600; }
+    .meta { font-size: 0.8rem; color: var(--muted); }
+    .meta code { color: #a5b4fc; background: #252f3f; padding: 0.1rem 0.35rem; border-radius: 4px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-head {
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .panel-head.captain { border-top: 3px solid var(--captain); }
+    .panel-head.client { border-top: 3px solid var(--client); }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #64748b;
+    }
+    .dot.on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .panel-body { padding: 0 1rem 1rem; }
+    .status { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; min-height: 2.5em; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    label { font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 0.2rem; }
+    input[type="number"] {
+      width: 7rem;
+      padding: 0.45rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0f1419;
+      color: var(--text);
+    }
+    button {
+      padding: 0.5rem 0.9rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    button.primary { background: var(--captain); color: #fff; }
+    button.secondary { background: #334155; color: var(--text); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    #map { height: 320px; border-radius: 10px; border: 1px solid var(--border); margin: 0 1rem 1rem; }
+    .log {
+      margin: 0 1rem 1rem;
+      max-height: 180px;
+      overflow-y: auto;
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      background: #0f1419;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem;
+    }
+    .log div { padding: 0.2rem 0; border-bottom: 1px solid #1e293b; }
+    .log .loc { color: #86efac; }
+    .log .err { color: #fca5a5; }
+    .log .info { color: #93c5fd; }
+    footer {
+      text-align: center;
+      padding: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>تجربة تتبع Tourky (كابتن ↔ عميل)</h1>
+    <div class="meta">
+      رحلة: <code id="tripLabel">50</code> ·
+      Socket: <code id="socketLabel">…</code>
+    </div>
+  </header>
+
+  <div id="map"></div>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head captain">
+        <span class="dot" id="capDot"></span>
+        الكابتن (يرسل الموقع)
+      </div>
+      <div class="panel-body">
+        <div class="status" id="capStatus">جاري الاتصال…</div>
+        <div class="row">
+          <div>
+            <label>خط العرض (la)</label>
+            <input type="number" id="capLa" step="0.000001" value="30.0444" />
+          </div>
+          <div>
+            <label>خط الطول (lo)</label>
+            <input type="number" id="capLo" step="0.000001" value="31.2357" />
+          </div>
+        </div>
+        <div class="row">
+          <button class="primary" id="btnSend" disabled>إرسال موقع الآن</button>
+          <button class="secondary" id="btnAuto">تشغيل إرسال تلقائي (كل 2 ث)</button>
+        </div>
+      </div>
+      <div class="log" id="capLog"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head client">
+        <span class="dot" id="cliDot"></span>
+        العميل (يستقبل الموقع)
+      </div>
+      <div class="panel-body">
+        <div class="status" id="cliStatus">جاري الاتصال…</div>
+        <p style="font-size:0.8rem;color:var(--muted);margin:0 0 0.75rem">
+          أي حدث <code>loc</code> من الكابتن يظهر هنا وعلى الخريطة.
+        </p>
+      </div>
+      <div class="log" id="cliLog"></div>
+    </section>
+  </div>
+
+  <footer>صفحة تجريبية فقط — لا تستخدمها في الإنتاج مع توكنات حقيقية.</footer>
+
+  <script>
+    /** بيانات ثابتة للتجربة */
+    const DEMO = {
+      trip_id: 50,
+      captain_token: '25|gZmxbWziCoAw38FiDfRdLofPTOsYrb1d7z6W1VLzb6142e2b',
+      client_token: '26|BIKGeBj7xCHNcDkPZwmBsM4QxkPI5T6lhGFnv5mZ4b48be7b',
+      config_url: '/api/tracking/config',
+    };
+
+    const capStatus = document.getElementById('capStatus');
+    const cliStatus = document.getElementById('cliStatus');
+    const capLog = document.getElementById('capLog');
+    const cliLog = document.getElementById('cliLog');
+    const capDot = document.getElementById('capDot');
+    const cliDot = document.getElementById('cliDot');
+    const btnSend = document.getElementById('btnSend');
+    const btnAuto = document.getElementById('btnAuto');
+
+    let capSocket = null;
+    let cliSocket = null;
+    let autoTimer = null;
+    let captainMarker = null;
+    let clientMarker = null;
+
+    const map = L.map('map').setView([30.0444, 31.2357], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+    }).addTo(map);
+
+    function log(el, text, cls = 'info') {
+      const d = document.createElement('div');
+      d.className = cls;
+      d.textContent = `[${new Date().toLocaleTimeString('ar-EG')}] ${text}`;
+      el.prepend(d);
+    }
+
+    function setConnected(dot, on) {
+      dot.classList.toggle('on', on);
+    }
+
+    async function loadConfig() {
+      const res = await fetch(DEMO.config_url, { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error('فشل تحميل tracking/config: ' + res.status);
+      const json = await res.json();
+      return json.data;
+    }
+
+    function connectRole({ url, path, token, role }) {
+      return new Promise((resolve, reject) => {
+        const s = io(url, {
+          path,
+          transports: ['websocket', 'polling'],
+          auth: { token },
+        });
+        const t = setTimeout(() => reject(new Error(role + ': connect timeout')), 15000);
+        s.on('connect', () => { clearTimeout(t); resolve(s); });
+        s.on('connect_error', (err) => { clearTimeout(t); reject(err); });
+      });
+    }
+
+    function joinTrip(socket, tripId) {
+      return new Promise((resolve) => {
+        socket.emit('trip:join', { trip_id: tripId }, (ack) => resolve(ack));
+        setTimeout(() => resolve({ timeout: true }), 10000);
+      });
+    }
+
+    function sendCaptainLoc() {
+      if (!capSocket?.connected) return;
+      const la = parseFloat(document.getElementById('capLa').value);
+      const lo = parseFloat(document.getElementById('capLo').value);
+      capSocket.emit('loc', { trip_id: DEMO.trip_id, la, lo });
+      log(capLog, `أرسلت loc → trip ${DEMO.trip_id} (${la}, ${lo})`, 'info');
+      if (captainMarker) map.removeLayer(captainMarker);
+      captainMarker = L.marker([la, lo], { title: 'الكابتن' }).addTo(map)
+        .bindPopup('موقع الكابتن (مرسل)').openPopup();
+    }
+
+    function onClientLoc(msg) {
+      const text = `loc من مستخدم ${msg.u}: (${msg.la}, ${msg.lo})`;
+      log(cliLog, text, 'loc');
+      cliStatus.textContent = `آخر موقع: ${msg.la}, ${msg.lo}`;
+      if (clientMarker) map.removeLayer(clientMarker);
+      clientMarker = L.marker([msg.la, msg.lo], { title: 'العميل يرى' }).addTo(map)
+        .bindPopup('موقع مستلم').openPopup();
+      map.panTo([msg.la, msg.lo]);
+    }
+
+    async function bootstrap() {
+      document.getElementById('tripLabel').textContent = String(DEMO.trip_id);
+
+      try {
+        const cfg = await loadConfig();
+        document.getElementById('socketLabel').textContent = cfg.socket_url + cfg.path;
+
+        capSocket = await connectRole({
+          url: cfg.socket_url,
+          path: cfg.path,
+          token: DEMO.captain_token,
+          role: 'captain',
+        });
+        setConnected(capDot, true);
+        capStatus.textContent = 'متصل: ' + capSocket.id;
+        log(capLog, 'Socket متصل', 'info');
+
+        const capJoin = await joinTrip(capSocket, DEMO.trip_id);
+        if (!capJoin?.ok) throw new Error('كابتن trip:join فشل: ' + JSON.stringify(capJoin));
+        log(capLog, 'انضم للرحلة ' + DEMO.trip_id, 'info');
+        btnSend.disabled = false;
+
+        cliSocket = await connectRole({
+          url: cfg.socket_url,
+          path: cfg.path,
+          token: DEMO.client_token,
+          role: 'client',
+        });
+        setConnected(cliDot, true);
+        cliStatus.textContent = 'متصل: ' + cliSocket.id;
+        log(cliLog, 'Socket متصل', 'info');
+
+        const cliJoin = await joinTrip(cliSocket, DEMO.trip_id);
+        if (!cliJoin?.ok) throw new Error('عميل trip:join فشل: ' + JSON.stringify(cliJoin));
+        log(cliLog, 'انضم للرحلة ' + DEMO.trip_id, 'info');
+
+        cliSocket.on('loc', onClientLoc);
+
+        capSocket.on('disconnect', () => {
+          setConnected(capDot, false);
+          capStatus.textContent = 'انقطع الاتصال';
+          btnSend.disabled = true;
+        });
+        cliSocket.on('disconnect', () => {
+          setConnected(cliDot, false);
+          cliStatus.textContent = 'انقطع الاتصال';
+        });
+
+        log(capLog, 'جاهز — اضغط إرسال موقع', 'info');
+        log(cliLog, 'بانتظار مواقع من الكابتن…', 'info');
+      } catch (e) {
+        const msg = e?.message || String(e);
+        capStatus.textContent = 'خطأ: ' + msg;
+        cliStatus.textContent = 'خطأ: ' + msg;
+        log(capLog, msg, 'err');
+        log(cliLog, msg, 'err');
+      }
+    }
+
+    btnSend.addEventListener('click', sendCaptainLoc);
+    btnAuto.addEventListener('click', () => {
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        btnAuto.textContent = 'تشغيل إرسال تلقائي (كل 2 ث)';
+        return;
+      }
+      autoTimer = setInterval(sendCaptainLoc, 2000);
+      btnAuto.textContent = 'إيقاف الإرسال التلقائي';
+      sendCaptainLoc();
+    });
+
+    map.on('click', (e) => {
+      document.getElementById('capLa').value = e.latlng.lat.toFixed(6);
+      document.getElementById('capLo').value = e.latlng.lng.toFixed(6);
+    });
+
+    bootstrap();
+  </script>
+</body>
+</html>
