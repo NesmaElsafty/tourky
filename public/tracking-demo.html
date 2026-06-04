@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tourky — Live Tracking Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root { --bg: #0f1419; --card: #1a2332; --border: #2d3a4d; --text: #e7ecf3; --muted: #8b9cb3; --accent: #3b82f6; --ok: #22c55e; --err: #ef4444; }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui,Segoe UI,Tahoma,sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 1rem; line-height: 1.5; }
+        h1 { font-size: 1.25rem; margin: 0 0 .5rem; }
+        .sub { color: var(--muted); font-size: .875rem; margin-bottom: 1rem; }
+        .grid { display: grid; gap: 1rem; grid-template-columns: 1fr; max-width: 1200px; margin: 0 auto; }
+        @media (min-width: 900px) { .grid { grid-template-columns: 380px 1fr; } }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+        label { display: block; font-size: .75rem; color: var(--muted); margin-bottom: .25rem; }
+        input, textarea, select { width: 100%; padding: .5rem .65rem; border-radius: 6px; border: 1px solid var(--border); background: #0d1117; color: var(--text); margin-bottom: .75rem; font-size: .875rem; }
+        textarea { min-height: 64px; resize: vertical; font-family: ui-monospace,monospace; font-size: .75rem; }
+        .row { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .row input { flex: 1; min-width: 100px; }
+        button { padding: .55rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: .875rem; font-weight: 600; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-danger { background: var(--err); color: #fff; }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+        .tab { flex: 1; padding: .6rem; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 8px; cursor: pointer; }
+        .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        #map { height: 420px; border-radius: 8px; border: 1px solid var(--border); }
+        .status { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; padding: .25rem .6rem; border-radius: 999px; background: #0d1117; margin-bottom: .75rem; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+        .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+        .dot.err { background: var(--err); }
+        #log { font-family: ui-monospace,monospace; font-size: .7rem; max-height: 180px; overflow: auto; background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: .5rem; white-space: pre-wrap; word-break: break-all; }
+        .info { background: #1e293b; border-radius: 8px; padding: .75rem; font-size: .8rem; color: var(--muted); margin-bottom: 1rem; }
+        .info strong { color: var(--text); }
+        .coords { font-family: ui-monospace,monospace; font-size: .85rem; margin-top: .5rem; }
+    </style>
+</head>
+<body>
+<div class="grid">
+    <div>
+        <h1>Tourky — تست Live Tracking</h1>
+        <p class="sub">صفحة داخلية للتجربة قبل الموبايل</p>
+
+        <div class="info">
+            <strong>مهم:</strong> مفيش GET للive stream.<br>
+            • <strong>الكابتن (Push):</strong> <code>POST /api/captain/trips/{id}/location</code><br>
+            • <strong>العميل (Receive):</strong> Socket.io event <code>loc</code> (real-time)<br>
+            • <strong>GET</strong> رحلة العميل بيرجع آخر موقع محفوظ في DB (مش live)
+        </div>
+
+        <div class="card">
+            <label>API Base URL</label>
+            <input type="url" id="apiBase" value="https://backend.tourkygroup.com">
+
+            <div class="tabs">
+                <button type="button" class="tab active" data-tab="client">عميل — استقبال (Socket)</button>
+                <button type="button" class="tab" data-tab="captain">كابتن — إرسال (POST)</button>
+            </div>
+
+            <div id="panel-client" class="panel active">
+                <label>Bearer Token (عميل)</label>
+                <textarea id="clientToken" placeholder="من login العميل"></textarea>
+                <label>Trip ID</label>
+                <input type="number" id="clientTripId" min="1" placeholder="50">
+                <label>Reservation ID (اختياري — لـ GET آخر موقع)</label>
+                <input type="number" id="reservationId" min="1" placeholder="لـ GET /api/client/trips/{id}">
+                <div class="status"><span class="dot" id="socketDot"></span><span id="socketStatus">Socket: غير متصل</span></div>
+                <div class="row">
+                    <button type="button" class="btn-primary" id="btnConnect">Connect + trip:join</button>
+                    <button type="button" class="btn-danger" id="btnDisconnect">Disconnect</button>
+                </div>
+                <div class="row" style="margin-top:.5rem">
+                    <button type="button" class="btn-ghost" id="btnFetchConfig">GET /tracking/config</button>
+                    <button type="button" class="btn-ghost" id="btnFetchTrip">GET آخر موقع (trip)</button>
+                </div>
+            </div>
+
+            <div id="panel-captain" class="panel">
+                <label>Bearer Token (كابتن)</label>
+                <textarea id="captainToken" placeholder="من login الكابتن"></textarea>
+                <label>Trip ID (رحلة in_progress)</label>
+                <input type="number" id="captainTripId" min="1">
+                <div class="row">
+                    <label style="flex:1">Latitude<input type="text" id="lat" value="30.044420"></label>
+                    <label style="flex:1">Longitude<input type="text" id="lng" value="31.235712"></label>
+                </div>
+                <div class="row">
+                    <button type="button" class="btn-primary" id="btnPush">POST location (Push)</button>
+                    <button type="button" class="btn-ghost" id="btnUseGps">موقعي الحالي (GPS)</button>
+                </div>
+                <label style="margin-top:.75rem">
+                    <input type="checkbox" id="autoPush"> إرسال تلقائي كل
+                    <input type="number" id="autoSec" value="3" min="2" max="60" style="width:4rem;display:inline-block;margin:0 .25rem"> ثانية
+                </label>
+            </div>
+
+            <label style="margin-top:1rem">Log</label>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="coords" id="coords">lat: — | lng: — | updates: 0</div>
+        <div id="map"></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+(function () {
+    const $ = (id) => document.getElementById(id);
+    const logEl = $('log');
+    let socket = null;
+    let marker = null;
+    let updateCount = 0;
+    let autoTimer = null;
+
+    const map = L.map('map').setView([30.0444, 31.2357], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+    }).addTo(map);
+    marker = L.marker([30.0444, 31.2357]).addTo(map);
+
+    function log(msg, type) {
+        const t = new Date().toLocaleTimeString('ar-EG');
+        const line = `[${t}] ${msg}\n`;
+        logEl.textContent = line + logEl.textContent;
+        if (type === 'err') console.error(msg);
+    }
+
+    function apiBase() {
+        return $('apiBase').value.replace(/\/$/, '');
+    }
+
+    function setSocketStatus(on, text) {
+        const dot = $('socketDot');
+        dot.className = 'dot' + (on === true ? ' on' : on === false ? ' err' : '');
+        $('socketStatus').textContent = text;
+    }
+
+    function updateMap(la, lo, label) {
+        const lat = Number(la);
+        const lng = Number(lo);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        updateCount++;
+        marker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+        $('coords').textContent = `lat: ${lat.toFixed(6)} | lng: ${lng.toFixed(6)} | updates: ${updateCount}${label ? ' | ' + label : ''}`;
+    }
+
+    document.querySelectorAll('.tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach((b) => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
+            btn.classList.add('active');
+            $('panel-' + btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    $('btnFetchConfig').addEventListener('click', async () => {
+        try {
+            const r = await fetch(apiBase() + '/api/tracking/config');
+            const j = await r.json();
+            log('GET config: ' + JSON.stringify(j.data || j));
+        } catch (e) {
+            log('config error: ' + e.message, 'err');
+        }
+    });
+
+    $('btnFetchTrip').addEventListener('click', async () => {
+        const token = $('clientToken').value.trim();
+        const rid = $('reservationId').value;
+        if (!token || !rid) {
+            log('محتاج token عميل + reservation id', 'err');
+            return;
+        }
+        try {
+            const r = await fetch(apiBase() + '/api/client/trips/' + rid, {
+                headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+            });
+            const j = await r.json();
+            log('GET trip: ' + JSON.stringify(j.data?.captain || j));
+            const c = j.data?.captain;
+            if (c?.lat != null && c?.long != null) {
+                updateMap(c.lat, c.long, 'GET snapshot');
+            }
+        } catch (e) {
+            log('GET trip error: ' + e.message, 'err');
+        }
+    });
+
+    $('btnConnect').addEventListener('click', async () => {
+        const token = $('clientToken').value.trim();
+        const tripId = Number($('clientTripId').value);
+        if (!token || !tripId) {
+            log('محتاج token عميل + trip_id', 'err');
+            return;
+        }
+
+        if (socket) socket.disconnect();
+
+        let cfg;
+        try {
+            const r = await fetch(apiBase() + '/api/tracking/config');
+            cfg = (await r.json()).data;
+        } catch (e) {
+            log('فشل config: ' + e.message, 'err');
+            cfg = { socket_url: apiBase(), path: '/socket.io' };
+        }
+
+        const url = (cfg.socket_url || apiBase()).replace(/\/$/, '');
+        log('Connecting to ' + url + ' path ' + (cfg.path || '/socket.io'));
+
+        socket = io(url, {
+            path: cfg.path || '/socket.io',
+            transports: ['websocket', 'polling'],
+            auth: { token },
+            extraHeaders: { Authorization: 'Bearer ' + token },
+        });
+
+        socket.on('connect', () => {
+            setSocketStatus(true, 'Socket: متصل — ' + socket.id);
+            log('connected ' + socket.id);
+            socket.emit('trip:join', { trip_id: tripId }, (ack) => {
+                log('trip:join ack: ' + JSON.stringify(ack));
+                if (ack && !ack.ok) setSocketStatus(false, 'join failed');
+            });
+        });
+
+        socket.on('loc', (msg) => {
+            log('loc: ' + JSON.stringify(msg));
+            updateMap(msg.la ?? msg.lat, msg.lo ?? msg.lng ?? msg.lon, 'socket live');
+        });
+
+        socket.on('connect_error', (e) => {
+            setSocketStatus(false, 'Socket: فشل — ' + e.message);
+            log('connect_error: ' + e.message, 'err');
+        });
+
+        socket.on('disconnect', (reason) => {
+            setSocketStatus(null, 'Socket: منقطع — ' + reason);
+            log('disconnect: ' + reason);
+        });
+    });
+
+    $('btnDisconnect').addEventListener('click', () => {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+        setSocketStatus(null, 'Socket: غير متصل');
+    });
+
+    async function pushLocation() {
+        const token = $('captainToken').value.trim();
+        const tripId = $('captainTripId').value;
+        const lat = $('lat').value;
+        const lng = $('lng').value;
+        if (!token || !tripId) {
+            log('محتاج token كابتن + trip_id', 'err');
+            return;
+        }
+        try {
+            const r = await fetch(apiBase() + '/api/captain/trips/' + tripId + '/location', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({ lat: Number(lat), long: Number(lng) }),
+            });
+            const j = await r.json();
+            log('POST location: ' + JSON.stringify(j));
+            if (r.ok) updateMap(lat, lng, 'captain POST');
+        } catch (e) {
+            log('POST error: ' + e.message, 'err');
+        }
+    }
+
+    $('btnPush').addEventListener('click', pushLocation);
+
+    $('btnUseGps').addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            log('GPS غير متاح', 'err');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (p) => {
+                $('lat').value = p.coords.latitude.toFixed(6);
+                $('lng').value = p.coords.longitude.toFixed(6);
+                log('GPS: ' + $('lat').value + ', ' + $('lng').value);
+            },
+            (e) => log('GPS error: ' + e.message, 'err'),
+        );
+    });
+
+    $('autoPush').addEventListener('change', () => {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        if ($('autoPush').checked) {
+            const sec = Math.max(2, Number($('autoSec').value) || 3);
+            autoTimer = setInterval(pushLocation, sec * 1000);
+            log('auto push every ' + sec + 's');
+        }
+    });
+})();
+</script>
+</body>
+</html>
