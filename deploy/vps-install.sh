@@ -96,6 +96,7 @@ set_env QUEUE_CONNECTION database
 set_env REDIS_HOST 127.0.0.1
 set_env REDIS_PORT 6379
 set_env TRACKING_SERVICE_URL http://127.0.0.1:6001
+set_env TRACKING_SOCKET_URL "\"https://${DOMAIN_API}\""
 set_env TRACKING_INTERNAL_SECRET "\"${TRACKING_SECRET}\""
 set_env MAIL_MAILER smtp
 set_env MAIL_HOST smtp.hostinger.com
@@ -130,6 +131,18 @@ server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:6001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 86400;
+    }
+
     location ~ \.php\$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
@@ -155,6 +168,7 @@ HOST=0.0.0.0
 LARAVEL_URL=http://127.0.0.1
 TRACKING_INTERNAL_SECRET=${TRACKING_SECRET}
 REDIS_URL=redis://127.0.0.1:6379
+CORS_ORIGINS=https://${DOMAIN_API}
 TRACKENV
   cd "${TRACK_DIR}"
   npm ci --omit=dev 2>/dev/null || npm install --omit=dev

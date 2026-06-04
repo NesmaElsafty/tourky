@@ -36,8 +36,11 @@ return [
     ],
 
     'tracking' => [
+        /** Internal HTTP URL (Laravel → tracking-service emit-loc). */
         'base_url' => env('TRACKING_SERVICE_URL', 'http://127.0.0.1:6001'),
         'internal_secret' => env('TRACKING_INTERNAL_SECRET'),
+        /** Public URL for mobile/web Socket.io clients (often same host as API, via Nginx). */
+        'socket_url' => env('TRACKING_SOCKET_URL'),
     ],
 
 ];

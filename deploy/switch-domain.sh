@@ -14,6 +14,12 @@ else
   echo "APP_URL=\"https://${DOMAIN}\"" >> .env
 fi
 
+if grep -q "^TRACKING_SOCKET_URL=" .env; then
+  sed -i "s|^TRACKING_SOCKET_URL=.*|TRACKING_SOCKET_URL=\"https://${DOMAIN}\"|" .env
+else
+  echo "TRACKING_SOCKET_URL=\"https://${DOMAIN}\"" >> .env
+fi
+
 php artisan config:cache
 php artisan route:cache
 
@@ -28,6 +34,18 @@ server {
 
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:6001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 86400;
     }
 
     location ~ \.php\$ {

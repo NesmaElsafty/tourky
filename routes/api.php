@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\TrackingConfigController;
 use App\Http\Controllers\TrackingSocketAuthController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('tracking/config', TrackingConfigController::class);
 
 Route::prefix('tracking/socket')->middleware(['auth:sanctum'])->group(function (): void {
     Route::get('me', [TrackingSocketAuthController::class, 'me']);
