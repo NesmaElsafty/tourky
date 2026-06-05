@@ -3,8 +3,9 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class ReservationGroupsRequest extends FormRequest
+class ReservationIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +15,7 @@ class ReservationGroupsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'scope' => ['sometimes', \Illuminate\Validation\Rule::in(['all', 'upcoming'])],
+            'scope' => ['sometimes', Rule::in(['all', 'upcoming'])],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }

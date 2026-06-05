@@ -277,7 +277,10 @@ return [
 
     'reservations' => [
         'admin_list_retrieved' => 'تم جلب الحجوزات بنجاح.',
+        'admin_upcoming_retrieved' => 'تم جلب الحجوزات المعلقة القادمة بنجاح.',
         'admin_groups_retrieved' => 'تم جلب مجموعات الحجوزات بنجاح.',
+        'admin_upcoming_groups_retrieved' => 'تم جلب مجموعات الحجوزات القادمة بنجاح.',
+        'validation_admin_scope_invalid' => 'نوع الفلتر يجب أن يكون all أو upcoming.',
         'admin_status_updated' => 'تم تحديث حالة الحجز بنجاح.',
         'client_upcoming_retrieved' => 'تم جلب الحجوزات القادمة بنجاح.',
         'client_history_retrieved' => 'تم جلب سجل الحجوزات بنجاح.',

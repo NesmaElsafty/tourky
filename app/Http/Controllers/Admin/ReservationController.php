@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReservationGroupsRequest;
+use App\Http\Requests\Admin\ReservationIndexRequest;
 use App\Http\Requests\Admin\ReservationPriceRequest;
 use App\Http\Requests\Admin\ReservationStatusUpdateRequest;
 use App\Http\Resources\ReservationResource;
-use App\Models\Reservation;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,16 +19,14 @@ class ReservationController extends Controller
 {
     public function __construct(private ReservationService $reservationService) {}
 
-    public function index(Request $request)
+    public function index(ReservationIndexRequest $request)
     {
         try {
-            $groupedReservations = $this->reservationService->getPendingReservationsGroupedByDateAndRouteTime();
-            $totalReservationsCount = Reservation::query()
-                ->where('status', 'pending')
-                ->whereNotNull('route_time_id')
-                ->count();
+            $scope = $request->scope();
+            $groupedReservations = $this->reservationService->getPendingReservationsGroupedByDateAndRouteTime($scope);
+            $totalReservationsCount = $this->reservationService->pendingReservationsQuery($scope)->count();
 
-            $perPage = (int) $request->input('per_page', 10);
+            $perPage = (int) ($request->validated()['per_page'] ?? 10);
             $perPage = max(1, $perPage);
             $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
@@ -61,7 +59,10 @@ class ReservationController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.reservations.admin_list_retrieved'),
+                'message' => $scope === 'upcoming'
+                    ? __('api.reservations.admin_upcoming_retrieved')
+                    : __('api.reservations.admin_list_retrieved'),
+                'scope' => $scope,
                 'total_reservations_count' => $totalReservationsCount,
                 'data' => $data,
                 'pagination' => $pagination,
@@ -104,7 +105,8 @@ class ReservationController extends Controller
     {
         try {
             $groups = $this->reservationService->getPendingReservationGroupSummariesPaginated(
-                (int) ($request->per_page ?? 10)
+                (int) ($request->validated()['per_page'] ?? 10),
+                $request->scope(),
             );
             $pagination = PaginationHelper::paginate($groups);
 
@@ -132,9 +134,14 @@ class ReservationController extends Controller
                 })
                 ->values();
 
+            $scope = $request->scope();
+
             return response()->json([
                 'status' => 'success',
-                'message' => __('api.reservations.admin_groups_retrieved'),
+                'message' => $scope === 'upcoming'
+                    ? __('api.reservations.admin_upcoming_groups_retrieved')
+                    : __('api.reservations.admin_groups_retrieved'),
+                'scope' => $scope,
                 'data' => $data,
                 'pagination' => $pagination,
             ]);

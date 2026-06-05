@@ -23,11 +23,22 @@ class ReservationService
             ->paginate($perPage);
     }
 
-    public function getPendingReservationsGroupedByDateAndRouteTime(): Collection
+    public function pendingReservationsQuery(string $scope = 'all'): Builder
     {
-        $reservations = Reservation::query()
+        $query = Reservation::query()
             ->where('status', 'pending')
-            ->whereNotNull('route_time_id')
+            ->whereNotNull('route_time_id');
+
+        if ($scope === 'upcoming') {
+            $this->applyPendingUpcomingFilter($query);
+        }
+
+        return $query;
+    }
+
+    public function getPendingReservationsGroupedByDateAndRouteTime(string $scope = 'all'): Collection
+    {
+        $reservations = $this->pendingReservationsQuery($scope)
             ->with(['user:id,name,phone,email,type', 'route', 'point', 'time', 'routeTime'])
             ->orderBy('date')
             ->orderBy('route_time_id')
@@ -45,14 +56,12 @@ class ReservationService
             ->sortKeys();
     }
 
-    public function getPendingReservationGroupSummariesPaginated(int $perPage = 10): PaginationLengthAwarePaginator
+    public function getPendingReservationGroupSummariesPaginated(int $perPage = 10, string $scope = 'all'): PaginationLengthAwarePaginator
     {
         $perPage = max(1, min(100, $perPage));
 
-        $groups = Reservation::query()
+        $groups = $this->pendingReservationsQuery($scope)
             ->selectRaw('date, route_time_id, COUNT(*) as reservations_count')
-            ->where('status', 'pending')
-            ->whereNotNull('route_time_id')
             ->groupBy('date', 'route_time_id')
             ->orderBy('date')
             ->orderBy('route_time_id')
@@ -322,6 +331,22 @@ class ReservationService
         $pointCount = $dropoffIndex - $pickupIndex + 1;
 
         return round((float) $pointPrice * $pointCount, 2);
+    }
+
+    private function applyPendingUpcomingFilter(Builder $query): void
+    {
+        $today = now()->toDateString();
+        $nowTime = now()->format('H:i');
+
+        $query->where(function (Builder $q) use ($today, $nowTime): void {
+            $q->where('date', '>', $today)
+                ->orWhere(function (Builder $q2) use ($today, $nowTime): void {
+                    $q2->where('date', $today)
+                        ->whereHas('time', static function (Builder $t) use ($nowTime): void {
+                            $t->where('pickup_time', '>=', $nowTime);
+                        });
+                });
+        });
     }
 
     private function applyUpcomingScope(Builder $query): void

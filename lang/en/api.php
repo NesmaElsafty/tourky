@@ -277,7 +277,10 @@ return [
 
     'reservations' => [
         'admin_list_retrieved' => 'Reservations retrieved successfully.',
+        'admin_upcoming_retrieved' => 'Upcoming pending reservations retrieved successfully.',
         'admin_groups_retrieved' => 'Reservation groups retrieved successfully.',
+        'admin_upcoming_groups_retrieved' => 'Upcoming reservation groups retrieved successfully.',
+        'validation_admin_scope_invalid' => 'Scope must be all or upcoming.',
         'admin_status_updated' => 'Reservation status updated successfully.',
         'client_upcoming_retrieved' => 'Upcoming reservations retrieved successfully.',
         'client_history_retrieved' => 'Past reservations retrieved successfully.',
