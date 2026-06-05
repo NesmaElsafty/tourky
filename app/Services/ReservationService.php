@@ -109,6 +109,42 @@ class ReservationService
         );
     }
 
+    /**
+     * @return array{
+     *     total_reservations: int,
+     *     pending_approval: int,
+     *     confirmed: int,
+     *     total_passengers: int,
+     *     month: string,
+     *     month_start: string,
+     *     month_end: string
+     * }
+     */
+    public function getAdminReservationStats(): array
+    {
+        $monthStart = now()->startOfMonth()->toDateString();
+        $monthEnd = now()->endOfMonth()->toDateString();
+
+        $baseQuery = Reservation::query()
+            ->whereNotNull('route_time_id')
+            ->whereBetween('date', [$monthStart, $monthEnd]);
+
+        $totalReservations = (clone $baseQuery)->count();
+        $pendingApproval = (clone $baseQuery)->where('status', 'pending')->count();
+        $confirmed = (clone $baseQuery)->where('status', 'confirmed')->count();
+        $totalPassengers = (clone $baseQuery)->whereIn('status', ['pending', 'confirmed'])->count();
+
+        return [
+            'total_reservations' => $totalReservations,
+            'pending_approval' => $pendingApproval,
+            'confirmed' => $confirmed,
+            'total_passengers' => $totalPassengers,
+            'month' => now()->format('Y-m'),
+            'month_start' => $monthStart,
+            'month_end' => $monthEnd,
+        ];
+    }
+
     public function updateReservationStatus(Reservation $reservation, string $status): Reservation
     {
         if (! in_array($status, ['confirmed', 'cancelled'], true)) {

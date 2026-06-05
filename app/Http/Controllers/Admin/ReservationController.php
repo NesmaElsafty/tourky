@@ -25,6 +25,7 @@ class ReservationController extends Controller
             $scope = $request->scope();
             $groupedReservations = $this->reservationService->getPendingReservationsGroupedByDateAndRouteTime($scope);
             $totalReservationsCount = $this->reservationService->pendingReservationsQuery($scope)->count();
+            $stats = $this->reservationService->getAdminReservationStats();
 
             $perPage = (int) ($request->validated()['per_page'] ?? 10);
             $perPage = max(1, $perPage);
@@ -64,6 +65,7 @@ class ReservationController extends Controller
                     : __('api.reservations.admin_list_retrieved'),
                 'scope' => $scope,
                 'total_reservations_count' => $totalReservationsCount,
+                'stats' => $stats,
                 'data' => $data,
                 'pagination' => $pagination,
             ]);

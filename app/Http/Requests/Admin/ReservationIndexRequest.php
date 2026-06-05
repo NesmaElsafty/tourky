@@ -22,6 +22,6 @@ class ReservationIndexRequest extends FormRequest
 
     public function scope(): string
     {
-        return (string) ($this->validated()['scope'] ?? 'all');
+        return (string) ($this->validated()['scope'] ?? 'upcoming');
     }
 }
