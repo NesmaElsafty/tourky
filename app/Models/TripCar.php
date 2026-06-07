@@ -16,6 +16,16 @@ class TripCar extends Model
     protected $guarded = [];
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'late_start_penalty_applied_at' => 'datetime',
+        ];
+    }
+
+    /**
      * @return BelongsTo<Trip, $this>
      */
     public function trip(): BelongsTo
