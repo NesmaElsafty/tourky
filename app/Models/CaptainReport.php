@@ -13,7 +13,7 @@ class CaptainReport extends Model
     /** @use HasFactory<CaptainReportFactory> */
     use HasFactory;
 
-    public const TYPE_TRIP = 'trip';
+    public const TYPE_CLIENT = 'client';
 
     public const TYPE_CAPTAIN = 'captain';
 
@@ -23,7 +23,7 @@ class CaptainReport extends Model
      * @param  Builder<CaptainReport>  $query
      * @return Builder<CaptainReport>
      */
-    public function scopeCaptainSubject(Builder $query): Builder
+    public function scopeCaptainRejection(Builder $query): Builder
     {
         return $query->where('type', self::TYPE_CAPTAIN);
     }
@@ -32,9 +32,9 @@ class CaptainReport extends Model
      * @param  Builder<CaptainReport>  $query
      * @return Builder<CaptainReport>
      */
-    public function scopeTripSubject(Builder $query): Builder
+    public function scopeClientCancellation(Builder $query): Builder
     {
-        return $query->where('type', self::TYPE_TRIP);
+        return $query->where('type', self::TYPE_CLIENT);
     }
 
     /**

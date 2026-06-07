@@ -32,7 +32,7 @@ class CaptainReportFactory extends Factory
                 return;
             }
 
-            $type = fake()->randomElement([CaptainReport::TYPE_TRIP, CaptainReport::TYPE_CAPTAIN]);
+            $type = fake()->randomElement([CaptainReport::TYPE_CLIENT, CaptainReport::TYPE_CAPTAIN]);
 
             $reservation = Reservation::query()
                 ->whereNotNull('trip_id')
@@ -46,7 +46,7 @@ class CaptainReportFactory extends Factory
                 ->first();
 
             if ($reservation === null && $type === CaptainReport::TYPE_CAPTAIN) {
-                $type = CaptainReport::TYPE_TRIP;
+                $type = CaptainReport::TYPE_CLIENT;
                 $reservation = Reservation::query()
                     ->whereNotNull('trip_id')
                     ->whereNotNull('trip_car_id')
@@ -59,7 +59,7 @@ class CaptainReportFactory extends Factory
                 $reservation = Reservation::query()
                     ->whereNotNull('trip_id')
                     ->whereNotNull('trip_car_id')
-                    ->whereDoesntHave('reports', static fn ($q) => $q->where('type', CaptainReport::TYPE_TRIP))
+                    ->whereDoesntHave('reports', static fn ($q) => $q->where('type', CaptainReport::TYPE_CLIENT))
                     ->inRandomOrder()
                     ->first();
             }
@@ -72,12 +72,12 @@ class CaptainReportFactory extends Factory
 
             $reservation->loadMissing('tripCar');
 
-            $captainId = null;
+            $captainId = $reservation->tripCar?->captain_id !== null
+                ? (int) $reservation->tripCar->captain_id
+                : null;
             if ($type === CaptainReport::TYPE_CAPTAIN) {
-                if ($reservation->tripCar?->captain_id === null) {
-                    $type = CaptainReport::TYPE_TRIP;
-                } else {
-                    $captainId = (int) $reservation->tripCar->captain_id;
+                if ($captainId === null) {
+                    $type = CaptainReport::TYPE_CLIENT;
                 }
             }
 
@@ -104,16 +104,15 @@ class CaptainReportFactory extends Factory
                 throw new InvalidArgumentException('Reservation must be assigned to a trip and vehicle.');
             }
 
-            if (! in_array($type, [CaptainReport::TYPE_TRIP, CaptainReport::TYPE_CAPTAIN], true)) {
+            if (! in_array($type, [CaptainReport::TYPE_CLIENT, CaptainReport::TYPE_CAPTAIN], true)) {
                 throw new InvalidArgumentException('Invalid report type.');
             }
 
-            $captainId = null;
-            if ($type === CaptainReport::TYPE_CAPTAIN) {
-                if ($reservation->tripCar?->captain_id === null) {
-                    throw new InvalidArgumentException('Reservation vehicle must have a captain for a captain report.');
-                }
-                $captainId = (int) $reservation->tripCar->captain_id;
+            $captainId = $reservation->tripCar?->captain_id !== null
+                ? (int) $reservation->tripCar->captain_id
+                : null;
+            if ($type === CaptainReport::TYPE_CAPTAIN && $captainId === null) {
+                throw new InvalidArgumentException('Reservation vehicle must have a captain for a captain report.');
             }
 
             return [

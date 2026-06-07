@@ -414,6 +414,7 @@ return [
     'reports' => [
         'type_trip' => 'Trip',
         'type_captain' => 'Captain',
+        'type_client' => 'Client cancellation',
         'client_list_retrieved' => 'Your reports were retrieved successfully.',
         'client_submitted' => 'Your report has been submitted. We will review it.',
         'admin_list_retrieved' => 'Reports retrieved successfully.',
@@ -421,7 +422,7 @@ return [
         'admin_reply_saved' => 'Reply saved successfully.',
         'server_error' => 'Something went wrong. Please try again later.',
         'validation_type_required' => 'Please choose whether this is a trip or captain report.',
-        'validation_type_in' => 'Type must be trip or captain.',
+        'validation_type_in' => 'Type must be client or captain.',
         'validation_type_invalid' => 'Invalid report type.',
         'validation_already_submitted' => 'You have already submitted this kind of report for this trip.',
         'validation_no_captain' => 'No captain is assigned for this trip.',
@@ -430,6 +431,8 @@ return [
         'validation_message_max' => 'The report may not be greater than 5000 characters.',
         'validation_reply_required' => 'A reply message is required.',
         'validation_reply_max' => 'The reply may not be greater than 5000 characters.',
+        'validation_already_replied' => 'This report has already been replied to.',
+        'validation_cannot_reply_to_client_report' => 'Admin cannot reply to client cancellation reports.',
     ],
 
     'tickets' => [
@@ -496,6 +499,8 @@ return [
         'must_arrive_before_dropoff' => 'Confirm passenger arrival before confirming they left the vehicle.',
         'cannot_close_cancelled' => 'A cancelled trip cannot be closed.',
         'cannot_cancel_trip' => 'This trip cannot be cancelled in its current state.',
+        'cannot_reject_client' => 'This client cannot be rejected in the current trip state.',
+        'client_rejected' => 'Client rejected and reservation cancelled.',
         'must_start_before_close' => 'Start the trip before closing it.',
         'server_error' => 'Something went wrong. Please try again later.',
     ],

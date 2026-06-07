@@ -4,18 +4,26 @@ namespace App\Http\Controllers\Client;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\CancelReservationRequest;
+use App\Http\Requests\Client\ReportIndexRequest;
 use App\Http\Requests\Client\ReservationIndexRequest;
 use App\Http\Requests\Client\StoreReservationRequest;
+use App\Http\Resources\ClientReportResource;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\ReportService;
 use App\Services\ReservationService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
 {
-    public function __construct(private ReservationService $reservationService) {}
+    public function __construct(
+        private ReservationService $reservationService,
+        private ReportService $reportService,
+    ) {}
 
     public function index(ReservationIndexRequest $request)
     {
@@ -89,7 +97,7 @@ class ReservationController extends Controller
         }
     }
 
-    public function cancel(Request $request, Reservation $reservation)
+    public function cancel(CancelReservationRequest $request, Reservation $reservation)
     {
         try {
             if ($reservation->user_id !== $request->user()?->id) {
@@ -99,7 +107,13 @@ class ReservationController extends Controller
                 ], 404);
             }
 
-            $reservation = $this->reservationService->cancelReservationForClient($reservation);
+            $message = mb_substr(trim($request->string('message')->toString()), 0, 5000);
+
+            $reservation = $this->reportService->submitClientCancellation(
+                $request->user(),
+                $reservation,
+                $message,
+            );
 
             return response()->json([
                 'status' => 'success',
@@ -109,6 +123,9 @@ class ReservationController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            if ($e instanceof ModelNotFoundException) {
+                throw $e;
+            }
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.reservations.server_error'),

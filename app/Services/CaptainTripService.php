@@ -195,6 +195,15 @@ class CaptainTripService
                         ->with(['user:id,name,phone'])
                         ->orderBy('id');
                 },
+                'reports' => static function ($q) use ($captain): void {
+                    $q->captainRejection()
+                        ->where('captain_id', $captain->id)
+                        ->with([
+                            'reservation.user:id,name,phone',
+                            'repliedByUser:id,name',
+                        ])
+                        ->orderByDesc('created_at');
+                },
             ])
             ->firstOrFail();
     }

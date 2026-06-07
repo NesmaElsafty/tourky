@@ -7,11 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Admin view of a client report (list + detail).
+ * Captain-facing rejection report (includes admin reply).
  *
  * @mixin CaptainReport
  */
-class AdminReportResource extends JsonResource
+class CaptainRejectionReportResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -20,34 +20,14 @@ class AdminReportResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'type' => $this->type,
-            'type_label' => $this->type === CaptainReport::TYPE_CLIENT
-                ? __('api.reports.type_client')
-                : __('api.reports.type_captain'),
             'message' => $this->message,
-            'trip_id' => $this->trip_id,
             'reservation_id' => $this->reservation_id,
-            'trip' => $this->whenLoaded('trip', fn () => $this->trip === null ? null : [
-                'id' => $this->trip->id,
-                'date' => $this->trip->date,
-                'status' => $this->trip->status,
-            ]),
             'client' => $this->when(
                 $client !== null,
                 fn () => [
                     'id' => $client->id,
                     'name' => $client->name,
                     'phone' => $client->phone,
-                ]
-            ),
-            'captain' => $this->when(
-                $this->type === CaptainReport::TYPE_CAPTAIN
-                    && $this->relationLoaded('captain')
-                    && $this->captain !== null,
-                fn () => [
-                    'id' => $this->captain->id,
-                    'name' => $this->captain->name,
-                    'phone' => $this->captain->phone,
                 ]
             ),
             'admin_reply' => $this->admin_reply,
@@ -60,7 +40,6 @@ class AdminReportResource extends JsonResource
                 ]
             ),
             'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

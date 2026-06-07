@@ -84,6 +84,10 @@ class TripResource extends JsonResource
                 $this->relationLoaded('reservations'),
                 fn () => $this->reservations->count()
             ),
+            'reports' => $this->when(
+                $this->relationLoaded('reports'),
+                fn () => TripReportResource::collection($this->reports),
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

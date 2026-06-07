@@ -40,7 +40,6 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->g
 
     Route::get('trips', [ClientTripController::class, 'index']);
     Route::post('trips/{reservation}/captain-rating', [ClientTripController::class, 'rateCaptain'])->whereNumber('reservation');
-    Route::post('trips/{reservation}/reports', [ClientReportController::class, 'store'])->whereNumber('reservation');
     Route::get('reports', [ClientReportController::class, 'index']);
     Route::get('trips/{reservation}', [ClientTripController::class, 'show'])->whereNumber('reservation');
 

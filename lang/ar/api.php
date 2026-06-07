@@ -414,6 +414,7 @@ return [
     'reports' => [
         'type_trip' => 'رحلة',
         'type_captain' => 'كابتن',
+        'type_client' => 'إلغاء من العميل',
         'client_list_retrieved' => 'تم جلب بلاغاتك بنجاح.',
         'client_submitted' => 'تم إرسال بلاغك وسيتم مراجعته.',
         'admin_list_retrieved' => 'تم جلب البلاغات بنجاح.',
@@ -421,7 +422,7 @@ return [
         'admin_reply_saved' => 'تم حفظ الرد بنجاح.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقًا.',
         'validation_type_required' => 'يرجى اختيار نوع البلاغ: رحلة أو كابتن.',
-        'validation_type_in' => 'يجب أن يكون النوع رحلة أو كابتن.',
+        'validation_type_in' => 'يجب أن يكون النوع client أو captain.',
         'validation_type_invalid' => 'نوع البلاغ غير صالح.',
         'validation_already_submitted' => 'سبق أن أرسلت هذا النوع من البلاغ لهذه الرحلة.',
         'validation_no_captain' => 'لا يوجد كابتن مسند لهذه الرحلة.',
@@ -430,6 +431,8 @@ return [
         'validation_message_max' => 'يجب ألا يتجاوز البلاغ 5000 حرفًا.',
         'validation_reply_required' => 'نص الرد مطلوب.',
         'validation_reply_max' => 'يجب ألا يزيد الرد عن 5000 حرف.',
+        'validation_already_replied' => 'تم الرد على هذا البلاغ بالفعل.',
+        'validation_cannot_reply_to_client_report' => 'لا يمكن للأدمن الرد على بلاغات إلغاء العميل.',
     ],
 
     'tickets' => [
@@ -496,6 +499,8 @@ return [
         'must_arrive_before_dropoff' => 'أكّد وصول الراكب قبل تأكيد نزوله من المركبة.',
         'cannot_close_cancelled' => 'لا يمكن إغلاق رحلة ملغاة.',
         'cannot_cancel_trip' => 'لا يمكن إلغاء الرحلة في حالتها الحالية.',
+        'cannot_reject_client' => 'لا يمكن رفض هذا العميل في حالة الرحلة الحالية.',
+        'client_rejected' => 'تم رفض العميل وإلغاء الحجز.',
         'must_start_before_close' => 'ابدأ الرحلة قبل إغلاقها.',
         'server_error' => 'حدث خطأ. حاول مرة أخرى لاحقًا.',
     ],

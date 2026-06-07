@@ -54,6 +54,14 @@ class TripController extends Controller
                 'time',
                 'routeTime:id,route_id,time_ids',
                 'reservations.user:id,name,phone',
+                'reports' => static fn ($q) => $q
+                    ->with([
+                        'reservation.user:id,name,phone',
+                        'captain:id,name,phone',
+                        'repliedByUser:id,name',
+                    ])
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id'),
             ]);
 
             return response()->json([

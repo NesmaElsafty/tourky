@@ -32,9 +32,13 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->
     Route::patch('trips/{trip}/reservations/{reservation}/dropoff', [CaptainTripController::class, 'confirmDropoff'])
         ->whereNumber('trip')
         ->whereNumber('reservation');
+    Route::post('trips/{trip}/reservations/{reservation}/reject', [CaptainTripController::class, 'reject'])
+        ->whereNumber('trip')
+        ->whereNumber('reservation');
     Route::post('trips/{trip}/close', [CaptainTripController::class, 'close'])->whereNumber('trip');
     Route::post('updateBalance', [CaptainAuthController::class, 'updateBalance']);
     Route::post('onlineToggler', [CaptainAuthController::class, 'isOnlineToggle']);
 
-    Route::post('trips/{trip}/cancel', [CaptainTripController::class, 'cancel'])->whereNumber('trip');
+    Route::post('trips/{trip}/cancel', [CaptainTripController::class, 'cancel']);
+    
 });

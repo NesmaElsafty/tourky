@@ -24,8 +24,8 @@ class ClientReportResource extends JsonResource
         return [
             'id' => $this->id,
             'type' => $this->type,
-            'type_label' => $this->type === CaptainReport::TYPE_TRIP
-                ? __('api.reports.type_trip')
+            'type_label' => $this->type === CaptainReport::TYPE_CLIENT
+                ? __('api.reports.type_client')
                 : __('api.reports.type_captain'),
             'message' => $this->message,
             'trip_id' => $this->trip_id,
@@ -52,15 +52,6 @@ class ClientReportResource extends JsonResource
                 fn () => [
                     'id' => $this->captain->id,
                     'name' => $this->captain->name,
-                ]
-            ),
-            'admin_reply' => $this->admin_reply,
-            'replied_at' => $this->replied_at?->toIso8601String(),
-            'replied_by' => $this->when(
-                $this->relationLoaded('repliedByUser') && $this->repliedByUser !== null,
-                fn () => [
-                    'id' => $this->repliedByUser->id,
-                    'name' => $this->repliedByUser->name,
                 ]
             ),
             'created_at' => $this->created_at?->toIso8601String(),

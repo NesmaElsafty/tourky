@@ -78,6 +78,10 @@ class CaptainTripDetailResource extends JsonResource
                 $myReservations,
                 $locale,
             ),
+            'rejection_reports' => $this->when(
+                $this->relationLoaded('reports'),
+                fn () => CaptainRejectionReportResource::collection($this->reports),
+            ),
         ];
     }
 

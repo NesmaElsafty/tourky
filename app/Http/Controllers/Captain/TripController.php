@@ -4,20 +4,26 @@ namespace App\Http\Controllers\Captain;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Captain\RejectClientRequest;
 use App\Http\Requests\Captain\TripIndexRequest;
+use App\Http\Resources\CaptainRejectionReportResource;
 use App\Http\Resources\CaptainTripDetailResource;
 use App\Http\Resources\CaptainTripListResource;
 use App\Models\Reservation;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\CaptainTripService;
+use App\Services\ReportService;
 use App\Support\OperationalWeek;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class TripController extends Controller
 {
-    public function __construct(private CaptainTripService $captainTripService) {}
+    public function __construct(
+        private CaptainTripService $captainTripService,
+        private ReportService $reportService,
+    ) {}
 
     public function index(TripIndexRequest $request)
     {
@@ -207,6 +213,32 @@ class TripController extends Controller
                 'data' => new CaptainTripDetailResource(
                     $this->captainTripService->getTripForCaptain($user, $updated)
                 ),
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.captain_trips.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function reject(RejectClientRequest $request, Trip $trip, Reservation $reservation)
+    {
+        try {
+            /** @var User $user */
+            $user = $request->user();
+
+            $message = mb_substr(trim($request->string('message')->toString()), 0, 5000);
+
+            $report = $this->reportService->submitCaptainRejection($user, $trip, $reservation, $message);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.captain_trips.client_rejected'),
+                'data' => new CaptainRejectionReportResource($report),
             ]);
         } catch (ValidationException $e) {
             throw $e;
