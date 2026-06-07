@@ -218,4 +218,38 @@ class TripController extends Controller
             ], 500);
         }
     }
+
+    public function cancel(Request $request, Trip $trip)
+    {
+        try {
+            /** @var User $user */
+            $user = $request->user();
+
+            $trip = $this->captainTripService->getTripForCaptain($user, $trip);
+
+            if (in_array($trip->status, ['completed', 'cancelled'], true)) {
+                throw ValidationException::withMessages([
+                    'trip' => [__('api.captain_trips.cannot_cancel_trip')],
+                ]);
+            }
+
+            $trip->update(['status' => 'cancelled']);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.captain_trips.trip_cancelled'),
+                'data' => new CaptainTripDetailResource(
+                    $this->captainTripService->getTripForCaptain($user, $trip->fresh())
+                ),
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.captain_trips.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
