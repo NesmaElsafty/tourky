@@ -154,18 +154,7 @@ class CaptainLateStartPenaltyService
 
             $lockedTrip->update(['status' => 'cancelled']);
 
-            Reservation::query()
-                ->where('trip_id', $lockedTrip->id)
-                ->whereIn('status', ['confirmed', 'pending'])
-                ->update(['status' => 'cancelled']);
-
-            User::query()
-                ->where('trip_id', $lockedTrip->id)
-                ->where('type', 'captain')
-                ->update([
-                    'has_trip' => false,
-                    'trip_id' => null,
-                ]);
+            app(TripService::class)->applyTripCancellationEffects($lockedTrip);
 
             return true;
         });

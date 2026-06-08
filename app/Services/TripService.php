@@ -242,6 +242,10 @@ class TripService
 
         $trip->update($data);
 
+        if ($trip->status === 'cancelled') {
+            $this->applyTripCancellationEffects($trip);
+        }
+
         return $trip->fresh([
             'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
             'tripCars.car',
@@ -249,6 +253,30 @@ class TripService
             'routeTime:id,route_id,time_ids',
             'reservations.user:id,name,phone',
         ]) ?? $trip;
+    }
+
+    /**
+     * Cancel all reservations on a trip and detach them so clients can rebook.
+     */
+    public function applyTripCancellationEffects(Trip $trip): void
+    {
+        DB::transaction(function () use ($trip): void {
+            Reservation::query()
+                ->where('trip_id', $trip->id)
+                ->update([
+                    'status' => 'cancelled',
+                    'trip_id' => null,
+                    'trip_car_id' => null,
+                ]);
+
+            User::query()
+                ->where('trip_id', $trip->id)
+                ->where('type', 'captain')
+                ->update([
+                    'has_trip' => false,
+                    'trip_id' => null,
+                ]);
+        });
     }
 
     public function deleteTrip(Trip $trip): void

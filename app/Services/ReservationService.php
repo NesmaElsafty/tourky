@@ -27,6 +27,7 @@ class ReservationService
     {
         $query = Reservation::query()
             ->where('status', 'pending')
+            ->whereNull('trip_id')
             ->whereNotNull('route_time_id');
 
         if ($scope === 'upcoming') {
@@ -130,7 +131,10 @@ class ReservationService
             ->whereBetween('date', [$monthStart, $monthEnd]);
 
         $totalReservations = (clone $baseQuery)->count();
-        $pendingApproval = (clone $baseQuery)->where('status', 'pending')->count();
+        $pendingApproval = (clone $baseQuery)
+            ->where('status', 'pending')
+            ->whereNull('trip_id')
+            ->count();
         $confirmed = (clone $baseQuery)->where('status', 'confirmed')->count();
         $totalPassengers = (clone $baseQuery)->whereIn('status', ['pending', 'confirmed'])->count();
 
@@ -216,6 +220,7 @@ class ReservationService
             ->where('user_id', $client->id)
             ->where('time_id', $time->id)
             ->where('date', $date)
+            ->whereIn('status', ['pending', 'confirmed'])
             ->exists()) {
             throw ValidationException::withMessages([
                 'time_id' => [__('api.reservations.duplicate_reservation')],
