@@ -496,6 +496,8 @@ return [
         'next_today_retrieved' => 'تم جلب رحلتك القادمة بنجاح.',
         'next_today_none' => 'لا توجد رحلات قادمة مسندة إليك.',
         'detail_retrieved' => 'تم جلب تفاصيل الرحلة بنجاح.',
+        'no_in_progress_trip' => 'لا توجد رحلة جارية اليوم.',
+        'in_progress_trip_retrieved' => 'تم جلب الرحلة الجارية بنجاح.',
         'started' => 'تم بدء الرحلة.',
         'arrival_confirmed' => 'تم تأكيد وصول الراكب لنقطة الالتقاط.',
         'pickup_confirmed' => 'تم تأكيد ركوب الراكب.',

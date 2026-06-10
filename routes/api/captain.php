@@ -44,5 +44,5 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->
     Route::post('onlineToggler', [CaptainAuthController::class, 'isOnlineToggle']);
 
     Route::post('trips/{trip}/cancel', [CaptainTripController::class, 'cancel']);
-    
+    Route::get('currentTrip', [CaptainTripController::class, 'getInProgressTrip']);
 });

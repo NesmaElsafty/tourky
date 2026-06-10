@@ -9,6 +9,7 @@ use App\Http\Requests\Captain\TripIndexRequest;
 use App\Http\Resources\CaptainRejectionReportResource;
 use App\Http\Resources\CaptainTripDetailResource;
 use App\Http\Resources\CaptainTripListResource;
+use App\Http\Resources\TripResource;
 use App\Models\Reservation;
 use App\Models\Trip;
 use App\Models\User;
@@ -277,6 +278,39 @@ class TripController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.captain_trips.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    // get in progress trip for captain
+    public function getInProgressTrip(Request $request)
+    {
+        try{
+            $user = $request->user();
+
+            // get trip that is in progress and assigned to the captain and date is today
+            $trip = Trip::where('status', 'in_progress')->where('date', now()->toDateString())
+                ->whereHas('tripCars', function ($query) use ($user) {
+                    $query->where('captain_id', $user->id);
+                })->first();
+
+            if (!$trip) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.captain_trips.no_in_progress_trip'),
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.captain_trips.in_progress_trip_retrieved'),
+                'data' => new TripResource($trip),
+            ]);
+        }catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.captain_trips.server_error'),

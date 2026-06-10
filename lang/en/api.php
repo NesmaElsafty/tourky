@@ -496,6 +496,8 @@ return [
         'next_today_retrieved' => 'Your next trip retrieved successfully.',
         'next_today_none' => 'You have no upcoming trips assigned.',
         'detail_retrieved' => 'Trip details retrieved successfully.',
+        'no_in_progress_trip' => 'No in-progress trip found for today.',
+        'in_progress_trip_retrieved' => 'In-progress trip retrieved successfully.',
         'started' => 'Trip marked as started.',
         'arrival_confirmed' => 'Passenger arrival at pickup confirmed.',
         'pickup_confirmed' => 'Passenger pickup confirmed.',
