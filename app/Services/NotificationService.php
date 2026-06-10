@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class NotificationService
 {
+    public function __construct(private FcmNotificationService $fcmNotificationService) {}
     public function getNotificationsPaginated(int $perPage = 10, ?string $userType = null): LengthAwarePaginator
     {
         return Notification::query()
@@ -147,6 +148,16 @@ class NotificationService
                 NotificationDelivery::query()->insert($chunk);
             }
         });
+
+        $usersWithFcm = User::query()
+            ->whereIn('id', $ids)
+            ->whereNotNull('fcm_token')
+            ->where('fcm_token', '!=', '')
+            ->get();
+
+        if ($usersWithFcm->isNotEmpty()) {
+            $notification->pushToUsers($usersWithFcm);
+        }
 
         return count($ids);
     }

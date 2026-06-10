@@ -43,4 +43,8 @@ return [
         'socket_url' => env('TRACKING_SOCKET_URL'),
     ],
 
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS', base_path('firebase/firebase.json')),
+    ],
+
 ];

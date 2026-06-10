@@ -102,9 +102,15 @@ class User extends Authenticatable implements HasMedia
         return false;
     }
 
+    public function hasFcmToken(): bool
+    {
+        return filled($this->fcm_token);
+    }
+
     protected $hidden = [
         'password',
         'remember_token',
+        'fcm_token',
     ];
 
     protected function casts(): array

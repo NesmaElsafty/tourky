@@ -10,6 +10,7 @@ use App\Models\TripCar;
 
 class CaptainTripNotificationService
 {
+    public function __construct(private FcmNotificationService $fcmNotificationService) {}
     /**
      * One inbox notification per captain vehicle on the trip (title + description by language).
      */
@@ -50,6 +51,11 @@ class CaptainTripNotificationService
                 'notification_id' => $notification->id,
                 'user_id' => $tripCar->captain_id,
             ]);
+
+            $captain = $tripCar->captain;
+            if ($captain !== null && $captain->hasFcmToken()) {
+                $notification->pushToUser($captain);
+            }
         }
     }
 

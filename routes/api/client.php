@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\AuthController as ClientAuthController;
+use App\Http\Controllers\FcmTokenController;
 use App\Http\Controllers\Client\FeedbackController as ClientFeedbackController;
 use App\Http\Controllers\Client\NotificationController as ClientNotificationController;
 use App\Http\Controllers\Client\ReportController as ClientReportController;
@@ -27,6 +28,9 @@ Route::get('getRouteTimesByTimeId/{timeId}', [RouteController::class, 'getRouteT
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsClient::class])->group(function (): void {
     Route::get('profile', [ClientAuthController::class, 'profile']);
     Route::put('profile', [ClientAuthController::class, 'updateProfile']);
+    Route::put('fcm_token', [FcmTokenController::class, 'update']);
+    Route::delete('fcm_token', [FcmTokenController::class, 'destroy']);
+    Route::post('fcm_token/test', [FcmTokenController::class, 'test']);
     Route::post('logout', [ClientAuthController::class, 'logout']);
 
     Route::get('notifications', [ClientNotificationController::class, 'index']);

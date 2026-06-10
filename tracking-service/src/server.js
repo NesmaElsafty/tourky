@@ -84,7 +84,10 @@ const httpServer = http.createServer(async (req, res) => {
       const body = await parseJsonBody(req);
       const tripId = parseTripId(body.trip_id ?? body.tripId);
       const userId = parseTripId(body.user_id ?? body.userId);
-      const coords = parseLatLng(body.la ?? body.lat, body.lo ?? body.lng ?? body.lon);
+      const coords = parseLatLng(
+        body.la ?? body.lat,
+        body.lo ?? body.lng ?? body.lon ?? body.long,
+      );
 
       if (tripId === null || userId === null || coords === null) {
         writeJson(res, 422, { ok: false, e: 'invalid_payload' });
@@ -305,7 +308,7 @@ io.on('connection', (socket) => {
     }
 
     const la = payload?.la ?? payload?.lat;
-    const lo = payload?.lo ?? payload?.lng ?? payload?.lon;
+    const lo = payload?.lo ?? payload?.lng ?? payload?.lon ?? payload?.long;
     const coords = parseLatLng(la, lo);
     if (!coords) {
       return;

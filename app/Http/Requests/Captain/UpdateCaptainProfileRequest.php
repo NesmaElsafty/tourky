@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Client;
+namespace App\Http\Requests\Captain;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateClientProfileRequest extends FormRequest
+class UpdateCaptainProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +15,7 @@ class UpdateClientProfileRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'phone' => ['sometimes', 'required', 'string', 'max:20', 'unique:users,phone,'.$this->user()->id.',id,type,client'],
+            'phone' => ['sometimes', 'required', 'string', 'max:20', 'unique:users,phone,'.$this->user()->id.',id,type,captain'],
             'password' => ['sometimes', 'required', 'string', 'min:6', 'confirmed'],
             'fcm_token' => ['sometimes', 'nullable', 'string', 'max:512'],
         ];

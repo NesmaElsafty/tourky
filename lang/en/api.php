@@ -79,6 +79,7 @@ return [
         'logged_in' => 'Captain logged in successfully.',
         'login_failed' => 'Captain login failed.',
         'profile_retrieved' => 'Captain profile retrieved successfully.',
+        'profile_updated' => 'Captain profile updated successfully.',
         'profile_failed' => 'Captain profile failed.',
         'update_profile_failed' => 'Captain update profile failed.',
         'logged_out' => 'Captain logged out successfully.',
@@ -207,6 +208,17 @@ return [
         'deleted' => 'Contact information deleted successfully.',
         'not_found' => 'Contact information not found.',
         'server_error' => 'Something went wrong. Please try again later.',
+    ],
+
+    'fcm' => [
+        'token_updated' => 'FCM token saved successfully.',
+        'token_cleared' => 'FCM token removed successfully.',
+        'token_missing' => 'No FCM token on this account. Call PUT /fcm-token first.',
+        'not_configured' => 'Firebase credentials are not configured on the server.',
+        'test_title' => 'Test notification',
+        'test_body' => 'This is a test push from Tourky.',
+        'test_sent' => 'Test push notification sent successfully.',
+        'test_failed' => 'Failed to send test push notification.',
     ],
 
     'notifications' => [

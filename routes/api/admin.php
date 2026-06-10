@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\FcmTokenController;
 use App\Http\Controllers\Admin\CaptainController as AdminCaptainController;
 use App\Http\Controllers\Admin\CarController as AdminCarController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -54,6 +55,9 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
 
     Route::get('profile', [AdminAuthController::class, 'profile']);
     Route::put('profile', [AdminAuthController::class, 'updateProfile']);
+    Route::put('fcm-token', [FcmTokenController::class, 'update']);
+    Route::delete('fcm-token', [FcmTokenController::class, 'destroy']);
+    Route::post('fcm-token/test', [FcmTokenController::class, 'test']);
     Route::post('logout', [AdminAuthController::class, 'logout']);
 
     Route::apiResource('roles', AdminRoleController::class);

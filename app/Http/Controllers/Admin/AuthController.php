@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RegisterAdminRequest;
+use App\Http\Requests\Admin\UpdateAdminProfileRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ResetPasswordWithTokenRequest;
@@ -70,9 +71,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateAdminProfileRequest $request)
     {
-        $updatedUser = $this->authService->updateProfile($request);
+        $data = collect($request->validated())->except('image')->all();
+        $updatedUser = $this->authService->updateProfile($request, $data);
         $this->applyLocale($request, $updatedUser);
 
         if ($request->hasFile('image')) {

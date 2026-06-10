@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Captain\AuthController as CaptainAuthController;
+use App\Http\Controllers\FcmTokenController;
 use App\Http\Controllers\Captain\NotificationController as CaptainNotificationController;
 use App\Http\Controllers\Captain\TermController as CaptainTermController;
 use App\Http\Controllers\Captain\TrackingController as CaptainTrackingController;
@@ -16,6 +17,9 @@ Route::get('terms', [CaptainTermController::class, 'index']);
 Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsCaptain::class])->group(function (): void {
     Route::get('profile', [CaptainAuthController::class, 'profile']);
     Route::put('profile', [CaptainAuthController::class, 'updateProfile']);
+    Route::put('fcm_token', [FcmTokenController::class, 'update']);
+    Route::delete('fcm_token', [FcmTokenController::class, 'destroy']);
+    Route::post('fcm_token/test', [FcmTokenController::class, 'test']);
     Route::post('logout', [CaptainAuthController::class, 'logout']);
 
     Route::get('notifications', [CaptainNotificationController::class, 'index']);

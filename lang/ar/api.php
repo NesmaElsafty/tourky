@@ -79,6 +79,7 @@ return [
         'logged_in' => 'تم تسجيل دخول الكابتن بنجاح.',
         'login_failed' => 'فشل تسجيل دخول الكابتن.',
         'profile_retrieved' => 'تم جلب ملف الكابتن بنجاح.',
+        'profile_updated' => 'تم تحديث ملف الكابتن بنجاح.',
         'profile_failed' => 'فشل جلب ملف الكابتن.',
         'update_profile_failed' => 'فشل تحديث ملف الكابتن.',
         'logged_out' => 'تم تسجيل خروج الكابتن بنجاح.',
@@ -207,6 +208,17 @@ return [
         'deleted' => 'تم حذف بيانات التواصل بنجاح.',
         'not_found' => 'بيانات التواصل غير موجودة.',
         'server_error' => 'حدث خطأ ما. يرجى المحاولة لاحقاً.',
+    ],
+
+    'fcm' => [
+        'token_updated' => 'تم حفظ رمز FCM بنجاح.',
+        'token_cleared' => 'تم حذف رمز FCM بنجاح.',
+        'token_missing' => 'لا يوجد رمز FCM لهذا الحساب. استخدم PUT /fcm-token أولاً.',
+        'not_configured' => 'بيانات Firebase غير مُعدّة على الخادم.',
+        'test_title' => 'إشعار تجريبي',
+        'test_body' => 'هذا إشعار تجريبي من Tourky.',
+        'test_sent' => 'تم إرسال الإشعار التجريبي بنجاح.',
+        'test_failed' => 'فشل إرسال الإشعار التجريبي.',
     ],
 
     'notifications' => [
