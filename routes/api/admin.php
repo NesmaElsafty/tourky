@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\RouteController as AdminRouteController;
 use App\Http\Controllers\Admin\RouteTimeController as AdminRouteTimeController;
 use App\Http\Controllers\Admin\TermController as AdminTermController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
+use App\Http\Controllers\Admin\TrackTripController as AdminTrackTripController;
 use App\Http\Controllers\Admin\TimeController as AdminTimeController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\TripController as AdminTripController;
@@ -122,6 +123,9 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::get('reports', [AdminReportController::class, 'index']);
     Route::get('reports/{report}', [AdminReportController::class, 'show'])->whereNumber('report');
     Route::patch('reports/{report}/reply', [AdminReportController::class, 'reply'])->whereNumber('report');
+
+    Route::get('track_trips', [AdminTrackTripController::class, 'index']);
+    Route::get('track_trips/{trackTrip}', [AdminTrackTripController::class, 'show'])->whereNumber('trackTrip');
 
     Route::get('tickets', [AdminTicketController::class, 'index']);
     Route::get('tickets/{ticket}', [AdminTicketController::class, 'show'])->whereNumber('ticket');

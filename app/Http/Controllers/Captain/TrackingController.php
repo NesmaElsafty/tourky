@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Captain\TrackingLocationRequest;
 use App\Models\Trip;
 use App\Models\TripCar;
+use App\Services\TrackTripService;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrackingController extends Controller
 {
+    public function __construct(
+        private TrackTripService $trackTripService,
+    ) {}
+
     public function updateLocation(TrackingLocationRequest $request, Trip $trip)
     {
         /** @var \App\Models\User $user */
@@ -71,6 +76,8 @@ class TrackingController extends Controller
                 'message' => __('api.tracking.unavailable'),
             ], Response::HTTP_BAD_GATEWAY);
         }
+
+        $this->trackTripService->storeLocationForCaptain($user, $trip, $lat, $long);
 
         return response()->json([
             'status' => 'success',

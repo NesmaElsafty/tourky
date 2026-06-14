@@ -13,51 +13,36 @@ class Trip extends Model
 
     protected $guarded = [];
 
-    /**
-     * @return BelongsTo<Time, $this>
-     */
     public function time(): BelongsTo
     {
         return $this->belongsTo(Time::class);
     }
 
-    /**
-     * @return BelongsTo<RouteTime, $this>
-     */
     public function routeTime(): BelongsTo
     {
         return $this->belongsTo(RouteTime::class);
     }
 
-    /**
-     * @return HasMany<TripCar, $this>
-     */
     public function tripCars(): HasMany
     {
         return $this->hasMany(TripCar::class)->orderBy('id');
     }
 
-    /**
-     * @return HasMany<Reservation, $this>
-     */
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
     }
 
-    /**
-     * @return HasMany<CaptainReport, $this>
-     */
     public function reports(): HasMany
     {
         return $this->hasMany(CaptainReport::class);
     }
 
-    /**
-     * Captains with this trip set as their current trip (users.trip_id).
-     *
-     * @return HasMany<User, $this>
-     */
+    public function trackTrips(): HasMany
+    {
+        return $this->hasMany(TrackTrip::class)->orderByDesc('created_at');
+    }
+
     public function captainsWithCurrentTrip(): HasMany
     {
         return $this->hasMany(User::class, 'trip_id');

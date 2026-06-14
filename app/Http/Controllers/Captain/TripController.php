@@ -293,7 +293,7 @@ class TripController extends Controller
             $user = $request->user();
 
             // get trip that is in progress and assigned to the captain and date is today
-            $trip = Trip::where('status', 'in_progress')->where('date', now()->toDateString())
+            $trip = Trip::where('status', 'in_progress')
                 ->whereHas('tripCars', function ($query) use ($user) {
                     $query->where('captain_id', $user->id);
                 })->first();

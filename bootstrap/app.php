@@ -86,6 +86,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'Reservation' => 'api.reservations.not_found',
                 'User' => 'api.users.not_found',
                 'Transaction' => 'api.transactions.not_found',
+                'TrackTrip' => 'api.track_trips.not_found',
                 default => 'api.general.not_found',
             };
 
@@ -117,6 +118,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'Reservation' => 'api.reservations.not_found',
                     'User' => 'api.users.not_found',
                     'Transaction' => 'api.transactions.not_found',
+                    'TrackTrip' => 'api.track_trips.not_found',
                     default => 'api.general.not_found',
                 };
 
