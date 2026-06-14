@@ -16,6 +16,10 @@ use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
+    public function __construct(
+        private TrackTripService $trackTripService,
+    ) {}
+
     /**
      * Client cancels their reservation and submits a cancellation reason.
      */
@@ -111,6 +115,8 @@ class ReportService
             ]);
 
             $reservation->update(['status' => 'cancelled']);
+
+            $this->trackTripService->recordClientRejection($captain, $trip, $reservation, $message);
 
             return $report->load([
                 'reservation.user:id,name,phone',

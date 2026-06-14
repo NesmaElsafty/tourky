@@ -54,7 +54,14 @@ class TripController extends Controller
                 'time',
                 'routeTime:id,route_id,time_ids',
                 'reservations.user:id,name,phone',
-                'trackTrips' => static fn ($q) => $q->orderByDesc('created_at')->orderByDesc('id'),
+                'trackTrips' => static fn ($q) => $q
+                    ->with([
+                        'captain:id,name',
+                        'client:id,name',
+                        'point:id,name_en,name_ar',
+                    ])
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id'),
                 'reports' => static fn ($q) => $q
                     ->with([
                         'reservation.user:id,name,phone',

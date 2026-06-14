@@ -2,7 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\ResolvesApiLocale;
+use App\Http\Resources\CaptainTrackTripResource;
 use App\Models\TrackTrip;
+use App\Support\TrackTripMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,8 +14,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class AdminTrackTripResource extends JsonResource
 {
+    use ResolvesApiLocale;
+
     public function toArray(Request $request): array
     {
+        $locale = $this->resolveLocale($request);
         $location = CaptainTrackTripResource::parseLocation($this->message);
 
         return [
@@ -22,9 +28,9 @@ class AdminTrackTripResource extends JsonResource
             'car_id' => $this->car_id,
             'point_id' => $this->point_id,
             'client_id' => $this->client_id,
-            'message' => $location === null ? $this->message : null,
-            'lat' => $location['lat'] ?? null,
-            'long' => $location['long'] ?? null,
+            'message' => $location === null
+                ? TrackTripMessage::display($this->resource, $locale)
+                : null,
             'trip' => $this->whenLoaded('trip', fn () => $this->trip === null ? null : [
                 'id' => $this->trip->id,
                 'date' => $this->trip->date,
@@ -45,8 +51,9 @@ class AdminTrackTripResource extends JsonResource
             ]),
             'point' => $this->whenLoaded('point', fn () => $this->point === null ? null : [
                 'id' => $this->point->id,
-                'name_en' => $this->point->name_en,
-                'name_ar' => $this->point->name_ar,
+                'name' => $locale === 'ar'
+                    ? ($this->point->name_ar ?: $this->point->name_en)
+                    : ($this->point->name_en ?: $this->point->name_ar),
             ]),
             'client' => $this->whenLoaded('client', fn () => $this->client === null ? null : [
                 'id' => $this->client->id,

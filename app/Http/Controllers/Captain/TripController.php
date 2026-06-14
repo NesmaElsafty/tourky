@@ -258,21 +258,13 @@ class TripController extends Controller
             /** @var User $user */
             $user = $request->user();
 
-            $trip = $this->captainTripService->getTripForCaptain($user, $trip);
-
-            if (in_array($trip->status, ['completed', 'cancelled'], true)) {
-                throw ValidationException::withMessages([
-                    'trip' => [__('api.captain_trips.cannot_cancel_trip')],
-                ]);
-            }
-
-            $trip->update(['status' => 'cancelled']);
+            $trip = $this->captainTripService->cancelTripForCaptain($user, $trip);
 
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.captain_trips.trip_cancelled'),
                 'data' => new CaptainTripDetailResource(
-                    $this->captainTripService->getTripForCaptain($user, $trip->fresh())
+                    $this->captainTripService->getTripForCaptain($user, $trip)
                 ),
             ]);
         } catch (ValidationException $e) {

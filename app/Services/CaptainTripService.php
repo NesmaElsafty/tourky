@@ -14,6 +14,11 @@ use Illuminate\Validation\ValidationException;
 
 class CaptainTripService
 {
+    public function __construct(
+        private TrackTripService $trackTripService,
+        private CaptainTripNotificationService $captainTripNotificationService,
+    ) {}
+
     /**
      * @param  'today'|'upcoming'|'week'|'history'  $scope
      * @return LengthAwarePaginator<int, Trip>
@@ -229,6 +234,31 @@ class CaptainTripService
 
         $trip->update(['status' => 'in_progress']);
 
+        $this->captainTripNotificationService->notifyTripStarted($captain, $trip);
+
+        return $trip->fresh([
+            'time.point.route',
+            'time.point',
+            'tripCars' => static fn ($q) => $q->where('captain_id', $captain->id),
+            'tripCars.captain:id,name,phone,lat,long,status,has_trip,trip_id',
+            'tripCars.car',
+        ]) ?? $trip;
+    }
+
+    public function cancelTripForCaptain(User $captain, Trip $trip): Trip
+    {
+        $this->assertCaptainOnTrip($captain, $trip);
+
+        if (in_array($trip->status, ['completed', 'cancelled'], true)) {
+            throw ValidationException::withMessages([
+                'trip' => [__('api.captain_trips.cannot_cancel_trip')],
+            ]);
+        }
+
+        $trip->update(['status' => 'cancelled']);
+
+        $this->captainTripNotificationService->notifyTripCancelled($captain, $trip);
+
         return $trip->fresh([
             'time.point.route',
             'time.point',
@@ -271,6 +301,8 @@ class CaptainTripService
         }
 
         $reservation->update(['picked_up_at' => now()]);
+
+        $this->trackTripService->recordReservationPickup($captain, $trip, $reservation);
 
         return $reservation->fresh(['user:id,name,phone']) ?? $reservation;
     }
@@ -317,6 +349,8 @@ class CaptainTripService
         }
 
         $reservation->update(['dropped_off_at' => now()]);
+
+        $this->trackTripService->recordReservationDropoff($captain, $trip, $reservation);
 
         return $reservation->fresh(['user:id,name,phone']) ?? $reservation;
     }

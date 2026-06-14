@@ -13,31 +13,40 @@ class FiredNotificationResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $notification = $this->notification;
+        $locale = $this->resolveLocale($request);
 
         return array_merge(
             [
                 'delivery_id' => $this->id,
+                'notification_id' => $this->notification_id,
                 'fired_at' => $this->created_at,
                 'read_at' => $this->read_at,
                 'is_read' => $this->read_at !== null,
             ],
-            $notification !== null
-                ? (new NotificationResource($notification))->toArray($request)
-                : [
-                    'id' => null,
-                    'title' => null,
-                    'title_en' => null,
-                    'title_ar' => null,
-                    'description' => null,
-                    'description_en' => null,
-                    'description_ar' => null,
-                    'user_type' => null,
-                    'language' => $this->resolveLocale($request),
-                    'created_at' => null,
-                    'updated_at' => null,
-                ],
+            $this->notification !== null
+                ? (new NotificationResource($this->notification))->toArray($request)
+                : $this->directDeliveryPayload($locale),
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function directDeliveryPayload(string $locale): array
+    {
+        return [
+            'id' => null,
+            'title' => $this->localizedTitle($locale),
+            'title_en' => $this->title_en,
+            'title_ar' => $this->title_ar,
+            'description' => $this->localizedDescription($locale),
+            'description_en' => $this->description_en,
+            'description_ar' => $this->description_ar,
+            'user_type' => $this->user?->type,
+            'language' => $locale,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 
     private function resolveLocale(Request $request): string

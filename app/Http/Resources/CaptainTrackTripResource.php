@@ -2,7 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\ResolvesApiLocale;
 use App\Models\TrackTrip;
+use App\Support\TrackTripMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,8 +13,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class CaptainTrackTripResource extends JsonResource
 {
+    use ResolvesApiLocale;
+
     public function toArray(Request $request): array
     {
+        $locale = $this->resolveLocale($request);
         $location = self::parseLocation($this->message);
 
         return [
@@ -22,9 +27,9 @@ class CaptainTrackTripResource extends JsonResource
             'car_id' => $this->car_id,
             'point_id' => $this->point_id,
             'client_id' => $this->client_id,
-            'message' => $location === null ? $this->message : null,
-            'lat' => $location['lat'] ?? null,
-            'long' => $location['long'] ?? null,
+            'message' => $location === null
+                ? TrackTripMessage::display($this->resource, $locale)
+                : null,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

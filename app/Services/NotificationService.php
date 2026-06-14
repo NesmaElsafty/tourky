@@ -39,7 +39,7 @@ class NotificationService
     {
         return NotificationDelivery::query()
             ->where('user_id', $user->id)
-            ->with('notification')
+            ->with(['notification', 'user:id,type'])
             ->orderByDesc('id')
             ->paginate($perPage);
     }
@@ -104,6 +104,36 @@ class NotificationService
     public function deleteNotification(Notification $notification): void
     {
         $notification->delete();
+    }
+
+    /**
+     * Store an inbox delivery without an admin notification template (notification_id = null).
+     *
+     * @param  array{title_en: string, title_ar: string, description_en: string, description_ar: string}  $content
+     * @param  array<string, string>  $fcmData
+     */
+    public function deliverDirectToUser(User $user, array $content, array $fcmData = []): NotificationDelivery
+    {
+        $delivery = NotificationDelivery::query()->create([
+            'notification_id' => null,
+            'user_id' => $user->id,
+            'title_en' => $content['title_en'],
+            'title_ar' => $content['title_ar'],
+            'description_en' => $content['description_en'],
+            'description_ar' => $content['description_ar'],
+        ]);
+
+        if ($user->type !== 'admin' && $user->hasFcmToken()) {
+            $locale = $user->language === 'ar' ? 'ar' : 'en';
+            $title = $delivery->localizedTitle($locale) ?? '';
+            $body = $delivery->localizedDescription($locale) ?? '';
+
+            if ($title !== '' || $body !== '') {
+                $this->fcmNotificationService->sendToUser($user, $title, $body, $fcmData);
+            }
+        }
+
+        return $delivery;
     }
 
     /**

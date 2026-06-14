@@ -90,7 +90,11 @@ class TripResource extends JsonResource
             ),
             'track_trips' => $this->when(
                 $this->relationLoaded('trackTrips'),
-                fn () => CaptainTrackTripResource::collection($this->trackTrips),
+                fn () => AdminTrackTripResource::collection(
+                    $this->trackTrips->filter(
+                        fn ($trackTrip) => CaptainTrackTripResource::parseLocation($trackTrip->message) === null
+                    )
+                ),
             ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
