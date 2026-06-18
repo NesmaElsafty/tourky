@@ -21,6 +21,8 @@ use App\Http\Resources\CompanyResource;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Http\Resources\AdminClientTripsResource;
+use App\Http\Resources\TransactionResource;
+use App\Models\Transaction;
 class UserController extends Controller
 {
     public function __construct(
@@ -519,6 +521,34 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => __('api.trips.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // get transactions for the client
+    public function getTransactionsForClient(Request $request, $id)
+    {
+        try {
+            $client = User::find($id);
+            if($client === null || $client->type !== 'client') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.users.user_not_found'),
+                ], 404);
+            }
+            $transactions = Transaction::where('client_id', $client->id)->orderBy('created_at', 'desc')->paginate(10);
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.users.transactions_retrieved'),
+                'data' => TransactionResource::collection($transactions),
+                'pagination' => PaginationHelper::paginate($transactions),
+            ]);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.transactions.server_error'),
                 'error' => $e->getMessage(),
             ], 500);
         }

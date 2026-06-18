@@ -114,8 +114,9 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::patch('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->whereNumber('reservation');
 
     Route::get('getReservationsForClient/{clientId}', [AdminUserController::class, 'getReservationsForClient']);
+    Route::get('getCompletedTripsForClient/{clientId}', [AdminUserController::class, 'getCompletedTripsForClient']);
+    Route::get('getTransactionsForClient/{clientId}', [AdminUserController::class, 'getTransactionsForClient']);
     
-    Route::get('getCompletedTripsForClient/{clientId}', [AdminUserController::class, 'getCompletedTripsForClient'])->whereNumber('clientId');
     Route::get('route-times', [AdminRouteTimeController::class, 'index']);
     Route::post('route-times', [AdminRouteTimeController::class, 'store']);
     Route::get('route-times/{routeTime}', [AdminRouteTimeController::class, 'show'])->whereNumber('routeTime');

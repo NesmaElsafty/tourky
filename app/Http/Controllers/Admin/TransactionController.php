@@ -71,7 +71,7 @@ class TransactionController extends Controller
             $transaction = $this->transactionService->createForAdmin($data);
 
             if ($request->hasFile('image')) {
-                $transaction->addMediaFromRequest('image')->toMediaCollection('proof_image');
+                $transaction->addMediaFromRequest('image')->toMediaCollection('image');
             }
 
             if (($data['transaction_status'] ?? null) === 'accepted') {

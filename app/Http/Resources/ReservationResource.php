@@ -22,7 +22,7 @@ class ReservationResource extends JsonResource
             'date' => $this->date,
             'time_id' => $this->time_id,
             'drop_off_time_id' => $this->drop_off_time_id,
-            'price' => $this->price,
+            'price' => $this->price ?? 0,
             'route_time_id' => $this->route_time_id,
             'route' => $this->when(
                 $this->relationLoaded('route') && $this->route !== null,
