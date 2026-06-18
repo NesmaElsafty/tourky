@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Concerns\ResolvesApiLocale;
 use App\Services\CaptainDocumentService;
-use App\Models\Trip;
 use App\Models\Reservation;
 use App\Models\TripCar;
 use Illuminate\Http\Request;
@@ -11,6 +11,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
+    use ResolvesApiLocale;
+
     public function toArray(Request $request): array
     {
         $locale = $this->resolveLocale($request);
@@ -35,7 +37,9 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'type' => $this->type,
-            'type_label' => $this->type !== null ? __('api.users.type_labels.'.$this->type) : null,
+            'type_label' => $this->type !== null
+                ? __('api.users.type_labels.'.$this->type, [], $locale)
+                : null,
             'language' => $this->language,
             'is_blocked' => $this->trashed(),
             'blocked_at' => $this->deleted_at,
@@ -88,20 +92,5 @@ class UserResource extends JsonResource
             ),
             'car' => $this->when($this->relationLoaded('car'), fn () => new CarResource($this->car)),
         ];
-    }
-
-    private function resolveLocale(Request $request): string
-    {
-        $user = $request->user();
-        if ($user !== null) {
-            $language = strtolower((string) $user->getAttribute('language'));
-            if ($language === 'en' || $language === 'ar') {
-                return $language;
-            }
-        }
-
-        $headerLanguage = strtolower((string) $request->header('lang', ''));
-
-        return $headerLanguage === 'ar' ? 'ar' : 'en';
     }
 }

@@ -142,8 +142,14 @@ Route::middleware(['auth:sanctum', 'locale.user', EnsureUserIsAdmin::class])->gr
     Route::patch('trips/{trip}', [AdminTripController::class, 'update'])->whereNumber('trip');
     Route::delete('trips/{trip}', [AdminTripController::class, 'destroy'])->whereNumber('trip');
 
-    Route::get('users/blocklist', [AdminUserController::class, 'blocklist']);
-    Route::post('users/{id}/restore', [AdminUserController::class, 'restore'])->whereNumber('id');
+    Route::middleware(['permission:users.blocklist.view'])->group(function (): void {
+        Route::get('users/blocklist', [AdminUserController::class, 'blocklist']);
+    });
+
+    Route::middleware(['permission:users.blocklist.manage'])->group(function (): void {
+        Route::post('users/{id}/restore', [AdminUserController::class, 'restore'])->whereNumber('id');
+    });
+
     Route::get('users', [AdminUserController::class, 'index']);
     Route::post('users', [AdminUserController::class, 'store']);
     Route::get('users/{id}', [AdminUserController::class, 'show']);

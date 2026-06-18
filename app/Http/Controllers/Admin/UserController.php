@@ -107,6 +107,13 @@ class UserController extends Controller
     public function blocklist(Request $request)
     {
         try {
+            /** @var User|null $actor */
+            $actor = $request->user();
+            $denied = $this->ensureBlocklistViewPermission($actor);
+            if ($denied !== null) {
+                return $denied;
+            }
+
             $users = User::onlyTrashed()->paginate(10);
             $pagination = PaginationHelper::paginate($users);
 
@@ -308,7 +315,7 @@ class UserController extends Controller
             /** @var \App\Models\User $actor */
             $actor = $request->user();
 
-            $denied = $this->ensureManagePermissionForUserType($actor, $user->type, creating: false);
+            $denied = $this->ensureBlocklistManagePermission($actor);
             if ($denied !== null) {
                 return $denied;
             }
@@ -340,7 +347,7 @@ class UserController extends Controller
             $trashed = User::onlyTrashed()->with(['role'])->findOrFail($id);
 
             $actor = $request->user();
-            $denied = $this->ensureManagePermissionForUserType($actor, $trashed->type, creating: false);
+            $denied = $this->ensureBlocklistManagePermission($actor);
             if ($denied !== null) {
                 return $denied;
             }
@@ -363,6 +370,37 @@ class UserController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function ensureBlocklistViewPermission(?User $actor): ?JsonResponse
+    {
+        if ($actor === null || ! $actor->hasPermission('users.blocklist.view')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        return null;
+    }
+
+    private function ensureBlocklistManagePermission(?User $actor): ?JsonResponse
+    {
+        if ($actor === null || ! $actor->hasPermission('users.blocklist.manage')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        if ($actor->isCompanyOperator()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.auth.forbidden_permission'),
+            ], 403);
+        }
+
+        return null;
     }
 
     private function ensureListPermission(?User $actor, string $type): ?JsonResponse
