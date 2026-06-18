@@ -3,6 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Services\CaptainDocumentService;
+use App\Models\Trip;
+use App\Models\Reservation;
+use App\Models\TripCar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,6 +16,19 @@ class UserResource extends JsonResource
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
 
+        $bookedTrips = 0;
+        if ($this->type === 'client') {
+            $bookedTrips = Reservation::where('user_id', $this->id)->where('status', 'confirmed')->whereHas('trip', function ($query) {
+                $query->where('status', 'completed');
+            })->count();
+        }
+
+        if($this->type === 'captain') {
+            $bookedTrips = TripCar::where('captain_id', $this->id)->whereHas('trip', function ($query) {
+                $query->where('status', 'completed');
+            })->count();
+        }
+        
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -35,6 +51,7 @@ class UserResource extends JsonResource
                 ],
             ),
 
+            'booked_trips' => $bookedTrips ?? 0,
             'balance' => $this->balance,
             'role_id' => $this->when($this->type === 'admin', $this->role_id),
             'rating_average' => $this->when(
