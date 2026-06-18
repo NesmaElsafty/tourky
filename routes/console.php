@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('captain:apply-late-start-penalties')->everyMinute();
+Schedule::command('reservations:cancel-expired-pending')->everyMinute();

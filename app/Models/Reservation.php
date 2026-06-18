@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Reservation extends Model
 {
@@ -72,11 +73,37 @@ class Reservation extends Model
     }
 
     /**
-     * @return BelongsTo<RouteTime, $this>
+     * Car assigned to this reservation via its trip_car_id (TripCar).
+     *
+     * @return HasOneThrough<Car, TripCar, $this>
      */
-    public function routeTime(): BelongsTo
+    public function car(): HasOneThrough
     {
-        return $this->belongsTo(RouteTime::class);
+        return $this->hasOneThrough(
+            Car::class,
+            TripCar::class,
+            'id',
+            'id',
+            'trip_car_id',
+            'car_id',
+        );
+    }
+
+    /**
+     * Captain assigned to this reservation via its trip_car_id (TripCar).
+     *
+     * @return HasOneThrough<User, TripCar, $this>
+     */
+    public function captain(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            User::class,
+            TripCar::class,
+            'id',
+            'id',
+            'trip_car_id',
+            'captain_id',
+        );
     }
 
     /**

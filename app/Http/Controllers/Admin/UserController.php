@@ -18,6 +18,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\ReservationResource;
+use App\Models\Reservation;
+use App\Http\Resources\AdminClientTripsResource;
 class UserController extends Controller
 {
     public function __construct(
@@ -463,5 +466,61 @@ class UserController extends Controller
         $user->setAttribute('captain_rating_average', $agg['average']);
         $user->setAttribute('captain_ratings_count', $agg['count']);
         $user->setAttribute('captain_feedback_entries', $this->captainRatingService->feedbackEntriesForCaptain($id));
+    }
+
+    // get reservations for the client
+    public function getReservationsForClient(Request $request, $id)
+    {
+        try {
+            $client = User::find($id);
+            
+            if($client === null || $client->type !== 'client') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.users.user_not_found'),
+                ], 404);
+            }
+            $reservations = Reservation::where('user_id', $client->id)->orderBy('created_at', 'desc')->with('route', 'point', 'time')->paginate(10);
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.users.reservations_retrieved'),
+                'data' => ReservationResource::collection($reservations),
+                'pagination' => PaginationHelper::paginate($reservations),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.reservations.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // client completed trips
+    public function getCompletedTripsForClient(Request $request, $id)
+    {
+        try {
+            $client = User::find($id);
+            if($client === null || $client->type !== 'client') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.users.user_not_found'),
+                ], 404);
+            }
+            $trips = Reservation::where('user_id', $client->id)->whereNotNull('trip_id')->whereIn('status', ['confirmed', 'completed', 'cancelled'])->orderBy('created_at', 'desc')->paginate(10);
+            return response()->json([
+                'status' => 'success',
+                'message' => __('api.users.completed_trips_retrieved'),
+                'data' => AdminClientTripsResource::collection($trips->load('route', 'car', 'captain', 'time', 'trip')),
+                'pagination' => PaginationHelper::paginate($trips),
+            ]);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('api.trips.server_error'),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
