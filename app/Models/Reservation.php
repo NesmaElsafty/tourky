@@ -73,6 +73,14 @@ class Reservation extends Model
     }
 
     /**
+     * @return BelongsTo<RouteTime, $this>
+     */
+    public function routeTime(): BelongsTo
+    {
+        return $this->belongsTo(RouteTime::class);
+    }
+
+    /**
      * Car assigned to this reservation via its trip_car_id (TripCar).
      *
      * @return HasOneThrough<Car, TripCar, $this>

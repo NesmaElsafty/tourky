@@ -11,52 +11,32 @@ use Illuminate\Database\Seeder;
 class ReservationSeeder extends Seeder
 {
     /**
-     * Cap how many pickup times participate in the dense grids (avoids huge seed runtime if many B2C times exist).
+     * Route-time rows used for dense pending grids (not per pickup stop).
      */
-    private const MAX_TIMES_FOR_GRIDS = 22;
+    private const MAX_ROUTE_TIMES_FOR_GRIDS = 12;
 
-    /**
-     * Distinct future dates (spread) for dense pending grids.
-     */
-    private const FUTURE_DATE_COUNT = 28;
+    private const FUTURE_DATE_COUNT = 10;
 
-    /**
-     * Pending reservations per (date, time) — capped by client count in run().
-     */
-    private const PENDING_PER_DATE_AND_TIME = 18;
+    /** Pending reservations per (date, route_time) — admin groups by route_time_id. */
+    private const PENDING_PER_DATE_AND_ROUTE_TIME = 6;
 
-    /**
-     * Past dates for history / status-mix listings (cancelled, confirmed, pending).
-     */
-    private const PAST_DATE_COUNT = 18;
+    private const PAST_DATE_COUNT = 8;
 
-    /**
-     * Reservations per (past date, time) sample.
-     */
-    private const PAST_SAMPLE_PER_CELL = 10;
+    private const PAST_SAMPLE_PER_ROUTE_TIME = 4;
 
-    /**
-     * Extra random pending rows (ungrouped volume for admin lists & filters).
-     */
-    private const BULK_RANDOM_PENDING = 180;
+    private const BULK_RANDOM_PENDING = 30;
 
     public function run(): void
     {
-        $times = Time::query()
-            ->with('point')
-            ->whereHas('point', function ($query): void {
-                $query->whereHas('route', fn ($routeQuery) => $routeQuery->whereIn('type', ['b2c', 'b2b']));
-            })
+        $routeTimes = RouteTime::query()
+            ->whereHas('route', fn ($query) => $query->whereIn('type', ['b2c', 'b2b']))
             ->orderBy('id')
+            ->take(self::MAX_ROUTE_TIMES_FOR_GRIDS)
             ->get();
 
-        if ($times->isEmpty()) {
+        if ($routeTimes->isEmpty()) {
             return;
         }
-
-        $gridTimes = $times->count() > self::MAX_TIMES_FOR_GRIDS
-            ? $times->take(self::MAX_TIMES_FOR_GRIDS)
-            : $times;
 
         $clients = User::query()->where('type', 'client')->get();
         if ($clients->isEmpty()) {
@@ -64,20 +44,20 @@ class ReservationSeeder extends Seeder
         }
 
         $futureDates = $this->spreadFutureDates(self::FUTURE_DATE_COUNT);
-        $take = min(self::PENDING_PER_DATE_AND_TIME, $clients->count());
+        $futureTake = min(self::PENDING_PER_DATE_AND_ROUTE_TIME, $clients->count());
 
-        foreach ($gridTimes as $time) {
-            $time->loadMissing('point');
-            if ($time->point === null) {
+        foreach ($routeTimes as $routeTime) {
+            $pickupTime = $this->resolvePickupTimeForRouteTime($routeTime);
+            if ($pickupTime === null) {
                 continue;
             }
-            $routeTime = $this->resolveOrCreateRouteTime((int) $time->point->route_id, (int) $time->id);
-            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $time->id);
+
+            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $pickupTime->id);
 
             foreach ($futureDates as $date) {
-                foreach ($clients->shuffle()->take($take) as $client) {
+                foreach ($clients->shuffle()->take($futureTake) as $client) {
                     Reservation::factory()
-                        ->forTime($time)
+                        ->forTime($pickupTime)
                         ->create([
                             'user_id' => $client->id,
                             'date' => $date,
@@ -90,20 +70,20 @@ class ReservationSeeder extends Seeder
         }
 
         $pastDates = $this->spreadPastDates(self::PAST_DATE_COUNT);
-        $pastTake = min(self::PAST_SAMPLE_PER_CELL, $clients->count());
+        $pastTake = min(self::PAST_SAMPLE_PER_ROUTE_TIME, $clients->count());
 
-        foreach ($gridTimes as $time) {
-            $time->loadMissing('point');
-            if ($time->point === null) {
+        foreach ($routeTimes as $routeTime) {
+            $pickupTime = $this->resolvePickupTimeForRouteTime($routeTime);
+            if ($pickupTime === null) {
                 continue;
             }
-            $routeTime = $this->resolveOrCreateRouteTime((int) $time->point->route_id, (int) $time->id);
-            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $time->id);
+
+            $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $pickupTime->id);
 
             foreach ($pastDates as $date) {
                 foreach ($clients->shuffle()->take($pastTake) as $client) {
                     Reservation::factory()
-                        ->forTime($time)
+                        ->forTime($pickupTime)
                         ->create([
                             'user_id' => $client->id,
                             'date' => $date,
@@ -115,12 +95,22 @@ class ReservationSeeder extends Seeder
             }
         }
 
+        $allTimes = Time::query()
+            ->with('point')
+            ->whereHas('point.route', fn ($query) => $query->whereIn('type', ['b2c', 'b2b']))
+            ->get();
+
+        if ($allTimes->isEmpty()) {
+            return;
+        }
+
         for ($n = 0; $n < self::BULK_RANDOM_PENDING; $n++) {
-            $time = $times->random();
+            $time = $allTimes->random();
             $time->loadMissing('point');
             if ($time->point === null) {
                 continue;
             }
+
             $routeTime = $this->resolveOrCreateRouteTime((int) $time->point->route_id, (int) $time->id);
             $dropOffTimeId = $this->resolveDropOffTimeId($routeTime, (int) $time->id);
             $date = now()->addDays(fake()->numberBetween(1, 120))->toDateString();
@@ -135,6 +125,22 @@ class ReservationSeeder extends Seeder
                     'drop_off_time_id' => $dropOffTimeId,
                 ]);
         }
+    }
+
+    private function resolvePickupTimeForRouteTime(RouteTime $routeTime): ?Time
+    {
+        $pickupTimeId = collect($routeTime->time_ids ?? [])
+            ->map(static fn ($id): int => (int) $id)
+            ->first(static fn (int $id): bool => $id > 0);
+
+        if ($pickupTimeId === null) {
+            return null;
+        }
+
+        return Time::query()
+            ->with('point')
+            ->whereKey($pickupTimeId)
+            ->first();
     }
 
     /**
@@ -180,9 +186,6 @@ class ReservationSeeder extends Seeder
         ]);
     }
 
-    /**
-     * Pick a drop-off time from the same route schedule row, after the pickup in time_ids order.
-     */
     private function resolveDropOffTimeId(RouteTime $routeTime, int $pickupTimeId): ?int
     {
         $timeIds = collect($routeTime->time_ids ?? [])
