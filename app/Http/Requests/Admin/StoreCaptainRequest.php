@@ -17,7 +17,7 @@ class StoreCaptainRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:255', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
-            'license_expiry_date' => ['nullable', 'date'],
+            'license_expiry_date' => ['nullable'],
         ];
     }
 }

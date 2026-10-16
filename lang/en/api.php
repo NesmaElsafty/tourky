@@ -133,6 +133,7 @@ return [
             'sedan' => 'Sedan',
             'microbus' => 'Microbus',
         ],
+        'cannot_delete_car_has_trips_cars' => 'Cannot delete car because it is associated with trips.',
     ],
 
     'routes' => [

@@ -15,7 +15,9 @@ use Illuminate\Validation\ValidationException;
 
 class CarController extends Controller
 {
-    public function __construct(private CarService $carService) {}
+    public function __construct(private CarService $carService)
+    {
+    }
 
     public function index(Request $request)
     {
@@ -114,12 +116,18 @@ class CarController extends Controller
     {
         try {
             $car = Car::query()->findOrFail($id);
+            if ($car->tripCars()->exists()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('api.cars.cannot_delete_car_has_trips_cars'),
+                ], 400);
+            }
             $this->carService->deleteCar($car);
-
             return response()->json([
                 'status' => 'success',
                 'message' => __('api.cars.deleted'),
-            ]);
+                'data' => new CarResource($car),
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

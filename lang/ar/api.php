@@ -133,6 +133,7 @@ return [
             'sedan' => 'سيدان',
             'microbus' => 'ميكروباص',
         ],
+        'cannot_delete_car_has_trips_cars' => 'لا يمكن حذف السيارة لأنها مرتبطة برحلات.',
     ],
 
     'routes' => [
